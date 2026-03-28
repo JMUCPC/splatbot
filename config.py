@@ -1,0 +1,28 @@
+# ── Grid ─────────────────────────────────────────────────────────────────────
+GRID_RADIUS = 8       # hexes from origin to edge
+MAX_TURNS   = 200     # fixed match length
+
+# ── Timing ───────────────────────────────────────────────────────────────────
+TICK_DELAY  = 0.15    # default seconds per turn
+TIMEOUT     = 0.5     # per-bot per-turn execution budget (seconds)
+
+# ── Rendering ────────────────────────────────────────────────────────────────
+HEX_SIZE    = 26      # flat-top hex radius in SVG pixels
+
+# ── Colors ───────────────────────────────────────────────────────────────────
+#   Player 1 = fire/orange     Player 2 = water/cyan
+PLAYER_TILE_COLORS = {
+    1: "#b84010",   # painted tile — deep orange
+    2: "#0a7090",   # painted tile — deep cyan
+}
+PLAYER_BOT_COLORS = {
+    1: "#ff6b2b",   # bot marker — bright orange
+    2: "#00d4ff",   # bot marker — bright cyan
+}
+PLAYER_BRIGHT_COLORS = {
+    1: "#ff8c50",   # occupied-tile highlight — P1
+    2: "#22e0ff",   # occupied-tile highlight — P2
+}
+TILE_NONE_COLOR   = "#161f30"   # unpainted hex fill
+TILE_STROKE_COLOR = "#090f1d"   # hex border
+CANVAS_BG         = "#070d1a"   # SVG background
