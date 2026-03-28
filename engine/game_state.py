@@ -5,15 +5,17 @@ produced each turn rather than mutating the existing one.  This keeps
 the frontend and engine decoupled (the frontend always holds a safe
 read-only copy).
 """
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
 from engine.hex_grid import Hex, generate_hex_grid
+import config
 
 
 class Owner(Enum):
-    NONE     = 0
+    NONE = 0
     PLAYER_1 = 1
     PLAYER_2 = 2
 
@@ -21,20 +23,20 @@ class Owner(Enum):
 @dataclass
 class GameState:
     # Core grid data
-    grid:         set[Hex]
-    tile_owners:  dict[Hex, Owner]       # hex → who painted it (NONE if unpainted)
-    bot_positions: dict[int, Hex]        # player_id (1 or 2) → current hex
+    grid: set[Hex]
+    tile_owners: dict[Hex, Owner]  # hex → who painted it (NONE if unpainted)
+    bot_positions: dict[int, Hex]  # player_id (1 or 2) → current hex
 
     # Match metadata
-    turn:      int = 0
+    turn: int = 0
     max_turns: int = 200
-    radius:    int = 8
+    radius: int = 8
 
     # Per-player ability cooldowns and use counts (extensible)
     # key: (player_id, ability_name) → turns remaining on cooldown
-    cooldowns:    dict[tuple, int]  = field(default_factory=dict)
+    cooldowns: dict[tuple, int] = field(default_factory=dict)
     # key: (player_id, ability_name) → total activations this match
-    ability_uses: dict[tuple, int]  = field(default_factory=dict)
+    ability_uses: dict[tuple, int] = field(default_factory=dict)
 
     # ── Derived properties ────────────────────────────────────────────────
 
@@ -67,18 +69,19 @@ class GameState:
             return 1
         if sc[2] > sc[1]:
             return 2
-        return None   # draw
+        return None  # draw
 
 
 # ── Factory ───────────────────────────────────────────────────────────────────
+
 
 def make_initial_state(radius: int = 8, max_turns: int = 200) -> GameState:
     """Create a fresh game state with bots placed on opposite sides."""
     grid = generate_hex_grid(radius)
 
     # Starting positions: left and right extremes of the middle row
-    pos1 = Hex(-(radius - 1), 0)
-    pos2 = Hex( (radius - 1), 0)
+    pos1 = config.START_POS_1
+    pos2 = config.START_POS_2
 
     tile_owners: dict[Hex, Owner] = {
         pos1: Owner.PLAYER_1,

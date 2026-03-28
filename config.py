@@ -1,4 +1,7 @@
 # ── Grid ─────────────────────────────────────────────────────────────────────
+from engine.hex_grid import Hex
+
+
 GRID_RADIUS = 8       # hexes from origin to edge
 MAX_TURNS   = 200     # fixed match length
 
@@ -26,3 +29,7 @@ PLAYER_BRIGHT_COLORS = {
 TILE_NONE_COLOR   = "#161f30"   # unpainted hex fill
 TILE_STROKE_COLOR = "#090f1d"   # hex border
 CANVAS_BG         = "#070d1a"   # SVG background
+
+# ── Gameplay ─────────────────────────────────────────────────────────────────
+START_POS_1 = Hex(-(GRID_RADIUS - 1), 0)
+START_POS_2 = Hex( (GRID_RADIUS - 1), 0)
