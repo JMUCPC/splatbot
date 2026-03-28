@@ -1,1 +1,1 @@
-"""Splatbot game engine (hex grid, game state, match logic)."""
+"""Splatbot game engine."""

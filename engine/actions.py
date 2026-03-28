@@ -1,0 +1,1 @@
+#TODO define valid actions as return values of class functions (eg. Actions.move("W"))

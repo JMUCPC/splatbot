@@ -34,8 +34,7 @@ splatbot/
 │   └── controls.py          # Start/stop/speed controls, score display
 │
 ├── bots/
-│   ├── example_random.py    # Reference bot: moves randomly
-│   └── example_spiral.py    # Reference bot: spiral strategy
+│   └── random.py    # Reference bot: moves randomly to a valid adjacent tile
 │
 ├── config.py                # Default grid radius, turn count, tick speed, colors
 └── main.py                  # Entry point — launches NiceGUI app
