@@ -128,7 +128,7 @@ def make_initial_state(
         ),
         2: BotData(
             pid=2,
-            bot=TimeoutBot(),
+            bot=RandomBot(),
             position=pos2,
             facing=HexDirection.W,
         ),

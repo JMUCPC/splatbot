@@ -12,7 +12,12 @@ from typing import Any
 from nicegui import Client, context, ui
 
 from engine.game_state import GameState, GameStateSingleton
-from engine.turn_runner import BotRunner, run_turn_async
+from engine.turn_runner import (
+    BotRunner,
+    get_bot_timing_stats,
+    reset_bot_timing_stats,
+    run_turn_async,
+)
 from frontend.hex_renderer import render_hex_grid
 from frontend.event_console import NICEGUI_LOG_CSS, build_event_console, log_event
 import config
@@ -39,6 +44,7 @@ _runners: dict[int, BotRunner] = {}
 def _push_refs(refs: dict[str, Any], gs: GameState) -> None:
     sc = gs.score()
     pct = gs.turn / max(1, gs.max_turns)
+    timing_stats = get_bot_timing_stats()
 
     if "hex" in refs:
         refs["hex"].content = render_hex_grid(gs, config.HEX_SIZE)
@@ -50,6 +56,16 @@ def _push_refs(refs: dict[str, Any], gs: GameState) -> None:
         refs["pct_1"].set_text(f"{gs.coverage_pct()[1]:.1f}%")
     if "pct_2" in refs:
         refs["pct_2"].set_text(f"{gs.coverage_pct()[2]:.1f}%")
+    if "decision_time_1" in refs:
+        p1 = timing_stats.get(1, {})
+        p1_count = int(p1.get("decision_count", 0))
+        p1_avg = (float(p1.get("total_decision_seconds", 0.0)) / p1_count) if p1_count else 0.0
+        refs["decision_time_1"].set_text(f"{p1_avg:.5f}s/dec")
+    if "decision_time_2" in refs:
+        p2 = timing_stats.get(2, {})
+        p2_count = int(p2.get("decision_count", 0))
+        p2_avg = (float(p2.get("total_decision_seconds", 0.0)) / p2_count) if p2_count else 0.0
+        refs["decision_time_2"].set_text(f"{p2_avg:.5f}s/dec")
     if "turn_num" in refs:
         refs["turn_num"].set_text(str(gs.turn))
     if "progress" in refs:
@@ -117,6 +133,7 @@ def _reset() -> None:
     for runner in _runners.values():
         runner.shutdown()
     _runners = {}
+    reset_bot_timing_stats()
     global _running
     _running = False
     GameStateSingleton().reset(config.GRID_RADIUS, config.MAX_TURNS)
@@ -315,6 +332,11 @@ def build_ui() -> None:
                     .classes("sb-label-xs")
                     .style("color:#7a3010; margin-top:2px; margin-bottom:10px")
                 )
+                refs["decision_time_1"] = (
+                    ui.label("0.00000s/dec")
+                    .classes("sb-label-xs")
+                    .style("color:#7a3010; margin-top:2px; margin-bottom:10px")
+                )
                 ui.separator().classes("sb-divider").style("margin-bottom:10px")
                 ui.label("BOT FILE").classes("sb-label-xs")
                 refs["bot_input_1"] = (
@@ -345,6 +367,11 @@ def build_ui() -> None:
                 )
                 refs["pct_2"] = (
                     ui.label("0.0%")
+                    .classes("sb-label-xs")
+                    .style("color:#0a3a4c; margin-top:2px; margin-bottom:10px")
+                )
+                refs["decision_time_2"] = (
+                    ui.label("0.00000s/dec")
                     .classes("sb-label-xs")
                     .style("color:#0a3a4c; margin-top:2px; margin-bottom:10px")
                 )

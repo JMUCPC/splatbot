@@ -14,6 +14,7 @@ from engine.game_state import GameStateSingleton
 from frontend.event_console import log_event
 
 _MP_CTX: multiprocessing.context.SpawnContext = multiprocessing.get_context("spawn")
+_bot_timing_stats: dict[int, dict[str, float | int]] = {}
 
 
 class BotDecideTimeout(Exception):
@@ -37,10 +38,14 @@ def _persistent_worker(
         bot = task_q.get()
         if bot is None:
             return  # clean shutdown
+        started = time.perf_counter()
         try:
-            result_q.put(("ok", bot.decide()))
+            action = bot.decide()
+            elapsed = time.perf_counter() - started
+            result_q.put(("ok", action, elapsed))
         except BaseException as exc:  # noqa: BLE001
-            result_q.put(("err", exc))
+            elapsed = time.perf_counter() - started
+            result_q.put(("err", exc, elapsed))
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +75,7 @@ class BotRunner:
         p.start()
         return p
 
-    def decide(self) -> Action:
+    def decide(self) -> tuple[Action, float]:
         """Send current bot state to the worker and wait up to config.TIMEOUT.
 
         Blocking — call via asyncio.to_thread to avoid stalling the event loop.
@@ -80,7 +85,7 @@ class BotRunner:
         self._task_q.put(self._bot)
 
         try:
-            status, value = self._result_q.get(timeout=config.TIMEOUT)
+            status, value, elapsed = self._result_q.get(timeout=config.TIMEOUT)
         except queue.Empty:
             # True timeout — nuke the worker and respawn for next turn.
             self._proc.kill()
@@ -100,7 +105,7 @@ class BotRunner:
             raise value  # re-raise original exception from child
 
         if isinstance(value, (MoveAction, SkipAction)):
-            return value
+            return value, float(elapsed)
 
         raise TypeError(f"decide() must return Action, got {type(value).__name__}")
 
@@ -123,12 +128,40 @@ def _timeout_message(pid: int) -> str:
     return f"Bot {pid} exceeded time limit ({config.TIMEOUT}s) — skip"
 
 
+def _record_decision_timing(pid: int, elapsed_seconds: float, timed_out: bool = False) -> None:
+    stats = _bot_timing_stats.setdefault(
+        pid,
+        {
+            "total_decision_seconds": 0.0,
+            "decision_count": 0,
+            "timeout_count": 0,
+        },
+    )
+    stats["total_decision_seconds"] = float(stats["total_decision_seconds"]) + elapsed_seconds
+    stats["decision_count"] = int(stats["decision_count"]) + 1
+    if timed_out:
+        stats["timeout_count"] = int(stats["timeout_count"]) + 1
+
+
+def get_bot_timing_stats() -> dict[int, dict[str, float | int]]:
+    """Return a shallow copy of per-bot timing aggregates."""
+    return {pid: stats.copy() for pid, stats in _bot_timing_stats.items()}
+
+
+def reset_bot_timing_stats() -> None:
+    """Clear all runtime timing aggregates for a fresh match."""
+    _bot_timing_stats.clear()
+
+
 def _handle_bot_turn(pid: int, runner: BotRunner) -> None:
     state = GameStateSingleton().current
     try:
-        action = runner.decide()
+        action, elapsed_seconds = runner.decide()
+        _record_decision_timing(pid, elapsed_seconds)
         state.apply_action(pid, action)
     except BotDecideTimeout:
+        # No worker-side elapsed exists for queue timeout; budget is the best proxy.
+        _record_decision_timing(pid, config.TIMEOUT, timed_out=True)
         log_event(_timeout_message(pid))
         state.apply_action(pid, SkipAction())
     except Exception as e:
