@@ -14,6 +14,7 @@ from engine.game_state import GameState, GameStateSingleton
 from engine.hex_grid import hex_neighbor
 from engine.turn_runner import run_turn
 from frontend.hex_renderer import render_hex_grid
+from frontend.event_console import NICEGUI_LOG_CSS, build_event_console, log_event
 import config
 
 # ── Module-level runtime (match state lives in GameStateSingleton) ───────────
@@ -68,14 +69,14 @@ def _start() -> None:
     global _running
     _running = True
     _push()
-    _log("Match started.")
+    log_event("Match started.")
 
 
 def _pause() -> None:
     global _running
     _running = False
     _push()
-    _log("Paused.")
+    log_event("Paused.")
 
 
 def _reset() -> None:
@@ -83,18 +84,13 @@ def _reset() -> None:
     _running = False
     GameStateSingleton().reset(config.GRID_RADIUS, config.MAX_TURNS)
     _push()
-    _log("Match reset.")
+    log_event("Match reset.")
 
 
 def _set_speed(val: float) -> None:
     """Map slider 1–20 → delay 0.50s–0.03s (non-linear feel)."""
     global _tick_delay
     _tick_delay = round(max(0.03, 0.53 - float(val) * 0.025), 3)
-
-
-def _log(msg: str) -> None:
-    if "log" in _r:
-        _r["log"].push(msg)
 
 
 # ── Timer tick ────────────────────────────────────────────────────────────────
@@ -113,7 +109,7 @@ async def _tick() -> None:
         _running = False
         _push()
         sc = state.score()
-        _log(f"Match over — P1: {sc[1]} tiles  |  P2: {sc[2]} tiles")
+        log_event(f"Match over — P1: {sc[1]} tiles  |  P2: {sc[2]} tiles")
         return
 
     state.advance_turn()
@@ -186,16 +182,7 @@ HEAD_HTML = f"""
     display: block;
     width: 100%;
   }}
-
-  /* ── NiceGUI log skin ── */
-  .nicegui-log {{
-    background: #070d1a !important;
-    color: #3a5070 !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.7rem !important;
-    border-radius: 4px !important;
-  }}
-
+{NICEGUI_LOG_CSS}
   /* ── Quasar progress bar override ── */
   .sb-progress .q-linear-progress__track {{ background: #111c2e !important; }}
   .sb-progress .q-linear-progress__model {{ background: #ff6b2b !important; }}
@@ -326,19 +313,11 @@ def build_ui() -> None:
               .classes("sb-slider") \
               .style("width:120px; flex-shrink:0")
 
-        # ── Event log ──────────────────────────────────────────────────────
-        with ui.card().classes("sb-card").style(
-            "width:100%; max-width:1140px; margin-top:10px; padding:14px 16px"
-        ):
-            ui.label("EVENT LOG").classes("sb-label-xs").style("margin-bottom:6px")
-            _r["log"] = (
-                ui.log(max_lines=100)
-                .style("height:80px; width:100%")
-            )
+        build_event_console(_r)
 
     # ── Timer: 50 ms poll; internally rate-limited by _tick_delay ─────────
     ui.timer(0.05, _tick)
 
     # ── Push initial state ─────────────────────────────────────────────────
     _push()
-    _log("Splatbot ready — press START to begin demo.")
+    log_event("Splatbot ready — press START to begin demo.")

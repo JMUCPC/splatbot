@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import ClassVar
 
+from bots.error import ErrorBot
 from bots.random import RandomBot
 from bots.straight_line import StraightLineBot
 from engine.abstract_bot import AbstractBot
@@ -121,7 +122,7 @@ def make_initial_state(
         ),
         2: BotData(
             pid=2,
-            bot=RandomBot(),
+            bot=ErrorBot(),
             position=pos2,
             facing=HexDirection.W,
         ),

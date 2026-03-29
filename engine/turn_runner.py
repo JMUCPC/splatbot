@@ -1,5 +1,6 @@
 from engine.game_state import GameStateSingleton
 from engine.abstract_bot import AbstractBot
+from frontend.event_console import log_event
 
 
 def run_turn() -> None:
@@ -8,9 +9,9 @@ def run_turn() -> None:
     # TODO: limit bot execution time
     # TODO: error handling
     state = GameStateSingleton().current
-    bot1 = state.bots[1].bot
-    bot2 = state.bots[2].bot
-    action1 = bot1.decide()
-    action2 = bot2.decide()
-    state.apply_action(1, action1)
-    state.apply_action(2, action2)
+    for pid, bot_data in state.bots.items():
+        try:
+            action = bot_data.bot.decide()
+            state.apply_action(pid, action)
+        except Exception as e:
+            log_event(f"Error in bot {pid}: {e}")
