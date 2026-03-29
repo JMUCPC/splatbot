@@ -6,9 +6,6 @@ from typing import Any
 
 from nicegui import ui
 
-# Populated by build_event_console(); same dict as app._r
-_refs: dict[str, Any] | None = None
-
 # Injected into app.HEAD_HTML (inside the main <style> block)
 NICEGUI_LOG_CSS = """
   /* ── NiceGUI log skin ── */
@@ -23,16 +20,29 @@ NICEGUI_LOG_CSS = """
 
 
 def log_event(msg: str) -> None:
-    """Append a line to the event log if the UI has been built."""
-    if _refs is not None and "log" in _refs:
-        _refs["log"].push(msg)
+    """Append a line to every connected client's event log."""
+    from frontend.app import client_refs
+
+    for refs in list(client_refs.values()):
+        if "log" not in refs:
+            continue
+        log_widget = refs["log"]
+        if log_widget.is_deleted:
+            continue
+        try:
+            client = log_widget.client
+        except RuntimeError:
+            continue
+        if getattr(client, "_deleted", False):
+            continue
+        try:
+            log_widget.push(msg)
+        except RuntimeError:
+            continue
 
 
 def build_event_console(refs: dict[str, Any]) -> None:
     """Create the EVENT LOG card and assign the log widget to ``refs['log']``."""
-    global _refs
-    _refs = refs
-
     with ui.card().classes("sb-card").style(
         "width:100%; max-width:1140px; margin-top:10px; padding:14px 16px"
     ):

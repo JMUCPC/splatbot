@@ -13,10 +13,12 @@ from typing import ClassVar
 from bots.error import ErrorBot
 from bots.random import RandomBot
 from bots.straight_line import StraightLineBot
+from bots.timeout import TimeoutBot
 from engine.abstract_bot import AbstractBot
 from engine.actions import Action, MoveAction, SkipAction
 from engine.hex_grid import Hex, HexDirection, generate_hex_grid, hex_neighbor
 import config
+from frontend.event_console import log_event
 
 
 @dataclass
@@ -91,6 +93,10 @@ class GameState:
                     bot.position = new_pos
                     bot.facing = direction
                     self.tile_pids[new_pos] = pid
+                else:
+                    log_event(
+                        f"Bot {pid} tried to move to {new_pos}, but it's not in the grid"
+                    )
             case SkipAction():
                 pass
 
@@ -116,13 +122,13 @@ def make_initial_state(
     bots: dict[int, BotData] = {
         1: BotData(
             pid=1,
-            bot=StraightLineBot(),
+            bot=RandomBot(),
             position=pos1,
             facing=HexDirection.E,
         ),
         2: BotData(
             pid=2,
-            bot=ErrorBot(),
+            bot=TimeoutBot(),
             position=pos2,
             facing=HexDirection.W,
         ),

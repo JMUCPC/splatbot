@@ -3,71 +3,104 @@
 Run via main.py (project root).  In demo mode the engine is driven by a
 built-in random-walk simulator so the UI can be tested without any bot files.
 """
-from __future__ import annotations
-import random
-import time
-from pathlib import Path
 
-from nicegui import ui
+from __future__ import annotations
+
+import time
+from typing import Any
+
+from nicegui import Client, context, ui
 
 from engine.game_state import GameState, GameStateSingleton
-from engine.hex_grid import hex_neighbor
-from engine.turn_runner import run_turn
+from engine.turn_runner import BotRunner, run_turn_async
 from frontend.hex_renderer import render_hex_grid
 from frontend.event_console import NICEGUI_LOG_CSS, build_event_console, log_event
 import config
 
 # ── Module-level runtime (match state lives in GameStateSingleton) ───────────
 
-_running:    bool   = False
-_tick_delay: float  = config.TICK_DELAY   # updated by speed slider
-_last_tick:  float  = 0.0
-_demo_mode:  bool   = True                # False once real bot scripts are loaded
-_bot_labels: dict   = {1: "demo (random walk)", 2: "demo (random walk)"}
+_running: bool = False
+_tick_delay: float = config.TICK_DELAY
+_last_tick: float = 0.0
+_demo_mode: bool = True
+_bot_labels: dict = {1: "demo (random walk)", 2: "demo (random walk)"}
 
-# NiceGUI element references (populated in build_ui)
-_r: dict = {}
+# Per-browser-tab element refs: client_id -> widget dict
+client_refs: dict[str, dict[str, Any]] = {}
+
+_shared_head_installed: bool = False
+_game_timer_started: bool = False
+_runners: dict[int, BotRunner] = {}
 
 
 # ── UI update ─────────────────────────────────────────────────────────────────
 
-def _push() -> None:
-    """Push current game state to every live UI element."""
-    gs = GameStateSingleton().current
-    sc  = gs.score()
+
+def _push_refs(refs: dict[str, Any], gs: GameState) -> None:
+    sc = gs.score()
     pct = gs.turn / max(1, gs.max_turns)
 
-    if "hex"       in _r: _r["hex"].content        = render_hex_grid(gs, config.HEX_SIZE)
-    if "score_1"   in _r: _r["score_1"].set_text(str(sc[1]))
-    if "score_2"   in _r: _r["score_2"].set_text(str(sc[2]))
-    if "pct_1"     in _r: _r["pct_1"].set_text(f"{gs.coverage_pct()[1]:.1f}%")
-    if "pct_2"     in _r: _r["pct_2"].set_text(f"{gs.coverage_pct()[2]:.1f}%")
-    if "turn_num"  in _r: _r["turn_num"].set_text(str(gs.turn))
-    if "progress"  in _r: _r["progress"].value = pct
+    if "hex" in refs:
+        refs["hex"].content = render_hex_grid(gs, config.HEX_SIZE)
+    if "score_1" in refs:
+        refs["score_1"].set_text(str(sc[1]))
+    if "score_2" in refs:
+        refs["score_2"].set_text(str(sc[2]))
+    if "pct_1" in refs:
+        refs["pct_1"].set_text(f"{gs.coverage_pct()[1]:.1f}%")
+    if "pct_2" in refs:
+        refs["pct_2"].set_text(f"{gs.coverage_pct()[2]:.1f}%")
+    if "turn_num" in refs:
+        refs["turn_num"].set_text(str(gs.turn))
+    if "progress" in refs:
+        refs["progress"].value = pct
 
-    # Status badge
-    if "status" in _r:
+    if "status" in refs:
         if gs.is_over:
             w = gs.winner()
-            if w == 1:   text, col = "P1 WINS", config.PLAYER_BOT_COLORS[1]
-            elif w == 2: text, col = "P2 WINS", config.PLAYER_BOT_COLORS[2]
-            else:        text, col = "DRAW",    "#8899aa"
+            if w == 1:
+                text, col = "P1 WINS", config.PLAYER_BOT_COLORS[1]
+            elif w == 2:
+                text, col = "P2 WINS", config.PLAYER_BOT_COLORS[2]
+            else:
+                text, col = "DRAW", "#8899aa"
         elif _running:
             text, col = "● LIVE", "#22cc66"
         else:
             text, col = "● PAUSED", "#4a6080"
-        _r["status"].set_text(text)
-        _r["status"].style(
+        refs["status"].set_text(text)
+        refs["status"].style(
             f"color:{col}; font-family:'Share Tech Mono',monospace; "
             f"font-size:0.75rem; letter-spacing:0.2em"
         )
 
 
+def _push() -> None:
+    """Push current game state to every connected browser tab."""
+    gs = GameStateSingleton().current
+    for cid in list(client_refs.keys()):
+        c = Client.instances.get(cid)
+        if c is None or getattr(c, "_deleted", False):
+            client_refs.pop(cid, None)
+            continue
+        refs = client_refs.get(cid)
+        if not refs:
+            continue
+        with c:
+            _push_refs(refs, gs)
+
+
 # ── Control callbacks ─────────────────────────────────────────────────────────
+
 
 def _start() -> None:
     global _running
     _running = True
+    global _runners
+    _runners = {
+        pid: BotRunner(bot_data.bot)
+        for pid, bot_data in GameStateSingleton().current.bots.items()
+    }
     _push()
     log_event("Match started.")
 
@@ -80,6 +113,10 @@ def _pause() -> None:
 
 
 def _reset() -> None:
+    global _runners
+    for runner in _runners.values():
+        runner.shutdown()
+    _runners = {}
     global _running
     _running = False
     GameStateSingleton().reset(config.GRID_RADIUS, config.MAX_TURNS)
@@ -94,6 +131,7 @@ def _set_speed(val: float) -> None:
 
 
 # ── Timer tick ────────────────────────────────────────────────────────────────
+
 
 async def _tick() -> None:
     global _running, _last_tick
@@ -113,7 +151,7 @@ async def _tick() -> None:
         return
 
     state.advance_turn()
-    run_turn()
+    await run_turn_async(_runners)
     _push()
 
 
@@ -188,7 +226,7 @@ HEAD_HTML = f"""
   .sb-progress .q-linear-progress__model {{ background: #ff6b2b !important; }}
 
   /* ── Path input ── */
-  .sb-input .q-field__native {{ 
+  .sb-input .q-field__native {{
     font-family: 'Share Tech Mono', monospace !important;
     font-size: 0.7rem !important;
     color: #607080 !important;
@@ -202,11 +240,32 @@ HEAD_HTML = f"""
 """
 
 
-def build_ui() -> None:
-    """Construct the NiceGUI page layout. Call once before ui.run()."""
+def _ensure_shared_assets() -> None:
+    """Dark mode, shared head HTML, and single game timer — once per process."""
+    global _shared_head_installed, _game_timer_started
+    if not _shared_head_installed:
+        ui.dark_mode().enable()
+        ui.add_head_html(HEAD_HTML, shared=True)
+        _shared_head_installed = True
+    if not _game_timer_started:
+        ui.timer(0.05, _tick)
+        _game_timer_started = True
 
-    ui.dark_mode().enable()
-    ui.add_head_html(HEAD_HTML)
+
+@ui.page("/")
+def build_ui() -> None:
+    """Construct the NiceGUI page layout for each browser client."""
+    _ensure_shared_assets()
+
+    refs: dict[str, Any] = {}
+    client = context.client
+    cid = client.id
+    client_refs[cid] = refs
+
+    def _unregister() -> None:
+        client_refs.pop(cid, None)
+
+    client.on_delete(_unregister)
 
     # ── Outer wrapper ──────────────────────────────────────────────────────
     with ui.column().style(
@@ -219,38 +278,46 @@ def build_ui() -> None:
             "width:100%; max-width:1140px; align-items:center; "
             "justify-content:space-between; margin-bottom:14px; gap:12px"
         ):
-            # Title
             ui.label("SPLATBOT").classes("sb-cond").style(
                 "font-size:2rem; font-weight:700; letter-spacing:0.2em; color:#dde8f0"
             )
-            # Status badge
-            _r["status"] = ui.label("● PAUSED").style(
+            refs["status"] = ui.label("● PAUSED").style(
                 "color:#4a6080; font-family:'Share Tech Mono',monospace; "
                 "font-size:0.75rem; letter-spacing:0.2em"
             )
-            # Control buttons
             with ui.row().style("align-items:center; gap:8px"):
-                ui.button("▶  START", on_click=_start).classes("sb-btn").props("flat dense unelevated")
-                ui.button("⏸  PAUSE", on_click=_pause).classes("sb-btn").props("flat dense unelevated")
-                ui.button("↺  RESET", on_click=_reset).classes("sb-btn").props("flat dense unelevated")
+                ui.button("▶  START", on_click=_start).classes("sb-btn").props(
+                    "flat dense unelevated"
+                )
+                ui.button("⏸  PAUSE", on_click=_pause).classes("sb-btn").props(
+                    "flat dense unelevated"
+                )
+                ui.button("↺  RESET", on_click=_reset).classes("sb-btn").props(
+                    "flat dense unelevated"
+                )
 
         # ── Main row: P1 panel | hex grid | P2 panel ───────────────────────
         with ui.row().style(
             "width:100%; max-width:1140px; align-items:flex-start; gap:12px"
         ):
 
-            # ── Player 1 panel ────────────────────────────────────────────
             with ui.card().classes("sb-card").style(
                 "width:190px; flex-shrink:0; padding:18px 16px"
             ):
-                ui.label("PLAYER  1").classes("sb-label-xs").style("color:#7a2e10; margin-bottom:4px")
-                _r["score_1"] = ui.label("0").classes("sb-score").style("color:#ff6b2b")
-                _r["pct_1"]   = ui.label("0.0%").classes("sb-label-xs").style(
-                    "color:#7a3010; margin-top:2px; margin-bottom:10px"
+                ui.label("PLAYER  1").classes("sb-label-xs").style(
+                    "color:#7a2e10; margin-bottom:4px"
+                )
+                refs["score_1"] = (
+                    ui.label("0").classes("sb-score").style("color:#ff6b2b")
+                )
+                refs["pct_1"] = (
+                    ui.label("0.0%")
+                    .classes("sb-label-xs")
+                    .style("color:#7a3010; margin-top:2px; margin-bottom:10px")
                 )
                 ui.separator().classes("sb-divider").style("margin-bottom:10px")
                 ui.label("BOT FILE").classes("sb-label-xs")
-                _r["bot_input_1"] = (
+                refs["bot_input_1"] = (
                     ui.input(placeholder="path/to/p1_bot.py")
                     .classes("sb-input")
                     .props("dense borderless")
@@ -260,25 +327,30 @@ def build_ui() -> None:
                     "color:#226644; margin-top:8px"
                 )
 
-            # ── Hex grid ──────────────────────────────────────────────────
-            with ui.element("div").style("flex:1; min-width:0; display:flex; flex-direction:column"):
-                _r["hex"] = (
-                    ui.html(render_hex_grid(GameStateSingleton().current, config.HEX_SIZE))
-                    .classes("hex-wrap")
-                )
+            with ui.element("div").style(
+                "flex:1; min-width:0; display:flex; flex-direction:column"
+            ):
+                refs["hex"] = ui.html(
+                    render_hex_grid(GameStateSingleton().current, config.HEX_SIZE)
+                ).classes("hex-wrap")
 
-            # ── Player 2 panel ────────────────────────────────────────────
             with ui.card().classes("sb-card").style(
                 "width:190px; flex-shrink:0; padding:18px 16px"
             ):
-                ui.label("PLAYER  2").classes("sb-label-xs").style("color:#0a4a5c; margin-bottom:4px")
-                _r["score_2"] = ui.label("0").classes("sb-score").style("color:#00d4ff")
-                _r["pct_2"]   = ui.label("0.0%").classes("sb-label-xs").style(
-                    "color:#0a3a4c; margin-top:2px; margin-bottom:10px"
+                ui.label("PLAYER  2").classes("sb-label-xs").style(
+                    "color:#0a4a5c; margin-bottom:4px"
+                )
+                refs["score_2"] = (
+                    ui.label("0").classes("sb-score").style("color:#00d4ff")
+                )
+                refs["pct_2"] = (
+                    ui.label("0.0%")
+                    .classes("sb-label-xs")
+                    .style("color:#0a3a4c; margin-top:2px; margin-bottom:10px")
                 )
                 ui.separator().classes("sb-divider").style("margin-bottom:10px")
                 ui.label("BOT FILE").classes("sb-label-xs")
-                _r["bot_input_2"] = (
+                refs["bot_input_2"] = (
                     ui.input(placeholder="path/to/p2_bot.py")
                     .classes("sb-input")
                     .props("dense borderless")
@@ -288,13 +360,12 @@ def build_ui() -> None:
                     "color:#226644; margin-top:8px"
                 )
 
-        # ── Turn / progress strip ──────────────────────────────────────────
         with ui.row().style(
             "width:100%; max-width:1140px; align-items:center; "
             "gap:12px; margin-top:10px"
         ):
             ui.label("TURN").classes("sb-label-xs").style("flex-shrink:0")
-            _r["turn_num"] = ui.label("0").style(
+            refs["turn_num"] = ui.label("0").style(
                 "font-family:'Share Tech Mono',monospace; font-size:0.85rem; "
                 "color:#8899aa; flex-shrink:0; min-width:30px"
             )
@@ -302,22 +373,17 @@ def build_ui() -> None:
                 "font-family:'Share Tech Mono',monospace; font-size:0.85rem; "
                 "color:#2e4060; flex-shrink:0"
             )
-            _r["progress"] = (
+            refs["progress"] = (
                 ui.linear_progress(value=0, size="4px")
                 .classes("sb-progress")
                 .style("flex:1; border-radius:2px; overflow:hidden")
             )
             ui.label("SPEED").classes("sb-label-xs").style("flex-shrink:0")
-            ui.slider(min=1, max=20, step=1, value=7,
-                      on_change=lambda e: _set_speed(e.value)) \
-              .classes("sb-slider") \
-              .style("width:120px; flex-shrink:0")
+            ui.slider(
+                min=1, max=20, step=1, value=7, on_change=lambda e: _set_speed(e.value)
+            ).classes("sb-slider").style("width:120px; flex-shrink:0")
 
-        build_event_console(_r)
+        build_event_console(refs)
 
-    # ── Timer: 50 ms poll; internally rate-limited by _tick_delay ─────────
-    ui.timer(0.05, _tick)
-
-    # ── Push initial state ─────────────────────────────────────────────────
     _push()
     log_event("Splatbot ready — press START to begin demo.")

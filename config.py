@@ -7,7 +7,7 @@ MAX_TURNS   = 200     # fixed match length
 
 # ── Timing ───────────────────────────────────────────────────────────────────
 TICK_DELAY  = 0.15    # default seconds per turn
-TIMEOUT     = 0.5     # per-bot per-turn execution budget (seconds)
+TIMEOUT     = 1.0     # per-bot per-turn execution budget (seconds). Uses multiprocessing, so set to a value >= ~0.5s to account for thread overhead.
 
 # ── Rendering ────────────────────────────────────────────────────────────────
 HEX_SIZE    = 26      # pointy-top: distance from hex center to vertex (SVG px)
