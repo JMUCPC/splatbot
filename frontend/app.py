@@ -10,15 +10,14 @@ from pathlib import Path
 
 from nicegui import ui
 
-from engine.game_state import GameState, Owner, make_initial_state
+from engine.game_state import GameState, GameStateSingleton
 from engine.hex_grid import hex_neighbor
+from engine.turn_runner import run_turn
 from frontend.hex_renderer import render_hex_grid
 import config
 
-# ── Module-level game state ───────────────────────────────────────────────────
-# Single-user local app; globals are safe and simplest.
+# ── Module-level runtime (match state lives in GameStateSingleton) ───────────
 
-_gs: GameState      = make_initial_state(config.GRID_RADIUS, config.MAX_TURNS)
 _running:    bool   = False
 _tick_delay: float  = config.TICK_DELAY   # updated by speed slider
 _last_tick:  float  = 0.0
@@ -29,42 +28,11 @@ _bot_labels: dict   = {1: "demo (random walk)", 2: "demo (random walk)"}
 _r: dict = {}
 
 
-# ── Demo simulation ───────────────────────────────────────────────────────────
-
-def _demo_step(gs: GameState) -> GameState:
-    """Advance one turn with random-walk bots."""
-    new_pos: dict[int, object] = {}
-    for pid, pos in gs.bot_positions.items():
-        neighbors = [hex_neighbor(pos, d) for d in range(6)
-                     if hex_neighbor(pos, d) in gs.grid]
-        new_pos[pid] = random.choice(neighbors) if neighbors else pos
-
-    # Collision: if bots swap or converge, both stay put
-    p1n, p2n = new_pos[1], new_pos[2]
-    if (p1n == p2n
-            or p1n == gs.bot_positions[2]
-            or p2n == gs.bot_positions[1]):
-        new_pos = dict(gs.bot_positions)
-
-    new_owners = dict(gs.tile_owners)
-    for pid, pos in new_pos.items():
-        new_owners[pos] = Owner.PLAYER_1 if pid == 1 else Owner.PLAYER_2
-
-    return GameState(
-        grid=gs.grid,
-        tile_owners=new_owners,
-        bot_positions=new_pos,
-        turn=gs.turn + 1,
-        max_turns=gs.max_turns,
-        radius=gs.radius,
-    )
-
-
 # ── UI update ─────────────────────────────────────────────────────────────────
 
 def _push() -> None:
-    """Push current _gs to every live UI element."""
-    gs  = _gs
+    """Push current game state to every live UI element."""
+    gs = GameStateSingleton().current
     sc  = gs.score()
     pct = gs.turn / max(1, gs.max_turns)
 
@@ -111,9 +79,9 @@ def _pause() -> None:
 
 
 def _reset() -> None:
-    global _gs, _running
+    global _running
     _running = False
-    _gs = make_initial_state(config.GRID_RADIUS, config.MAX_TURNS)
+    GameStateSingleton().reset(config.GRID_RADIUS, config.MAX_TURNS)
     _push()
     _log("Match reset.")
 
@@ -132,7 +100,7 @@ def _log(msg: str) -> None:
 # ── Timer tick ────────────────────────────────────────────────────────────────
 
 async def _tick() -> None:
-    global _gs, _running, _last_tick
+    global _running, _last_tick
     if not _running:
         return
     now = time.monotonic()
@@ -140,14 +108,16 @@ async def _tick() -> None:
         return
     _last_tick = now
 
-    if _gs.is_over:
+    state = GameStateSingleton().current
+    if state.is_over:
         _running = False
         _push()
-        sc = _gs.score()
+        sc = state.score()
         _log(f"Match over — P1: {sc[1]} tiles  |  P2: {sc[2]} tiles")
         return
 
-    _gs = _demo_step(_gs)
+    state.advance_turn()
+    run_turn()
     _push()
 
 
@@ -306,7 +276,7 @@ def build_ui() -> None:
             # ── Hex grid ──────────────────────────────────────────────────
             with ui.element("div").style("flex:1; min-width:0; display:flex; flex-direction:column"):
                 _r["hex"] = (
-                    ui.html(render_hex_grid(_gs, config.HEX_SIZE))
+                    ui.html(render_hex_grid(GameStateSingleton().current, config.HEX_SIZE))
                     .classes("hex-wrap")
                 )
 

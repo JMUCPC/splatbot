@@ -6,23 +6,23 @@ into a NiceGUI ui.html() element.  No external assets required.
 from __future__ import annotations
 import math
 
-from engine.game_state import GameState, Owner
+from engine.game_state import GameState
 from engine.hex_grid import axial_to_pixel, flat_hex_corners
 import config
 
 
 # ── Color tables ──────────────────────────────────────────────────────────────
 
-_TILE_FILL: dict[Owner, str] = {
-    Owner.NONE:     config.TILE_NONE_COLOR,
-    Owner.PLAYER_1: config.PLAYER_TILE_COLORS[1],
-    Owner.PLAYER_2: config.PLAYER_TILE_COLORS[2],
+_TILE_FILL: dict[int, str] = {
+    0: config.TILE_NONE_COLOR,
+    1: config.PLAYER_TILE_COLORS[1],
+    2: config.PLAYER_TILE_COLORS[2],
 }
 
-_TILE_STROKE: dict[Owner, str] = {
-    Owner.NONE:     config.TILE_STROKE_COLOR,
-    Owner.PLAYER_1: "#8b2e06",
-    Owner.PLAYER_2: "#065066",
+_TILE_STROKE: dict[int, str] = {
+    0: config.TILE_STROKE_COLOR,
+    1: "#8b2e06",
+    2: "#065066",
 }
 
 _BOT_FILL   = config.PLAYER_BOT_COLORS
@@ -52,7 +52,7 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
     H = max_y - min_y
     ox, oy = -min_x, -min_y   # offset to shift everything into positive coords
 
-    bot_hexes: dict[int, object] = {pid: pos for pid, pos in state.bot_positions.items()}
+    bot_hexes: dict[int, object] = {bot.pid: bot.position for bot in state.bots.values()}
     occupied: set = set(bot_hexes.values())
 
     parts: list[str] = [
@@ -66,18 +66,18 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
         raw_cx, raw_cy = centers[h]
         cx, cy = raw_cx + ox, raw_cy + oy
 
-        owner = state.tile_owners.get(h, Owner.NONE)
+        paint_pid = state.tile_pids.get(h, 0)
         is_occupied = h in occupied
 
         # Tiles the bot is standing on get a brighter accent fill
         if is_occupied:
             pid = next(p for p, pos in bot_hexes.items() if pos == h)
             fill   = _BOT_BRIGHT[pid]
-            stroke = _TILE_STROKE[owner]
+            stroke = _TILE_STROKE[paint_pid]
             sw     = 2.0
         else:
-            fill   = _TILE_FILL[owner]
-            stroke = _TILE_STROKE[owner]
+            fill   = _TILE_FILL[paint_pid]
+            stroke = _TILE_STROKE[paint_pid]
             sw     = 1.2
 
         corners = flat_hex_corners(cx, cy, hex_size - 0.8)
@@ -88,14 +88,14 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
         )
 
     # ── 2. Bot markers ────────────────────────────────────────────────────
-    for pid, pos in state.bot_positions.items():
-        if pos not in centers:
+    for bot in state.bots.values():
+        if bot.position not in centers:
             continue
-        raw_cx, raw_cy = centers[pos]
+        raw_cx, raw_cy = centers[bot.position]
         cx, cy = raw_cx + ox, raw_cy + oy
         r_outer = hex_size * 0.40
         r_inner = hex_size * 0.20
-        bot_color = _BOT_FILL[pid]
+        bot_color = _BOT_FILL[bot.pid]
 
         # Outer ring (white halo)
         parts.append(
@@ -118,7 +118,7 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
             f'<text x="{cx:.2f}" y="{cy:.2f}" '
             f'text-anchor="middle" dominant-baseline="central" '
             f'fill="white" font-size="{fs}" font-weight="700" '
-            f'font-family="monospace" opacity="0.9">{pid}</text>'
+            f'font-family="monospace" opacity="0.9">{bot.pid}</text>'
         )
 
     parts.append("</svg>")

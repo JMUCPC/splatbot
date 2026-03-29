@@ -5,6 +5,7 @@ Reference: https://www.redblobgames.com/grids/hexagons/
 """
 from __future__ import annotations
 from dataclasses import dataclass
+from enum import IntEnum
 import math
 
 
@@ -24,7 +25,18 @@ class Hex:
         return f"Hex({self.q}, {self.r})"
 
 
-# The 6 axial direction vectors (flat-top, clockwise from east)
+class HexDirection(IntEnum):
+    """Flat-top hex edge directions, clockwise from east (values 0–5)."""
+
+    E = 0
+    NE = 1
+    NW = 2
+    W = 3
+    SW = 4
+    SE = 5
+
+
+# Axial step per :class:`HexDirection` value
 HEX_DIRECTIONS: list[Hex] = [
     Hex(1, 0),   # 0 — E
     Hex(1, -1),  # 1 — NE
@@ -35,9 +47,9 @@ HEX_DIRECTIONS: list[Hex] = [
 ]
 
 
-def hex_neighbor(h: Hex, direction: int) -> Hex:
-    """Return the neighbor of `h` in direction 0-5 (wraps mod 6)."""
-    return h + HEX_DIRECTIONS[direction % 6]
+def hex_neighbor(h: Hex, direction: int | HexDirection) -> Hex:
+    """Return the neighbor of `h` in direction 0–5 (wraps mod 6)."""
+    return h + HEX_DIRECTIONS[int(direction) % 6]
 
 
 def hex_distance(a: Hex, b: Hex) -> int:

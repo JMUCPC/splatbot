@@ -17,8 +17,8 @@ splatbot/
 │   ├── __init__.py
 │   ├── hex_grid.py          # Axial coordinate hex grid + neighbor logic
 │   ├── game_state.py        # Authoritative, immutable-ish game state
-│   ├── bot_context.py       # The sandboxed API object injected into bots
-│   ├── actions.py           # Action dataclasses (MoveAction, SkipAction, SpecialAction)
+│   ├── abstract_bot.py      # Abstract bot class
+│   ├── actions.py           # Action dataclasses (MoveAction, SkipAction)
 │   ├── collision.py         # Collision resolution logic
 │   ├── turn_runner.py       # Resolves a single turn: collect → resolve → apply
 │   └── match_runner.py      # Full match loop + result reporting
@@ -129,11 +129,6 @@ class MoveAction:
 @dataclass
 class SkipAction:
     pass
-
-@dataclass
-class SpecialAction:
-    name: str               # e.g. "ink_bomb", "dash"
-    params: dict[str, Any]  # extensible payload
 ```
 
 ### 4. `engine/bot_context.py` — The Bot API
@@ -161,11 +156,6 @@ class BotContext:
         """Do nothing this turn."""
         if self._action is None:
             self._action = SkipAction()
-
-    def special(self, name: str, **params):
-        """Trigger a special ability (stub — validated by turn runner)."""
-        if self._action is None:
-            self._action = SpecialAction(name, params)
 
     # ── Sensing methods ──────────────────────────────────────────────────
 
@@ -198,7 +188,7 @@ class BotContext:
 
     # ── Internal ─────────────────────────────────────────────────────────
 
-    def _collect_action(self) -> MoveAction | SkipAction | SpecialAction:
+    def _collect_action(self) -> MoveAction | SkipAction:
         return self._action if self._action is not None else SkipAction()
 ```
 
@@ -331,7 +321,7 @@ def run_turn(
         pos = state.bot_positions[player_id]
         if isinstance(action, MoveAction):
             return hex_neighbor(pos, action.direction)
-        return pos  # SkipAction or unrecognised SpecialAction
+        return pos  # SkipAction
 
     intended = {
         1: apply_action(ctx1._collect_action(), 1, state),
@@ -504,19 +494,6 @@ def decide(bot):
 - Crashing or timing out results in a `SkipAction` for that turn; the error is
   logged but the match continues.
 - Bots receive a **snapshot** of game state — they cannot modify it.
-
----
-
-## Special Abilities (Extensibility Stub)
-
-Add abilities by:
-1. Adding a new action handler in `turn_runner.py` inside an `isinstance(action, SpecialAction)` branch.
-2. Defining cooldown state as an extra field on `GameState` (e.g. `special_cooldowns: dict[int, int]`).
-3. Exposing the ability via `BotContext.special("ink_bomb")` — no API changes needed.
-
-Planned abilities:
-- **Ink Bomb** — paints all 6 adjacent hexes the bot's color (instant, 5-turn cooldown).
-- **Dash** — moves 2 hexes in one turn along a direction (collision still applies at both steps).
 
 ---
 
