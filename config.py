@@ -12,6 +12,9 @@ TIMEOUT     = 0.5     # per-bot per-turn execution budget (seconds)
 # ── Rendering ────────────────────────────────────────────────────────────────
 HEX_SIZE    = 26      # flat-top hex radius in SVG pixels
 
+# Bot markers: "circles" (concentric rings) or "triangles" (point using BotData.facing)
+BOT_DISPLAY_TYPE = "triangles"  # "circles" | "triangles"
+
 # ── Colors ───────────────────────────────────────────────────────────────────
 #   Player 1 = fire/orange     Player 2 = water/cyan
 PLAYER_TILE_COLORS = {

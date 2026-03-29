@@ -7,8 +7,31 @@ from __future__ import annotations
 import math
 
 from engine.game_state import GameState
-from engine.hex_grid import axial_to_pixel, flat_hex_corners
+from engine.hex_grid import HEX_DIRECTIONS, axial_to_pixel, flat_hex_corners
 import config
+
+
+def _facing_angle_rad(facing: int) -> float:
+    """Screen-space angle (radians) of a hex edge direction for flat-top layout."""
+    dq = HEX_DIRECTIONS[int(facing) % 6].q
+    dr = HEX_DIRECTIONS[int(facing) % 6].r
+    vx, vy = axial_to_pixel(dq, dr, 1.0)
+    return math.atan2(vy, vx)
+
+
+def _arrow_triangle_points(
+    cx: float, cy: float, a0: float, hex_size: float
+) -> tuple[tuple[float, float], tuple[float, float], tuple[float, float]]:
+    """Isosceles triangle: long axis along facing; centroid at (cx, cy) for centered label."""
+    fx, fy = math.cos(a0), math.sin(a0)
+    px, py = -fy, fx
+    base_back = hex_size * 0.55
+    tip_forward = hex_size * 0.6
+    half_base = hex_size * 0.5
+    tip = (cx + tip_forward * fx, cy + tip_forward * fy)
+    bl = (cx - base_back * fx + half_base * px, cy - base_back * fy + half_base * py)
+    br = (cx - base_back * fx - half_base * px, cy - base_back * fy - half_base * py)
+    return tip, bl, br
 
 
 # ── Color tables ──────────────────────────────────────────────────────────────
@@ -88,30 +111,45 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
         )
 
     # ── 2. Bot markers ────────────────────────────────────────────────────
+    display = config.BOT_DISPLAY_TYPE
     for bot in state.bots.values():
         if bot.position not in centers:
             continue
         raw_cx, raw_cy = centers[bot.position]
         cx, cy = raw_cx + ox, raw_cy + oy
-        r_outer = hex_size * 0.40
-        r_inner = hex_size * 0.20
         bot_color = _BOT_FILL[bot.pid]
 
-        # Outer ring (white halo)
-        parts.append(
-            f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r_outer + 2.5:.2f}" '
-            f'fill="none" stroke="white" stroke-width="2" opacity="0.6"/>'
-        )
-        # Body
-        parts.append(
-            f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r_outer:.2f}" '
-            f'fill="{bot_color}"/>'
-        )
-        # Inner dot for depth
-        parts.append(
-            f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r_inner:.2f}" '
-            f'fill="rgba(0,0,0,0.3)"/>'
-        )
+        if display == "triangles":
+            a0 = _facing_angle_rad(int(bot.facing))
+            tri_pts = _arrow_triangle_points(cx, cy, a0, hex_size)
+            pts_str = " ".join(f"{x:.2f},{y:.2f}" for x, y in tri_pts)
+            parts.append(
+                f'<polygon points="{pts_str}" fill="none" stroke="white" '
+                f'stroke-width="2.5" opacity="0.6" stroke-linejoin="round"/>'
+            )
+            parts.append(
+                f'<polygon points="{pts_str}" fill="{bot_color}" '
+                f'stroke="rgba(0,0,0,0.35)" stroke-width="1" stroke-linejoin="round"/>'
+            )
+        else:
+            r_outer = hex_size * 0.40
+            r_inner = hex_size * 0.20
+            # Outer ring (white halo)
+            parts.append(
+                f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r_outer + 2.5:.2f}" '
+                f'fill="none" stroke="white" stroke-width="2" opacity="0.6"/>'
+            )
+            # Body
+            parts.append(
+                f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r_outer:.2f}" '
+                f'fill="{bot_color}"/>'
+            )
+            # Inner dot for depth
+            parts.append(
+                f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r_inner:.2f}" '
+                f'fill="rgba(0,0,0,0.3)"/>'
+            )
+
         # Player number
         fs = max(9, int(hex_size * 0.36))
         parts.append(

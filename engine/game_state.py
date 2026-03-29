@@ -13,7 +13,7 @@ from typing import ClassVar
 from bots.random import RandomBot
 from engine.abstract_bot import AbstractBot
 from engine.actions import Action, MoveAction, SkipAction
-from engine.hex_grid import Hex, generate_hex_grid, hex_neighbor
+from engine.hex_grid import Hex, HexDirection, generate_hex_grid, hex_neighbor
 import config
 
 
@@ -22,6 +22,7 @@ class BotData:
     pid: int
     bot: AbstractBot
     position: Hex
+    facing: HexDirection
 
 
 @dataclass
@@ -86,6 +87,7 @@ class GameState:
                 new_pos = hex_neighbor(bot.position, direction)
                 if new_pos in self.grid:
                     bot.position = new_pos
+                    bot.facing = direction
                     self.tile_pids[new_pos] = pid
             case SkipAction():
                 pass
@@ -110,8 +112,18 @@ def make_initial_state(
     }
 
     bots: dict[int, BotData] = {
-        1: BotData(pid=1, bot=RandomBot(), position=pos1),
-        2: BotData(pid=2, bot=RandomBot(), position=pos2),
+        1: BotData(
+            pid=1,
+            bot=RandomBot(),
+            position=pos1,
+            facing=HexDirection.E,
+        ),
+        2: BotData(
+            pid=2,
+            bot=RandomBot(),
+            position=pos2,
+            facing=HexDirection.W,
+        ),
     }
 
     return GameState(
