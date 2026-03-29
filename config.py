@@ -10,7 +10,7 @@ TICK_DELAY  = 0.15    # default seconds per turn
 TIMEOUT     = 0.5     # per-bot per-turn execution budget (seconds)
 
 # ── Rendering ────────────────────────────────────────────────────────────────
-HEX_SIZE    = 26      # flat-top hex radius in SVG pixels
+HEX_SIZE    = 26      # pointy-top: distance from hex center to vertex (SVG px)
 
 # Bot markers: "circles" (concentric rings) or "triangles" (point using BotData.facing)
 BOT_DISPLAY_TYPE = "triangles"  # "circles" | "triangles"
@@ -34,5 +34,6 @@ TILE_STROKE_COLOR = "#090f1d"   # hex border
 CANVAS_BG         = "#070d1a"   # SVG background
 
 # ── Gameplay ─────────────────────────────────────────────────────────────────
+# Opposite extremes on r=0 (P1 screen-left, P2 screen-right with pointy-top layout)
 START_POS_1 = Hex(-(GRID_RADIUS - 1), 0)
 START_POS_2 = Hex( (GRID_RADIUS - 1), 0)

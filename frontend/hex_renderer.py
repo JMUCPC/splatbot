@@ -7,12 +7,12 @@ from __future__ import annotations
 import math
 
 from engine.game_state import GameState
-from engine.hex_grid import HEX_DIRECTIONS, axial_to_pixel, flat_hex_corners
+from engine.hex_grid import HEX_DIRECTIONS, axial_to_pixel, hex_corners
 import config
 
 
 def _facing_angle_rad(facing: int) -> float:
-    """Screen-space angle (radians) of a hex edge direction for flat-top layout."""
+    """Screen-space angle (radians) of a hex edge direction (pointy-top, E = screen right)."""
     dq = HEX_DIRECTIONS[int(facing) % 6].q
     dr = HEX_DIRECTIONS[int(facing) % 6].r
     vx, vy = axial_to_pixel(dq, dr, 1.0)
@@ -64,8 +64,9 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
 
     xs = [cx for cx, _ in centers.values()]
     ys = [cy for _, cy in centers.values()]
-    half_w = hex_size
-    half_h = hex_size * math.sqrt(3) / 2.0
+    # Pointy-top: width √3·size, height 2·size (size = center → vertex)
+    half_w = hex_size * math.sqrt(3) / 2.0
+    half_h = hex_size
 
     min_x = min(xs) - half_w - padding
     max_x = max(xs) + half_w + padding
@@ -103,7 +104,7 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
             stroke = _TILE_STROKE[paint_pid]
             sw     = 1.2
 
-        corners = flat_hex_corners(cx, cy, hex_size - 0.8)
+        corners = hex_corners(cx, cy, hex_size - 0.8)
         pts = " ".join(f"{x:.2f},{y:.2f}" for x, y in corners)
         parts.append(
             f'<polygon points="{pts}" fill="{fill}" '

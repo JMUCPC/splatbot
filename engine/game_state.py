@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar
 
 from bots.random import RandomBot
+from bots.straight_line import StraightLineBot
 from engine.abstract_bot import AbstractBot
 from engine.actions import Action, MoveAction, SkipAction
 from engine.hex_grid import Hex, HexDirection, generate_hex_grid, hex_neighbor
@@ -114,7 +115,7 @@ def make_initial_state(
     bots: dict[int, BotData] = {
         1: BotData(
             pid=1,
-            bot=RandomBot(),
+            bot=StraightLineBot(),
             position=pos1,
             facing=HexDirection.E,
         ),
