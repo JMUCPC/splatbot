@@ -2,6 +2,7 @@
 venv/
 .vscode/
 .cursor/
+.nicegui/
 *.log
 */*.log
 __pycache__/

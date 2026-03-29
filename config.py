@@ -9,9 +9,7 @@ MAX_TURNS   = 200     # fixed match length
 TICK_DELAY  = 0.15    # default seconds per turn
 TIMEOUT     = 1.0     # per-bot per-turn execution budget (seconds). Uses multiprocessing, so set to a value >= ~0.5s to account for thread overhead.
 
-# ── Rendering ────────────────────────────────────────────────────────────────
-HEX_SIZE    = 26      # pointy-top: distance from hex center to vertex (SVG px)
-
+# ── Rendering (settings menu) ────────────────────────────────────────────────
 # Bot markers: "circles" (concentric rings) or "triangles" (point using BotData.facing)
 BOT_DISPLAY_TYPE = "triangles"  # "circles" | "triangles"
 
@@ -32,6 +30,9 @@ PLAYER_BRIGHT_COLORS = {
 TILE_NONE_COLOR   = "#161f30"   # unpainted hex fill
 TILE_STROKE_COLOR = "#090f1d"   # hex border
 CANVAS_BG         = "#070d1a"   # SVG background
+
+# ── Rendering (fixed / not in settings menu) ────────────────────────────────
+HEX_SIZE    = 26      # pointy-top: distance from hex center to vertex (SVG px)
 
 # ── Gameplay ─────────────────────────────────────────────────────────────────
 # Opposite extremes on r=0 (P1 screen-left, P2 screen-right with pointy-top layout)

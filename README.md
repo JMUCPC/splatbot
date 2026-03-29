@@ -18,3 +18,10 @@ pip install nicegui --only-binary=:all:
 ```bash
 python main.py
 ```
+
+## Settings Menu
+
+- Click `SETTINGS` in the top bar to edit runtime game/render settings.
+- Settings are persisted per browser profile via local browser storage.
+- `config.py` remains the source of default values and is not rewritten.
+- Applied settings affect the live runtime; applying settings resets the current match.

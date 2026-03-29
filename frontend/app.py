@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from nicegui import Client, context, ui
+from nicegui import Client, app, context, ui
 
 from engine.game_state import GameState, GameStateSingleton
 from engine.turn_runner import (
@@ -20,6 +20,14 @@ from engine.turn_runner import (
 )
 from frontend.hex_renderer import render_hex_grid
 from frontend.event_console import NICEGUI_LOG_CSS, build_event_console, log_event
+from frontend.settings import (
+    SETTING_SPECS,
+    SETTINGS_STORAGE_KEY,
+    apply_flat_settings_to_config,
+    default_flat_settings,
+    merge_with_defaults,
+    validate_overrides,
+)
 import config
 
 # ── Module-level runtime (match state lives in GameStateSingleton) ───────────
@@ -36,6 +44,21 @@ client_refs: dict[str, dict[str, Any]] = {}
 _shared_head_installed: bool = False
 _game_timer_started: bool = False
 _runners: dict[int, BotRunner] = {}
+
+
+def _load_client_overrides() -> dict[str, Any]:
+    raw = app.storage.user.get(SETTINGS_STORAGE_KEY, {})
+    return raw if isinstance(raw, dict) else {}
+
+
+def _save_client_overrides(overrides: dict[str, Any]) -> None:
+    app.storage.user[SETTINGS_STORAGE_KEY] = overrides
+
+
+def _apply_effective_settings(overrides: dict[str, Any]) -> dict[str, Any]:
+    effective = merge_with_defaults(overrides)
+    apply_flat_settings_to_config(effective)
+    return effective
 
 
 # ── UI update ─────────────────────────────────────────────────────────────────
@@ -68,6 +91,8 @@ def _push_refs(refs: dict[str, Any], gs: GameState) -> None:
         refs["decision_time_2"].set_text(f"{p2_avg:.5f}s/dec")
     if "turn_num" in refs:
         refs["turn_num"].set_text(str(gs.turn))
+    if "max_turns" in refs:
+        refs["max_turns"].set_text(f"/ {gs.max_turns}")
     if "progress" in refs:
         refs["progress"].value = pct
 
@@ -278,11 +303,46 @@ def build_ui() -> None:
     client = context.client
     cid = client.id
     client_refs[cid] = refs
+    refs["settings_overrides"] = _load_client_overrides()
+    effective_settings = _apply_effective_settings(refs["settings_overrides"])
+
+    global _tick_delay
+    _tick_delay = float(effective_settings["TICK_DELAY"])
 
     def _unregister() -> None:
         client_refs.pop(cid, None)
 
     client.on_delete(_unregister)
+
+    refs["settings_controls"] = {}
+
+    def _populate_settings_controls(values: dict[str, Any]) -> None:
+        for key, control in refs["settings_controls"].items():
+            if key in values:
+                control.set_value(values[key])
+
+    def _read_settings_controls() -> dict[str, Any]:
+        return {key: control.value for key, control in refs["settings_controls"].items()}
+
+    def _reset_settings_form_to_defaults() -> None:
+        _populate_settings_controls(default_flat_settings())
+
+    def _apply_settings_from_form() -> None:
+        raw = _read_settings_controls()
+        clean, errors = validate_overrides(raw)
+        if errors:
+            ui.notify(errors[0], color="negative")
+            return
+        _save_client_overrides(clean)
+        refs["settings_overrides"] = clean
+        applied = _apply_effective_settings(clean)
+        global _tick_delay
+        _tick_delay = float(applied["TICK_DELAY"])
+        if _running:
+            log_event("Settings changed while live — pausing and resetting match.")
+        _reset()
+        ui.notify("Settings applied.", color="positive")
+        settings_dialog.close()
 
     # ── Outer wrapper ──────────────────────────────────────────────────────
     with ui.column().style(
@@ -310,6 +370,62 @@ def build_ui() -> None:
                     "flat dense unelevated"
                 )
                 ui.button("↺  RESET", on_click=_reset).classes("sb-btn").props(
+                    "flat dense unelevated"
+                )
+                ui.button("⚙  SETTINGS", on_click=lambda: settings_dialog.open()).classes(
+                    "sb-btn"
+                ).props("flat dense unelevated")
+
+        with ui.dialog() as settings_dialog, ui.card().classes("sb-card").style(
+            "width:760px; max-width:92vw; padding:18px 16px"
+        ):
+            ui.label("SETTINGS").classes("sb-cond").style(
+                "font-size:1.2rem; font-weight:700; letter-spacing:0.14em; color:#dde8f0"
+            )
+            ui.label("Changes apply at runtime and are saved per browser.").style(
+                "font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:#607080; margin-bottom:8px"
+            )
+            with ui.column().style("width:100%; gap:8px; max-height:55vh; overflow:auto"):
+                for spec in SETTING_SPECS:
+                    with ui.row().style("width:100%; align-items:center; gap:10px"):
+                        ui.label(spec.key).classes("sb-label-xs").style(
+                            "width:240px; flex-shrink:0"
+                        )
+                        default_value = effective_settings.get(spec.key)
+                        if spec.kind == "enum":
+                            control = ui.select(
+                                options=list(spec.choices),
+                                value=default_value,
+                            ).style("flex:1")
+                        elif spec.kind == "int":
+                            control = ui.number(
+                                value=default_value,
+                                min=spec.minimum,
+                                max=spec.maximum,
+                                step=spec.step or 1,
+                                format="%.0f",
+                            ).style("flex:1")
+                        elif spec.kind == "float":
+                            control = ui.number(
+                                value=default_value,
+                                min=spec.minimum,
+                                max=spec.maximum,
+                                step=spec.step or 0.01,
+                            ).style("flex:1")
+                        else:
+                            control = ui.input(value=default_value).props("type=color").style(
+                                "flex:1"
+                            )
+                        refs["settings_controls"][spec.key] = control
+
+            with ui.row().style("justify-content:flex-end; width:100%; gap:8px; margin-top:10px"):
+                ui.button("RESET TO DEFAULTS", on_click=_reset_settings_form_to_defaults).classes(
+                    "sb-btn"
+                ).props("flat dense unelevated")
+                ui.button("CANCEL", on_click=settings_dialog.close).classes("sb-btn").props(
+                    "flat dense unelevated"
+                )
+                ui.button("APPLY", on_click=_apply_settings_from_form).classes("sb-btn").props(
                     "flat dense unelevated"
                 )
 
@@ -396,7 +512,7 @@ def build_ui() -> None:
                 "font-family:'Share Tech Mono',monospace; font-size:0.85rem; "
                 "color:#8899aa; flex-shrink:0; min-width:30px"
             )
-            ui.label(f"/ {config.MAX_TURNS}").style(
+            refs["max_turns"] = ui.label(f"/ {config.MAX_TURNS}").style(
                 "font-family:'Share Tech Mono',monospace; font-size:0.85rem; "
                 "color:#2e4060; flex-shrink:0"
             )

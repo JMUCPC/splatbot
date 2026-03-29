@@ -19,4 +19,5 @@ ui.run(
     # Wider reconnect window; scales Engine.IO ping/keepalive. If you use a reverse proxy,
     # set its WebSocket proxy_read_timeout (or equivalent) above idle disconnects (often 60s).
     reconnect_timeout=60.0,
+    storage_secret="splatbot-local-settings",
 )

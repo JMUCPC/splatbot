@@ -34,26 +34,20 @@ def _arrow_triangle_points(
     return tip, bl, br
 
 
-# ── Color tables ──────────────────────────────────────────────────────────────
-
-_TILE_FILL: dict[int, str] = {
-    0: config.TILE_NONE_COLOR,
-    1: config.PLAYER_TILE_COLORS[1],
-    2: config.PLAYER_TILE_COLORS[2],
-}
-
-_TILE_STROKE: dict[int, str] = {
-    0: config.TILE_STROKE_COLOR,
-    1: "#8b2e06",
-    2: "#065066",
-}
-
-_BOT_FILL   = config.PLAYER_BOT_COLORS
-_BOT_BRIGHT = config.PLAYER_BRIGHT_COLORS
-
-
 def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
     """Return a full <svg> string representing the current game state."""
+    tile_fill: dict[int, str] = {
+        0: config.TILE_NONE_COLOR,
+        1: config.PLAYER_TILE_COLORS[1],
+        2: config.PLAYER_TILE_COLORS[2],
+    }
+    tile_stroke: dict[int, str] = {
+        0: config.TILE_STROKE_COLOR,
+        1: "#8b2e06",
+        2: "#065066",
+    }
+    bot_fill = config.PLAYER_BOT_COLORS
+    bot_bright = config.PLAYER_BRIGHT_COLORS
 
     padding = hex_size * 1.8  # breathing room around the grid
 
@@ -96,12 +90,12 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
         # Tiles the bot is standing on get a brighter accent fill
         if is_occupied:
             pid = next(p for p, pos in bot_hexes.items() if pos == h)
-            fill   = _BOT_BRIGHT[pid]
-            stroke = _TILE_STROKE[paint_pid]
+            fill   = bot_bright[pid]
+            stroke = tile_stroke[paint_pid]
             sw     = 2.0
         else:
-            fill   = _TILE_FILL[paint_pid]
-            stroke = _TILE_STROKE[paint_pid]
+            fill   = tile_fill[paint_pid]
+            stroke = tile_stroke[paint_pid]
             sw     = 1.2
 
         corners = hex_corners(cx, cy, hex_size - 0.8)
@@ -118,7 +112,7 @@ def render_hex_grid(state: GameState, hex_size: float = 26.0) -> str:
             continue
         raw_cx, raw_cy = centers[bot.position]
         cx, cy = raw_cx + ox, raw_cy + oy
-        bot_color = _BOT_FILL[bot.pid]
+        bot_color = bot_fill[bot.pid]
 
         if display == "triangles":
             a0 = _facing_angle_rad(int(bot.facing))
