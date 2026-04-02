@@ -1,6 +1,6 @@
 import random
-from engine.actions import Actions
-from engine.hex_grid import HexDirection
+from utils.actions import Actions
+from utils.hex_grid import HexDirection
 
 
 def decide(game_state):

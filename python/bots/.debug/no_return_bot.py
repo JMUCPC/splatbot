@@ -1,4 +1,4 @@
-from engine.actions import Actions
+from utils.actions import Actions
 
 
 def decide(game_state):

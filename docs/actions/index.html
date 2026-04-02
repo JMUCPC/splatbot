@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Actions: · Splatbot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/docs.css">
+</head>
+<body class="docs-body">
+  <header class="docs-header">
+    <nav class="docs-nav">
+      <a class="docs-brand" href="../../index.html">Splatbot</a>
+      <span class="docs-sep">/</span>
+      <a class="docs-crumb" href="../../docs/index.html">Docs</a>
+    </nav>
+  </header>
+  <main class="docs-main markdown-body">
+<h1>Actions:</h1>
+<p>Actions are the commands that a splatbot can execute. A splatbot can execute exactly one action per turn. The <code>decide</code> function should return an instance of an action. To create an action, the <code>Actions</code> helper class is provided. The following actions are available:</p>
+<h2>Skip Action</h2>
+<p>The skip action tells a splatbot to skip a turn.</p>
+<pre><code class="language-python">from utils.actions import Actions
+
+def decide(game_state):
+    &quot;&quot;&quot; This bot will not do anything. How lazy! &quot;&quot;&quot;
+    return Actions.skip()
+</code></pre>
+<h2>Move Action</h2>
+<p>The move action tells a splatbot to move in a given direction. The direction given may be either an integer or (recommended) a <a href="../utilities/index.md#hex-direction">HexDirection</a>. A splatbot will move one tile in the given direction, and paint the tile that it lands on. If the movement would result in the splatbot moving to an invalid position, then nothing will happen.</p>
+<pre><code class="language-python">from utils.actions import Actions
+from utils.hex_grid import HexDirection
+
+def decide(game_state):
+    &quot;&quot;&quot; This bot will move in a straight line east across the grid. &quot;&quot;&quot;
+    return Actions.move(HexDirection.E)
+</code></pre>
+
+  </main>
+</body>
+</html>

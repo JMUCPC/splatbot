@@ -1,4 +1,4 @@
-"""engine/actions.py — Bot action datatypes and factory API.
+"""utils/actions.py — Bot action datatypes and factory API.
 
 ``decide(game_state)`` should return a single :class:`Action`
 instance. Use :class:`Actions` static methods to construct actions in bot code.
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from engine.hex_grid import HexDirection
+from utils.hex_grid import HexDirection
 
 __all__ = [
     "Action",

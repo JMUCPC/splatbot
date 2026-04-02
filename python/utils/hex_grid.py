@@ -1,4 +1,4 @@
-"""engine/hex_grid.py — Axial-coordinate hex grid utilities.
+"""utils/hex_grid.py — Axial-coordinate hex grid utilities.
 
 Uses pointy-top hexagon orientation; axial E/W align with screen right/left (+x / −x).
 Reference: https://www.redblobgames.com/grids/hexagons/

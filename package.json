@@ -1,0 +1,14 @@
+{
+  "name": "splatbot",
+  "private": true,
+  "scripts": {
+    "docs:build": "node scripts/build-docs.mjs",
+    "docs:watch": "node scripts/build-docs.mjs --watch"
+  },
+  "devDependencies": {
+    "chokidar": "^4.0.3",
+    "github-slugger": "^2.0.0",
+    "markdown-it": "^14.1.0",
+    "markdown-it-anchor": "^9.2.0"
+  }
+}

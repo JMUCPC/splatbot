@@ -22,18 +22,18 @@ self.onmessage = async function (e) {
       importScripts('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
       pyodide = await loadPyodide();
 
-      pyodide.FS.mkdirTree('/lib/engine');
-      pyodide.FS.writeFile('/lib/engine/__init__.py', '');
-      pyodide.FS.writeFile('/lib/engine/hex_grid.py', data.hexGridPy);
-      pyodide.FS.writeFile('/lib/engine/actions.py', data.actionsPy);
+      pyodide.FS.mkdirTree('/lib/utils');
+      pyodide.FS.writeFile('/lib/utils/__init__.py', '');
+      pyodide.FS.writeFile('/lib/utils/hex_grid.py', data.hexGridPy);
+      pyodide.FS.writeFile('/lib/utils/actions.py', data.actionsPy);
 
       pyodide.runPython("import sys; sys.path.insert(0, '/lib')");
 
       // Snapshot infrastructure and imports cached across turns
       pyodide.runPython(`
 from types import MappingProxyType as _MPT
-from engine.hex_grid import Hex as _Hex, HexDirection as _HD
-from engine.actions import MoveAction as _MA, SkipAction as _SA
+from utils.hex_grid import Hex as _Hex, HexDirection as _HD
+from utils.actions import MoveAction as _MA, SkipAction as _SA
 import json as _json
 
 class _BotInfo:

@@ -1,7 +1,7 @@
 import config from '../config.js';
 
 /** Minimal valid bot so workers can init before a real script is fetched. */
-export const STUB_BOT_CODE = `from engine.actions import Actions
+export const STUB_BOT_CODE = `from utils.actions import Actions
 
 def decide(game_state):
     return Actions.skip()

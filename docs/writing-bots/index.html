@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writing bots · Splatbot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/docs.css">
+</head>
+<body class="docs-body">
+  <header class="docs-header">
+    <nav class="docs-nav">
+      <a class="docs-brand" href="../../index.html">Splatbot</a>
+      <span class="docs-sep">/</span>
+      <a class="docs-crumb" href="../../docs/index.html">Docs</a>
+    </nav>
+  </header>
+  <main class="docs-main markdown-body">
+<h1>Writing bots</h1>
+<h1>TODO: fix this page</h1>
+<p>Bots are Python scripts that define a <code>decide(game_state)</code> function.</p>
+<h2>Imports</h2>
+<p>Inside the browser sandbox you can use:</p>
+<ul>
+<li><code>utils.hex_grid</code> (e.g. <code>HexDirection</code>)</li>
+<li><code>utils.actions</code> (<code>Actions</code>)</li>
+</ul>
+<h2>Example</h2>
+<pre><code class="language-python">from utils.actions import Actions
+from utils.hex_grid import HexDirection
+
+def decide(game_state):
+    return Actions.move(HexDirection.E)
+</code></pre>
+<h2>Game state</h2>
+<p>Useful fields on <code>game_state</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>my_pid</code></td>
+<td>This bot’s player id (<code>1</code> or <code>2</code>)</td>
+</tr>
+<tr>
+<td><code>grid</code></td>
+<td><code>frozenset</code> of hex tiles</td>
+</tr>
+<tr>
+<td><code>tile_pids</code></td>
+<td><code>dict</code> mapping tile → owner (<code>0</code> = unpainted)</td>
+</tr>
+<tr>
+<td><code>bots</code></td>
+<td><code>dict</code> of <code>BotInfo</code> (position, facing, …)</td>
+</tr>
+<tr>
+<td><code>turn</code></td>
+<td>Current turn</td>
+</tr>
+<tr>
+<td><code>max_turns</code></td>
+<td>Match length</td>
+</tr>
+</tbody>
+</table>
+<p>See the main <a href="../../README.md">README</a> for more detail, or <a href="../architecture/overview/">Architecture</a> for the big picture.</p>
+
+  </main>
+</body>
+</html>

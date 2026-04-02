@@ -1,6 +1,6 @@
 /**
  * Axial-coordinate hex grid utilities (pointy-top orientation).
- * Port of engine/hex_grid.py.
+ * Port of python/utils/hex_grid.py.
  */
 
 export class Hex {

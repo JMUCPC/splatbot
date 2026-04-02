@@ -181,8 +181,8 @@ export async function preloadWorkers() {
   botControlsReady = false;
   updateLoadingStatus('Fetching Python modules...');
   const [hg, ac] = await Promise.all([
-    fetch('python/engine/hex_grid.py').then((r) => r.text()),
-    fetch('python/engine/actions.py').then((r) => r.text()),
+    fetch('python/utils/hex_grid.py').then((r) => r.text()),
+    fetch('python/utils/actions.py').then((r) => r.text()),
   ]);
   hexGridPy = hg;
   actionsPy = ac;

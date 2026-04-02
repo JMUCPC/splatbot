@@ -1,0 +1,139 @@
+.docs-body {
+  background-color: #080c14;
+  color: #a8b8c8;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.docs-header {
+  border-bottom: 1px solid #1a2a40;
+  background: #0a101c;
+}
+
+.docs-nav {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.docs-brand,
+.docs-crumb {
+  color: #dde8f0;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.docs-brand:hover,
+.docs-crumb:hover {
+  color: #00d4ff;
+}
+
+.docs-sep {
+  color: #2e4060;
+}
+
+.docs-main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  color: #dde8f0;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  margin-top: 1.75em;
+  margin-bottom: 0.6em;
+}
+
+.markdown-body h1 {
+  font-size: 1.85rem;
+  margin-top: 0;
+  letter-spacing: 0.08em;
+}
+
+.markdown-body h2 {
+  font-size: 1.35rem;
+  border-bottom: 1px solid #1a2a40;
+  padding-bottom: 0.35rem;
+}
+
+.markdown-body h3 {
+  font-size: 1.1rem;
+}
+
+.markdown-body p {
+  margin-bottom: 1em;
+}
+
+.markdown-body a {
+  color: #5ec8ff;
+  text-decoration: none;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0 0 1em 1.25em;
+}
+
+.markdown-body li {
+  margin-bottom: 0.35em;
+}
+
+.markdown-body code {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.88em;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  padding: 0.12em 0.4em;
+  border-radius: 4px;
+  color: #e8c0a0;
+}
+
+.markdown-body pre {
+  margin: 1em 0;
+  padding: 1rem 1.1rem;
+  background: #070d1a;
+  border: 1px solid #1a2a40;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.markdown-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  color: #8899aa;
+}
+
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid #1a2a40;
+  margin: 2rem 0;
+}
+
+.markdown-body blockquote {
+  margin: 1em 0;
+  padding-left: 1rem;
+  border-left: 3px solid #2e4060;
+  color: #7a8a9a;
+}
