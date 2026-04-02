@@ -1,1 +1,0 @@
-"""Splatbot game frontend."""

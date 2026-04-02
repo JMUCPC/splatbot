@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splatbot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="loading" class="loading-overlay">
+    <div class="sb-cond" style="font-size:2rem; font-weight:700; letter-spacing:0.2em; color:#dde8f0">SPLATBOT</div>
+    <div>Loading Python sandbox...</div>
+    <div id="loading-status" style="font-size:0.7rem; color:#3a5070"></div>
+  </div>
+
+  <div id="app" class="app-container">
+    <div class="header-row">
+      <div class="sb-cond title">SPLATBOT</div>
+      <div id="status" class="status">● PAUSED</div>
+      <div class="button-group">
+        <button id="btn-start" class="sb-btn">&#9654;  START</button>
+        <button id="btn-pause" class="sb-btn">&#9208;  PAUSE</button>
+        <button id="btn-reset" class="sb-btn">&#8634;  RESET</button>
+        <button id="btn-settings" class="sb-btn">&#9881;  SETTINGS</button>
+      </div>
+    </div>
+
+    <div class="main-row">
+      <div class="sb-card player-card">
+        <div class="sb-label-xs" style="color:#7a2e10; margin-bottom:4px">PLAYER  1</div>
+        <div id="score-1" class="sb-score" style="color:#ff6b2b">0</div>
+        <div id="pct-1" class="sb-label-xs" style="color:#7a3010; margin-top:2px; margin-bottom:10px">0.0%</div>
+        <div id="decision-time-1" class="sb-label-xs" style="color:#7a3010; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
+        <hr class="sb-divider" style="margin-bottom:10px">
+        <div class="sb-label-xs">BOT SCRIPT</div>
+        <select id="bot-select-1" class="sb-select" aria-label="Player 1 bot script"></select>
+        <div class="sb-label-xs" style="margin-top:10px">BOT FILE</div>
+        <input type="text" class="sb-input" placeholder="path/to/p1_bot.py" disabled style="margin-top:4px">
+        <div class="sb-label-xs" style="color:#226644; margin-top:8px">DEMO MODE</div>
+      </div>
+
+      <div class="hex-column">
+        <div id="hex-grid" class="hex-wrap"></div>
+      </div>
+
+      <div class="sb-card player-card">
+        <div class="sb-label-xs" style="color:#0a4a5c; margin-bottom:4px">PLAYER  2</div>
+        <div id="score-2" class="sb-score" style="color:#00d4ff">0</div>
+        <div id="pct-2" class="sb-label-xs" style="color:#0a3a4c; margin-top:2px; margin-bottom:10px">0.0%</div>
+        <div id="decision-time-2" class="sb-label-xs" style="color:#0a3a4c; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
+        <hr class="sb-divider" style="margin-bottom:10px">
+        <div class="sb-label-xs">BOT SCRIPT</div>
+        <select id="bot-select-2" class="sb-select" aria-label="Player 2 bot script"></select>
+        <div class="sb-label-xs" style="margin-top:10px">BOT FILE</div>
+        <input type="text" class="sb-input" placeholder="path/to/p2_bot.py" disabled style="margin-top:4px">
+        <div class="sb-label-xs" style="color:#226644; margin-top:8px">DEMO MODE</div>
+      </div>
+    </div>
+
+    <div class="turn-row">
+      <div class="sb-label-xs" style="flex-shrink:0">TURN</div>
+      <div id="turn-num" class="turn-num">0</div>
+      <div id="max-turns" class="max-turns">/ 200</div>
+      <div class="sb-progress">
+        <div id="progress-fill" class="sb-progress-fill"></div>
+      </div>
+      <div class="sb-label-xs" style="flex-shrink:0">SPEED</div>
+      <input type="range" id="speed-slider" class="sb-slider" min="1" max="20" step="1" value="7">
+    </div>
+
+    <div class="sb-card event-log-card">
+      <div class="sb-label-xs" style="margin-bottom:6px">EVENT LOG</div>
+      <div id="event-log" class="event-log"></div>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal-overlay">
+    <div class="sb-card settings-card">
+      <div class="sb-cond" style="font-size:1.2rem; font-weight:700; letter-spacing:0.14em; color:#dde8f0">SETTINGS</div>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:#607080; margin-bottom:8px">
+        Changes apply at runtime and are saved per browser.
+      </div>
+      <div id="settings-fields" class="settings-fields"></div>
+      <div class="settings-actions">
+        <button id="btn-settings-reset" class="sb-btn">RESET TO DEFAULTS</button>
+        <button id="btn-settings-cancel" class="sb-btn">CANCEL</button>
+        <button id="btn-settings-apply" class="sb-btn">APPLY</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

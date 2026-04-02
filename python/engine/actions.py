@@ -1,13 +1,12 @@
 """engine/actions.py — Bot action datatypes and factory API.
 
-``decide(bot)`` (or equivalent) should return a single :class:`Action`
+``decide(game_state)`` should return a single :class:`Action`
 instance. Use :class:`Actions` static methods to construct actions in bot code.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from engine.hex_grid import HexDirection
 
@@ -29,7 +28,7 @@ class SkipAction:
     pass
 
 
-type Action = MoveAction | SkipAction
+Action = MoveAction | SkipAction
 
 
 class Actions:
