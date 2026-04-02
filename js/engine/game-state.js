@@ -56,6 +56,27 @@ export class GameState {
     this.turn++;
   }
 
+  /**
+   * After both bots have moved in a turn: any hex with more than one bot is
+   * reset to unpainted (no race for which player "owns" the tile).
+   */
+  neutralizeCollidingTiles(logFn) {
+    const byKey = new Map();
+    for (const bot of this.bots.values()) {
+      const k = bot.position.key;
+      if (!byKey.has(k)) byKey.set(k, []);
+      byKey.get(k).push(bot.pid);
+    }
+    for (const [key, pids] of byKey) {
+      if (pids.length > 1) {
+        this.tilePids.set(key, 0);
+        if (logFn) {
+          logFn(`Collision on hex ${key} — tile cleared (bots ${pids.join(", ")})`);
+        }
+      }
+    }
+  }
+
   applyAction(pid, action, logFn) {
     const bot = this.bots.get(pid);
     if (!bot) return;

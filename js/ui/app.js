@@ -334,6 +334,8 @@ async function gameLoop() {
       }
     }
 
+    state.neutralizeCollidingTiles(logEvent);
+
     push();
   }
 }
