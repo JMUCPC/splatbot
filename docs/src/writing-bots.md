@@ -2,7 +2,7 @@
 
 # TODO: fix this page
 
-Bots are Python scripts that define a `decide(game_state)` function.
+Bots are Python scripts that define a `class Bot` with a `decide(self, game_state)` method.
 
 ## Imports
 
@@ -17,8 +17,10 @@ Inside the browser sandbox you can use:
 from utils.actions import Actions
 from utils.hex_grid import HexDirection
 
-def decide(game_state):
-    return Actions.move(HexDirection.E)
+
+class Bot:
+    def decide(self, game_state):
+        return Actions.move(HexDirection.E)
 ```
 
 ## Game state
@@ -33,5 +35,7 @@ Useful fields on `game_state`:
 | `bots` | `dict` of `BotInfo` (position, facing, …) |
 | `turn` | Current turn |
 | `max_turns` | Match length |
+
+`Bot` is constructed once when your script loads (per bot worker). Use `self` on the instance to remember anything you need between turns.
 
 See the main [README](../../README.md) for more detail, or [Architecture](../architecture/overview/) for the big picture.

@@ -16,6 +16,7 @@ const config = {
   BUILTIN_BOTS: {
     random: "random_bot.py",
     straight_line: "straight_line_bot.py",
+    ping_pong: "ping_pong_bot.py",
   },
   LOAD_DEBUG_BOTS: true,
   DEBUG_BOT_PATH: "python/bots/.debug/",

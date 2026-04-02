@@ -35,11 +35,12 @@ let botControlsReady = false;
 
 const els = {};
 
-/** Heuristic: bot script should define decide(...) for Pyodide. */
-const DECIDE_DEF_RE = /\bdef\s+decide\s*\([^)]*\)\s*:/;
+/** Heuristic: bot script should define class Bot with decide(self, ...) for Pyodide. */
+const BOT_CLASS_RE = /\bclass\s+Bot\b/;
+const BOT_INSTANCE_DECIDE_RE = /\bdef\s+decide\s*\(\s*self\b/;
 
 function looksLikeUploadableBot(source) {
-  return DECIDE_DEF_RE.test(source);
+  return BOT_CLASS_RE.test(source) && BOT_INSTANCE_DECIDE_RE.test(source);
 }
 
 function rebuildCatalogMaps() {
@@ -135,7 +136,7 @@ async function onBotFileChange(pid, input) {
   }
   if (!looksLikeUploadableBot(text)) {
     input.value = '';
-    logEvent('Uploaded file must define decide(...): (e.g. def decide(game_state):).');
+    logEvent('Uploaded file must define class Bot with decide(self, game_state): ...');
     return;
   }
   botSourceCache.set(botId, text);

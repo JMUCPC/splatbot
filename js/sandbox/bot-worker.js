@@ -68,8 +68,13 @@ class _Snapshot:
         raise AttributeError("GameStateSnapshot is read-only")
 `);
 
-      // Load bot code (defines the decide function)
+      // Load bot code (must define class Bot with decide(self, game_state))
       pyodide.runPython(data.botCode);
+      pyodide.runPython(`
+if 'Bot' not in globals():
+    raise ValueError("Bot script must define class Bot with decide(self, game_state)")
+_bot = Bot()
+`);
 
       self.postMessage({ type: 'ready' });
     } catch (err) {
@@ -89,7 +94,7 @@ class _Snapshot:
 
       pyodide.runPython(`
 _gs = _Snapshot(_json.loads(_raw_json))
-_action = decide(_gs)
+_action = _bot.decide(_gs)
 if isinstance(_action, _MA):
     _rtype = 'move'
     _rdir = int(_action.direction)
@@ -97,7 +102,7 @@ elif isinstance(_action, _SA):
     _rtype = 'skip'
     _rdir = -1
 else:
-    raise TypeError(f"decide() must return Action, got {type(_action).__name__}")
+    raise TypeError(f"Bot.decide must return Action, got {type(_action).__name__}")
 `);
 
       const rtype = pyodide.globals.get('_rtype');

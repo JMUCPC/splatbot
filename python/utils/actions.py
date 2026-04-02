@@ -1,7 +1,8 @@
 """utils/actions.py — Bot action datatypes and factory API.
 
-``decide(game_state)`` should return a single :class:`Action`
-instance. Use :class:`Actions` static methods to construct actions in bot code.
+:class:`Bot` in the user script should define ``decide(self, game_state)``
+returning a single :class:`Action`. Use :class:`Actions` static methods to
+construct actions in bot code.
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ Action = MoveAction | SkipAction
 
 
 class Actions:
-    """Factories for :class:`Action` values (use from bot scripts / ``decide``)."""
+    """Factories for :class:`Action` values (use from bot scripts / ``Bot.decide``)."""
 
     @staticmethod
     def move(direction: int | HexDirection) -> MoveAction:

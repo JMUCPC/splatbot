@@ -31,21 +31,25 @@ Browse locally at `/docs/` (for example `http://localhost:3000/docs/`).
 
 ## Writing Bots
 
-Bots are Python scripts that define a `decide(game_state)` function:
+Bots are Python scripts that define a `class Bot` with `decide(self, game_state)`:
 
 ```python
 from utils.actions import Actions
 from utils.hex_grid import HexDirection
 
-def decide(game_state):
-    # game_state.my_pid       — this bot's player id (1 or 2)
-    # game_state.grid         — frozenset of Hex tiles
-    # game_state.tile_pids    — dict[Hex, int] (0=unpainted, 1/2=player)
-    # game_state.bots         — dict[int, BotInfo] with .position, .facing
-    # game_state.turn         — current turn number
-    # game_state.max_turns    — total turns in the match
-    return Actions.move(HexDirection.E)
+
+class Bot:
+    def decide(self, game_state):
+        # game_state.my_pid       — this bot's player id (1 or 2)
+        # game_state.grid         — frozenset of Hex tiles
+        # game_state.tile_pids    — dict[Hex, int] (0=unpainted, 1/2=player)
+        # game_state.bots         — dict[int, BotInfo] with .position, .facing
+        # game_state.turn         — current turn number
+        # game_state.max_turns    — total turns in the match
+        return Actions.move(HexDirection.E)
 ```
+
+`Bot()` is created once when your script loads in the worker; use `self` to keep state between turns.
 
 Available imports inside the sandbox: `utils.hex_grid` and `utils.actions`.
 

@@ -17,24 +17,28 @@
     </nav>
   </header>
   <main class="docs-main markdown-body">
-<h1>Actions:</h1>
-<p>Actions are the commands that a splatbot can execute. A splatbot can execute exactly one action per turn. The <code>decide</code> function should return an instance of an action. To create an action, the <code>Actions</code> helper class is provided. The following actions are available:</p>
-<h2>Skip Action</h2>
+<h1 id="actions" tabindex="-1">Actions:</h1>
+<p>Actions are the commands that a splatbot can execute. A splatbot can execute exactly one action per turn. Your <code>Bot</code> class’s <code>decide</code> method should return an instance of an action. To create an action, the <code>Actions</code> helper class is provided. The following actions are available:</p>
+<h2 id="skip" tabindex="-1">Skip</h2>
 <p>The skip action tells a splatbot to skip a turn.</p>
 <pre><code class="language-python">from utils.actions import Actions
 
-def decide(game_state):
-    &quot;&quot;&quot; This bot will not do anything. How lazy! &quot;&quot;&quot;
-    return Actions.skip()
+
+class Bot:
+    def decide(self, game_state):
+        &quot;&quot;&quot; This bot will not do anything. How lazy! &quot;&quot;&quot;
+        return Actions.skip()
 </code></pre>
-<h2>Move Action</h2>
-<p>The move action tells a splatbot to move in a given direction. The direction given may be either an integer or (recommended) a <a href="../utilities/index.md#hex-direction">HexDirection</a>. A splatbot will move one tile in the given direction, and paint the tile that it lands on. If the movement would result in the splatbot moving to an invalid position, then nothing will happen.</p>
+<h2 id="move" tabindex="-1">Move</h2>
+<p>The move action tells a splatbot to move in a given direction. The direction given may be either an integer or (recommended) a <a href="../utilities/index.html#hex-direction">HexDirection</a>. A splatbot will move one tile in the given direction, and paint the tile that it lands on. If the movement would result in the splatbot moving to an invalid position, then nothing will happen.</p>
 <pre><code class="language-python">from utils.actions import Actions
 from utils.hex_grid import HexDirection
 
-def decide(game_state):
-    &quot;&quot;&quot; This bot will move in a straight line east across the grid. &quot;&quot;&quot;
-    return Actions.move(HexDirection.E)
+
+class Bot:
+    def decide(self, game_state):
+        &quot;&quot;&quot; This bot will move in a straight line east across the grid. &quot;&quot;&quot;
+        return Actions.move(HexDirection.E)
 </code></pre>
 
   </main>
