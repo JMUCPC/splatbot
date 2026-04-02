@@ -35,6 +35,13 @@ let botControlsReady = false;
 
 const els = {};
 
+/** Heuristic: bot script should define decide(...) for Pyodide. */
+const DECIDE_DEF_RE = /\bdef\s+decide\s*\([^)]*\)\s*:/;
+
+function looksLikeUploadableBot(source) {
+  return DECIDE_DEF_RE.test(source);
+}
+
 function rebuildCatalogMaps() {
   botCatalog = buildBotCatalog();
   catalogById = new Map(botCatalog.map((e) => [e.id, e]));
@@ -62,10 +69,21 @@ function populateBotSelects() {
       }
       sel.appendChild(og);
     }
+    const customOg = document.createElement('optgroup');
+    customOg.label = 'Custom';
+    const customOpt = document.createElement('option');
+    customOpt.value = `upload:${pid}`;
+    customOpt.textContent = 'Uploaded file';
+    customOg.appendChild(customOpt);
+    sel.appendChild(customOg);
   }
 }
 
 async function fetchBotSource(botId) {
+  if (botId.startsWith('upload:')) {
+    if (botSourceCache.has(botId)) return botSourceCache.get(botId);
+    throw new Error('Upload a .py bot file first.');
+  }
   if (botSourceCache.has(botId)) return botSourceCache.get(botId);
   if (botFetchPending.has(botId)) return botFetchPending.get(botId);
   const entry = catalogById.get(botId);
@@ -99,6 +117,37 @@ async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
     state = makeInitialState();
     push();
     logEvent(`P${pid} bot changed — match reset.`);
+  }
+}
+
+async function onBotFileChange(pid, input) {
+  if (!botControlsReady || !input) return;
+  const file = input.files?.[0];
+  if (!file) return;
+  const botId = `upload:${pid}`;
+  let text;
+  try {
+    text = await file.text();
+  } catch (err) {
+    input.value = '';
+    logEvent(`Failed to read file: ${err.message || err}`);
+    return;
+  }
+  if (!looksLikeUploadableBot(text)) {
+    input.value = '';
+    logEvent('Uploaded file must define decide(...): (e.g. def decide(game_state):).');
+    return;
+  }
+  botSourceCache.set(botId, text);
+  const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
+  for (const s of locks) s.disabled = true;
+  try {
+    await applyBotForPlayer(pid, botId, { isInitialLoad: false });
+    logEvent(`P${pid} using uploaded bot: ${file.name}`);
+  } catch (err) {
+    logEvent(`Failed to load uploaded bot: ${err.message || err}`);
+  } finally {
+    for (const s of locks) s.disabled = false;
   }
 }
 
@@ -141,12 +190,16 @@ export function initApp() {
   els.settingsFields = document.getElementById('settings-fields');
   els.botSelect1 = document.getElementById('bot-select-1');
   els.botSelect2 = document.getElementById('bot-select-2');
+  els.botFile1 = document.getElementById('bot-file-1');
+  els.botFile2 = document.getElementById('bot-file-2');
 
   populateBotSelects();
   if (els.botSelect1) els.botSelect1.disabled = true;
   if (els.botSelect2) els.botSelect2.disabled = true;
   if (els.botSelect1) els.botSelect1.addEventListener('change', () => onBotSelectChange(1));
   if (els.botSelect2) els.botSelect2.addEventListener('change', () => onBotSelectChange(2));
+  if (els.botFile1) els.botFile1.addEventListener('change', () => onBotFileChange(1, els.botFile1));
+  if (els.botFile2) els.botFile2.addEventListener('change', () => onBotFileChange(2, els.botFile2));
 
   initEventConsole(els.eventLog);
 
