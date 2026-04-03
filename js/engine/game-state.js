@@ -6,8 +6,13 @@ export const SPLAT_ACTION_LOCKOUT_TURNS = 3;
 /** Minimum gap between splats (turns remaining until splat is allowed again). */
 export const SPLAT_INTERVAL_TURNS = 10;
 
+/** Minimum turns between dashes (turns until dash is allowed again). */
+export const DASH_INTERVAL_TURNS = 7;
+export const DASH_MIN_DISTANCE = 2;
+export const DASH_MAX_DISTANCE = 6;
+
 export class BotData {
-  constructor(pid, position, facing, splatCooldown = 0, splatInterval = 0) {
+  constructor(pid, position, facing, splatCooldown = 0, splatInterval = 0, dashInterval = 0) {
     this.pid = pid;
     this.position = position;
     this.facing = facing;
@@ -15,6 +20,8 @@ export class BotData {
     this.splatCooldown = splatCooldown;
     /** Turns until splat is allowed again (at most one splat per SPLAT_INTERVAL_TURNS). */
     this.splatInterval = splatInterval;
+    /** Turns until dash is allowed again (one dash every DASH_INTERVAL_TURNS). */
+    this.dashInterval = dashInterval;
   }
 }
 
@@ -74,6 +81,7 @@ export class GameState {
     for (const bot of this.bots.values()) {
       if (bot.splatCooldown > 0) bot.splatCooldown -= 1;
       if (bot.splatInterval > 0) bot.splatInterval -= 1;
+      if (bot.dashInterval > 0) bot.dashInterval -= 1;
     }
   }
 
@@ -114,6 +122,47 @@ export class GameState {
         this.tilePids.set(newPos.key, pid);
       } else if (logFn) {
         logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
+      }
+    } else if (action.type === "dash") {
+      if (bot.splatCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on splat cooldown (${bot.splatCooldown} turn${bot.splatCooldown === 1 ? "" : "s"} left) — cannot dash`,
+          );
+        }
+        return;
+      }
+      if (bot.dashInterval > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} cannot dash for ${bot.dashInterval} more turn(s) (one dash every ${DASH_INTERVAL_TURNS} turns)`,
+          );
+        }
+        return;
+      }
+
+      const dist = Math.trunc(Number(action.distance));
+      if (!Number.isFinite(dist) || dist < DASH_MIN_DISTANCE || dist > DASH_MAX_DISTANCE) {
+        if (logFn) {
+          logFn(`Bot ${pid} tried to dash with invalid distance ${action.distance} (expected ${DASH_MIN_DISTANCE}-${DASH_MAX_DISTANCE})`);
+        }
+        return;
+      }
+
+      const start = bot.position;
+      let dest = start;
+      for (let i = 0; i < dist; i++) {
+        const next = hexNeighbor(dest, action.direction);
+        if (!this.grid.has(next.key)) break;
+        dest = next;
+      }
+
+      bot.dashInterval = DASH_INTERVAL_TURNS;
+      if (!dest.equals(start)) {
+        bot.position = dest;
+        bot.facing = action.direction;
+        // Dash paints only the destination hex (last hex reached, possibly short of requested distance).
+        this.tilePids.set(dest.key, pid);
       }
     } else if (action.type === "splat") {
       if (bot.splatCooldown > 0) {
@@ -167,6 +216,7 @@ export class GameState {
         facing: bot.facing,
         splat_cooldown: bot.splatCooldown,
         splat_interval: bot.splatInterval,
+        dash_interval: bot.dashInterval,
       };
     }
     const me = this.bots.get(pid);
@@ -174,6 +224,7 @@ export class GameState {
       my_pid: pid,
       my_splat_cooldown: me ? me.splatCooldown : 0,
       my_splat_interval: me ? me.splatInterval : 0,
+      my_dash_interval: me ? me.dashInterval : 0,
       grid,
       tile_pids: tilePids,
       bots,

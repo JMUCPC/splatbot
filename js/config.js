@@ -15,6 +15,7 @@ const config = {
   BUILTIN_BOTS_PATH: "python/bots/",
   BUILTIN_BOTS: {
     random: "random_bot.py",
+    random_dash: "random_dash_bot.py",
     random_splat: "random_splat_bot.py",
     straight_line: "straight_line_bot.py",
     ping_pong: "ping_pong_bot.py",

@@ -54,3 +54,25 @@ class Bot:
 ```
 
 See [Writing bots](../writing-bots/) for the full game state reference.
+
+## Dash
+
+`Actions.dash(direction, distance)` moves a bot **2–6** hexes in the given `direction` and paints **only the destination** hex.
+
+A bot can dash once every **7 turns**; check `game_state.my_dash_interval` (`0` = dash available).
+
+If the full distance would leave the grid, you stop at the **last in-grid hex** along that direction (the edge), paint only that hex, and the dash cooldown still applies.
+
+```python
+from utils.actions import Actions
+from utils.hex_grid import HexDirection
+
+
+class Bot:
+    def decide(self, game_state):
+        if game_state.my_splat_cooldown > 0:
+            return Actions.skip()
+        if game_state.my_dash_interval == 0:
+            return Actions.dash(HexDirection.E, 4)
+        return Actions.move(HexDirection.E)
+```

@@ -16,6 +16,7 @@ __all__ = [
     "MoveAction",
     "SkipAction",
     "SplatAction",
+    "DashAction",
     "Actions",
 ]
 
@@ -37,7 +38,15 @@ class SplatAction:
     pass
 
 
-Action = MoveAction | SkipAction | SplatAction
+@dataclass(frozen=True)
+class DashAction:
+    """Move 2-6 hexes in a direction, painting only the destination hex."""
+
+    direction: HexDirection
+    distance: int
+
+
+Action = MoveAction | SkipAction | SplatAction | DashAction
 
 
 class Actions:
@@ -56,3 +65,9 @@ class Actions:
     @staticmethod
     def splat() -> SplatAction:
         return SplatAction()
+
+    @staticmethod
+    def dash(direction: int | HexDirection, distance: int) -> DashAction:
+        if isinstance(direction, int):
+            direction = HexDirection(direction % 6)
+        return DashAction(direction, int(distance))
