@@ -18,12 +18,11 @@
   </header>
   <main class="docs-main markdown-body">
 <h1 id="architecture-overview" tabindex="-1">Architecture overview</h1>
-<h1 id="todo-fix-this-page" tabindex="-1">TODO: fix this page</h1>
 <p>Splatbot runs <strong>entirely in the browser</strong>:</p>
 <ol>
 <li><strong>UI</strong> — HTML/CSS and modules under <code>js/ui/</code> drive controls, settings, and the event log.</li>
-<li><strong>Rendering</strong> — <code>js/renderer/</code> draws the hex grid on canvas (or SVG per your setup).</li>
-<li><strong>Game logic</strong> — <code>js/engine/</code> mirrors rules; Python bots run in workers via <strong>Pyodide</strong>.</li>
+<li><strong>Rendering</strong> — <code>js/renderer/</code> builds an <strong>SVG</strong> hex grid from <code>js/engine/</code> game state.</li>
+<li><strong>Game logic</strong> — <code>js/engine/</code> is authoritative for turns, tiles, and actions; Python bots run in workers via <strong>Pyodide</strong>.</li>
 </ol>
 <p>Python bot code is loaded from bundled files under <code>python/</code> and executed in a sandboxed worker so both players’ scripts stay isolated.</p>
 <p>For how to author bots, see <strong><a href="../writing-bots/">Writing bots</a></strong>.</p>

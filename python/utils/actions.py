@@ -15,6 +15,7 @@ __all__ = [
     "Action",
     "MoveAction",
     "SkipAction",
+    "SplatAction",
     "Actions",
 ]
 
@@ -29,7 +30,14 @@ class SkipAction:
     pass
 
 
-Action = MoveAction | SkipAction
+@dataclass(frozen=True)
+class SplatAction:
+    """Paint every in-grid neighbor of the bot's current hex (not the hex you stand on)."""
+
+    pass
+
+
+Action = MoveAction | SkipAction | SplatAction
 
 
 class Actions:
@@ -44,3 +52,7 @@ class Actions:
     @staticmethod
     def skip() -> SkipAction:
         return SkipAction()
+
+    @staticmethod
+    def splat() -> SplatAction:
+        return SplatAction()

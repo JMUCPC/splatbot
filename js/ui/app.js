@@ -402,6 +402,7 @@ async function gameLoop() {
     }
 
     state.neutralizeCollidingTiles(logEvent);
+    state.tickSplatCooldowns();
 
     push();
   }

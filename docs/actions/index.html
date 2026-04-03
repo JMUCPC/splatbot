@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Actions: · Splatbot</title>
+  <title>Actions · Splatbot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/docs.css">
@@ -17,8 +17,8 @@
     </nav>
   </header>
   <main class="docs-main markdown-body">
-<h1 id="actions" tabindex="-1">Actions:</h1>
-<p>Actions are the commands that a splatbot can execute. A splatbot can execute exactly one action per turn. Your <code>Bot</code> class’s <code>decide</code> method should return an instance of an action. To create an action, the <code>Actions</code> helper class is provided. The following actions are available:</p>
+<h1 id="actions" tabindex="-1">Actions</h1>
+<p>A bot performs <strong>exactly one</strong> action per turn. Your <code>Bot.decide</code> method must return a value from the <strong><code>Actions</code></strong> helpers below.</p>
 <h2 id="skip" tabindex="-1">Skip</h2>
 <p>The skip action tells a splatbot to skip a turn.</p>
 <pre><code class="language-python">from utils.actions import Actions
@@ -40,6 +40,25 @@ class Bot:
         &quot;&quot;&quot; This bot will move in a straight line east across the grid. &quot;&quot;&quot;
         return Actions.move(HexDirection.E)
 </code></pre>
+<h2 id="splat" tabindex="-1">Splat</h2>
+<p><code>Actions.splat()</code> paints every <strong>in-grid neighbor</strong> of your current hex (not the tile you stand on).</p>
+<p>After splat:</p>
+<ol>
+<li><strong>3 turns</strong> — you cannot <strong>move</strong> or <strong>splat</strong> (<code>game_state.my_splat_cooldown</code>). Use <code>Actions.skip()</code> if you have no other option.</li>
+<li><strong>10 turns</strong> — you cannot <strong>splat</strong> again (<code>game_state.my_splat_interval</code>); you may <strong>move</strong> once the 3-turn lockout ends. This enforces at most <strong>one splat every 10 turns</strong>.</li>
+</ol>
+<pre><code class="language-python">from utils.actions import Actions
+
+
+class Bot:
+    def decide(self, game_state):
+        if game_state.my_splat_cooldown &gt; 0:
+            return Actions.skip()
+        if game_state.my_splat_interval == 0:
+            return Actions.splat()
+        return Actions.move(HexDirection.E)
+</code></pre>
+<p>See <a href="../writing-bots/">Writing bots</a> for the full game state reference.</p>
 
   </main>
 </body>

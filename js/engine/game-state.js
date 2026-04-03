@@ -1,11 +1,20 @@
 import { Hex, HexDirection, generateHexGrid, hexNeighbor } from "./hex-grid.js";
 import config from "../config.js";
 
+/** After splat: no move/splat for this many turns. */
+export const SPLAT_ACTION_LOCKOUT_TURNS = 3;
+/** Minimum gap between splats (turns remaining until splat is allowed again). */
+export const SPLAT_INTERVAL_TURNS = 10;
+
 export class BotData {
-  constructor(pid, position, facing) {
+  constructor(pid, position, facing, splatCooldown = 0, splatInterval = 0) {
     this.pid = pid;
     this.position = position;
     this.facing = facing;
+    /** Turns remaining before move/splat allowed after using splat. */
+    this.splatCooldown = splatCooldown;
+    /** Turns until splat is allowed again (at most one splat per SPLAT_INTERVAL_TURNS). */
+    this.splatInterval = splatInterval;
   }
 }
 
@@ -60,6 +69,14 @@ export class GameState {
    * After both bots have moved in a turn: any hex with more than one bot is
    * reset to unpainted (no race for which player "owns" the tile).
    */
+  /** Call once per game tick after both bots have acted. */
+  tickSplatCooldowns() {
+    for (const bot of this.bots.values()) {
+      if (bot.splatCooldown > 0) bot.splatCooldown -= 1;
+      if (bot.splatInterval > 0) bot.splatInterval -= 1;
+    }
+  }
+
   neutralizeCollidingTiles(logFn) {
     const byKey = new Map();
     for (const bot of this.bots.values()) {
@@ -82,6 +99,14 @@ export class GameState {
     if (!bot) return;
 
     if (action.type === "move") {
+      if (bot.splatCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on splat cooldown (${bot.splatCooldown} turn${bot.splatCooldown === 1 ? "" : "s"} left) — cannot move`,
+          );
+        }
+        return;
+      }
       const newPos = hexNeighbor(bot.position, action.direction);
       if (this.grid.has(newPos.key)) {
         bot.position = newPos;
@@ -90,6 +115,31 @@ export class GameState {
       } else if (logFn) {
         logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
       }
+    } else if (action.type === "splat") {
+      if (bot.splatCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on splat cooldown (${bot.splatCooldown} turn${bot.splatCooldown === 1 ? "" : "s"} left) — cannot splat`,
+          );
+        }
+        return;
+      }
+      if (bot.splatInterval > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} cannot splat for ${bot.splatInterval} more turn(s) (one splat every ${SPLAT_INTERVAL_TURNS} turns)`,
+          );
+        }
+        return;
+      }
+      for (let d = 0; d < 6; d++) {
+        const n = hexNeighbor(bot.position, d);
+        if (this.grid.has(n.key)) {
+          this.tilePids.set(n.key, pid);
+        }
+      }
+      bot.splatCooldown = SPLAT_ACTION_LOCKOUT_TURNS;
+      bot.splatInterval = SPLAT_INTERVAL_TURNS;
     } else if (action.type === "skip") {
       // do nothing
     } else {
@@ -115,9 +165,21 @@ export class GameState {
         pid: bot.pid,
         position: [bot.position.q, bot.position.r],
         facing: bot.facing,
+        splat_cooldown: bot.splatCooldown,
+        splat_interval: bot.splatInterval,
       };
     }
-    return { my_pid: pid, grid, tile_pids: tilePids, bots, turn: this.turn, max_turns: this.maxTurns };
+    const me = this.bots.get(pid);
+    return {
+      my_pid: pid,
+      my_splat_cooldown: me ? me.splatCooldown : 0,
+      my_splat_interval: me ? me.splatInterval : 0,
+      grid,
+      tile_pids: tilePids,
+      bots,
+      turn: this.turn,
+      max_turns: this.maxTurns,
+    };
   }
 }
 

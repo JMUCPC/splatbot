@@ -1,7 +1,5 @@
 # Writing bots
 
-# TODO: fix this page
-
 Bots are Python scripts that define a `class Bot` with a `decide(self, game_state)` method.
 
 ## Imports
@@ -23,6 +21,12 @@ class Bot:
         return Actions.move(HexDirection.E)
 ```
 
+## Actions
+
+- `Actions.move(HexDirection)` — step to an adjacent hex (and paint it).
+- `Actions.skip()` — no effect.
+- `Actions.splat()` — paint every **in-grid** neighbor of your current hex (not the tile you stand on). After splat: **3 turns** where you cannot move or splat (`my_splat_cooldown`), and a separate **10-turn** timer before you may splat again (`my_splat_interval`; at most one splat every 10 turns). You may still `skip()` during the 3-turn lockout.
+
 ## Game state
 
 Useful fields on `game_state`:
@@ -30,9 +34,11 @@ Useful fields on `game_state`:
 | Field | Meaning |
 | ------ | ------- |
 | `my_pid` | This bot’s player id (`1` or `2`) |
+| `my_splat_cooldown` | Turns before `move` / `splat` allowed after splat (`0` = not in 3-turn lockout) |
+| `my_splat_interval` | Turns until `splat` is allowed again (`0` = splat available; one splat every **10** turns) |
 | `grid` | `frozenset` of hex tiles |
 | `tile_pids` | `dict` mapping tile → owner (`0` = unpainted) |
-| `bots` | `dict` of `BotInfo` (position, facing, …) |
+| `bots` | `dict` of `BotInfo` (`position`, `facing`, `splat_cooldown`, `splat_interval`) |
 | `turn` | Current turn |
 | `max_turns` | Match length |
 

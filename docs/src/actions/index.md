@@ -1,6 +1,6 @@
-# Actions:
+# Actions
 
-Actions are the commands that a splatbot can execute. A splatbot can execute exactly one action per turn. Your `Bot` class's `decide` method should return an instance of an action. To create an action, the `Actions` helper class is provided. The following actions are available:
+A bot performs **exactly one** action per turn. Your `Bot.decide` method must return a value from the **`Actions`** helpers below.
 
 ## Skip
 
@@ -30,3 +30,27 @@ class Bot:
         """ This bot will move in a straight line east across the grid. """
         return Actions.move(HexDirection.E)
 ```
+
+## Splat
+
+`Actions.splat()` paints every **in-grid neighbor** of your current hex (not the tile you stand on).
+
+After splat:
+
+1. **3 turns** — you cannot **move** or **splat** (`game_state.my_splat_cooldown`). Use `Actions.skip()` if you have no other option.
+2. **10 turns** — you cannot **splat** again (`game_state.my_splat_interval`); you may **move** once the 3-turn lockout ends. This enforces at most **one splat every 10 turns**.
+
+```python
+from utils.actions import Actions
+
+
+class Bot:
+    def decide(self, game_state):
+        if game_state.my_splat_cooldown > 0:
+            return Actions.skip()
+        if game_state.my_splat_interval == 0:
+            return Actions.splat()
+        return Actions.move(HexDirection.E)
+```
+
+See [Writing bots](../writing-bots/) for the full game state reference.

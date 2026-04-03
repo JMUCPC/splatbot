@@ -33,24 +33,28 @@ self.onmessage = async function (e) {
       pyodide.runPython(`
 from types import MappingProxyType as _MPT
 from utils.hex_grid import Hex as _Hex, HexDirection as _HD
-from utils.actions import MoveAction as _MA, SkipAction as _SA
+from utils.actions import MoveAction as _MA, SkipAction as _SA, SplatAction as _SpA
 import json as _json
 
 class _BotInfo:
-    __slots__ = ('pid', 'position', 'facing')
-    def __init__(self, pid, position, facing):
+    __slots__ = ('pid', 'position', 'facing', 'splat_cooldown', 'splat_interval')
+    def __init__(self, pid, position, facing, splat_cooldown=0, splat_interval=0):
         object.__setattr__(self, 'pid', pid)
         object.__setattr__(self, 'position', position)
         object.__setattr__(self, 'facing', facing)
+        object.__setattr__(self, 'splat_cooldown', int(splat_cooldown))
+        object.__setattr__(self, 'splat_interval', int(splat_interval))
     def __setattr__(self, *a):
         raise AttributeError("BotInfo is read-only")
     def __repr__(self):
         return f"BotInfo(pid={self.pid}, pos={self.position}, facing={self.facing})"
 
 class _Snapshot:
-    __slots__ = ('my_pid', 'grid', 'tile_pids', 'bots', 'turn', 'max_turns')
+    __slots__ = ('my_pid', 'my_splat_cooldown', 'my_splat_interval', 'grid', 'tile_pids', 'bots', 'turn', 'max_turns')
     def __init__(self, d):
         object.__setattr__(self, 'my_pid', d['my_pid'])
+        object.__setattr__(self, 'my_splat_cooldown', int(d.get('my_splat_cooldown', 0)))
+        object.__setattr__(self, 'my_splat_interval', int(d.get('my_splat_interval', 0)))
         object.__setattr__(self, 'grid', frozenset(_Hex(q, r) for q, r in d['grid']))
         tp = {}
         for k, v in d['tile_pids'].items():
@@ -60,7 +64,9 @@ class _Snapshot:
         bots = {}
         for ps, bd in d['bots'].items():
             p = int(ps)
-            bots[p] = _BotInfo(p, _Hex(*bd['position']), _HD(bd['facing']))
+            sc = int(bd.get('splat_cooldown', 0))
+            si = int(bd.get('splat_interval', 0))
+            bots[p] = _BotInfo(p, _Hex(*bd['position']), _HD(bd['facing']), sc, si)
         object.__setattr__(self, 'bots', _MPT(bots))
         object.__setattr__(self, 'turn', d['turn'])
         object.__setattr__(self, 'max_turns', d['max_turns'])
@@ -101,6 +107,9 @@ if isinstance(_action, _MA):
 elif isinstance(_action, _SA):
     _rtype = 'skip'
     _rdir = -1
+elif isinstance(_action, _SpA):
+    _rtype = 'splat'
+    _rdir = -1
 else:
     raise TypeError(f"Bot.decide must return Action, got {type(_action).__name__}")
 `);
@@ -111,7 +120,9 @@ else:
 
       const action = rtype === 'move'
         ? { type: 'move', direction: rdir }
-        : { type: 'skip' };
+        : rtype === 'splat'
+          ? { type: 'splat' }
+          : { type: 'skip' };
       self.postMessage({ type: 'result', action, elapsed });
     } catch (err) {
       const elapsed = (performance.now() - start) / 1000;

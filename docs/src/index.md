@@ -1,12 +1,16 @@
 # Splatbot documentation
 
-# TODO: fix this page
+Splatbot is a two-player hex-grid game that runs in the browser. Bots are written in **Python** and run in Web Workers via **Pyodide**. This site explains how to author bots and how the project is structured.
 
-Welcome to the docs. This site is generated from Markdown in `docs/src/`:
+## In this site
 
-- **[Writing bots](writing-bots/)** — Python bot API and examples.
-- **[Architecture overview](architecture/overview/)** — how the pieces fit together.
+- **[Writing bots](writing-bots/)** — `Bot.decide`, game state, `move` / `skip` / `splat`, and examples.
+- **[Actions](actions/)** — What each action does.
+- **[Utilities](utilities/)** — `HexDirection` and other helpers exposed to bots.
+- **[Architecture overview](architecture/overview/)** — UI, engine, renderer, and workers.
 
-After editing `.md` files, run **`npm run docs:build`** and commit both sources and generated HTML under `docs/`.
+## Editing these pages
+
+Sources live in `docs/src/` as Markdown. After you change them, run **`npm run docs:build`** and commit **both** the `.md` sources and the generated HTML under `docs/` (static hosting does not run Node).
 
 [← Back to the game](../index.html)

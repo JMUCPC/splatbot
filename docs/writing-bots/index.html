@@ -18,7 +18,6 @@
   </header>
   <main class="docs-main markdown-body">
 <h1 id="writing-bots" tabindex="-1">Writing bots</h1>
-<h1 id="todo-fix-this-page" tabindex="-1">TODO: fix this page</h1>
 <p>Bots are Python scripts that define a <code>class Bot</code> with a <code>decide(self, game_state)</code> method.</p>
 <h2 id="imports" tabindex="-1">Imports</h2>
 <p>Inside the browser sandbox you can use:</p>
@@ -35,6 +34,12 @@ class Bot:
     def decide(self, game_state):
         return Actions.move(HexDirection.E)
 </code></pre>
+<h2 id="actions" tabindex="-1">Actions</h2>
+<ul>
+<li><code>Actions.move(HexDirection)</code> — step to an adjacent hex (and paint it).</li>
+<li><code>Actions.skip()</code> — no effect.</li>
+<li><code>Actions.splat()</code> — paint every <strong>in-grid</strong> neighbor of your current hex (not the tile you stand on). After splat: <strong>3 turns</strong> where you cannot move or splat (<code>my_splat_cooldown</code>), and a separate <strong>10-turn</strong> timer before you may splat again (<code>my_splat_interval</code>; at most one splat every 10 turns). You may still <code>skip()</code> during the 3-turn lockout.</li>
+</ul>
 <h2 id="game-state" tabindex="-1">Game state</h2>
 <p>Useful fields on <code>game_state</code>:</p>
 <table>
@@ -50,6 +55,14 @@ class Bot:
 <td>This bot’s player id (<code>1</code> or <code>2</code>)</td>
 </tr>
 <tr>
+<td><code>my_splat_cooldown</code></td>
+<td>Turns before <code>move</code> / <code>splat</code> allowed after splat (<code>0</code> = not in 3-turn lockout)</td>
+</tr>
+<tr>
+<td><code>my_splat_interval</code></td>
+<td>Turns until <code>splat</code> is allowed again (<code>0</code> = splat available; one splat every <strong>10</strong> turns)</td>
+</tr>
+<tr>
 <td><code>grid</code></td>
 <td><code>frozenset</code> of hex tiles</td>
 </tr>
@@ -59,7 +72,7 @@ class Bot:
 </tr>
 <tr>
 <td><code>bots</code></td>
-<td><code>dict</code> of <code>BotInfo</code> (position, facing, …)</td>
+<td><code>dict</code> of <code>BotInfo</code> (<code>position</code>, <code>facing</code>, <code>splat_cooldown</code>, <code>splat_interval</code>)</td>
 </tr>
 <tr>
 <td><code>turn</code></td>

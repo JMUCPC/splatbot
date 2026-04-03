@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Utilities: · Splatbot</title>
+  <title>Utilities · Splatbot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/docs.css">
@@ -17,47 +17,20 @@
     </nav>
   </header>
   <main class="docs-main markdown-body">
-<h1 id="utilities" tabindex="-1">Utilities:</h1>
-<h1 id="todo-finish-this-page" tabindex="-1">TODO: finish this page</h1>
-<p>lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-<h2 id="hex-direction" tabindex="-1">Hex Direction</h2>
-<p>A Hex Direction is used to simplify the representation of the 6 directions that a splatbot can move in. They are as follows: <code>E</code>, <code>NE</code>, <code>NW</code>, <code>W</code>, <code>SW</code>, <code>SE</code>. They are used as arguments to functions that require a direction to be specified. They can be accessed as follows:</p>
+<h1 id="utilities" tabindex="-1">Utilities</h1>
+<p>Python bots can import <strong><code>utils</code></strong> modules inside the Pyodide sandbox. The usual pair is <strong><code>utils.hex_grid</code></strong> (coordinates and directions) and <strong><code>utils.actions</code></strong> (see the <a href="../actions/">Actions</a> page).</p>
+<h2 id="hexdirection" tabindex="-1">HexDirection</h2>
+<p>The map uses a <strong>pointy-top</strong> axial hex grid. There are six neighbor directions: <strong><code>E</code></strong>, <strong><code>NE</code></strong>, <strong><code>NW</code></strong>, <strong><code>W</code></strong>, <strong><code>SW</code></strong>, <strong><code>SE</code></strong>. Pass them to <code>Actions.move</code> (or an equivalent integer <code>0</code>–<code>5</code>).</p>
 <pre><code class="language-python">from utils.hex_grid import HexDirection
 
-east       = HexDirection.E
+east = HexDirection.E
 north_east = HexDirection.NE
 north_west = HexDirection.NW
-west       = HexDirection.W
+west = HexDirection.W
 south_west = HexDirection.SW
 south_east = HexDirection.SE
 </code></pre>
+<p>For the full snapshot your bot receives each turn, see <a href="../writing-bots/">Writing bots</a>.</p>
 
   </main>
 </body>

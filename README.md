@@ -43,9 +43,12 @@ class Bot:
         # game_state.my_pid       — this bot's player id (1 or 2)
         # game_state.grid         — frozenset of Hex tiles
         # game_state.tile_pids    — dict[Hex, int] (0=unpainted, 1/2=player)
-        # game_state.bots         — dict[int, BotInfo] with .position, .facing
+        # game_state.bots         — dict[int, BotInfo] with .position, .facing, .splat_cooldown, .splat_interval
+        # game_state.my_splat_cooldown — turns left before move/splat (after splat)
+        # game_state.my_splat_interval — turns until splat is allowed again (one splat every 10 turns)
         # game_state.turn         — current turn number
         # game_state.max_turns    — total turns in the match
+        # Also: Actions.skip(), Actions.splat() — splat paints neighbors; 3-turn move/splat lockout + 10-turn splat gap
         return Actions.move(HexDirection.E)
 ```
 
