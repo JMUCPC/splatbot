@@ -1,13 +1,6 @@
 import { Hex, HexDirection, generateHexGrid, hexNeighbor } from "./hex-grid.js";
 import config from "../config.js";
 
-/** After splat: no move/splat for this many turns. */
-export const SPLAT_ACTION_LOCKOUT_TURNS = 3;
-/** Minimum gap between splats (turns remaining until splat is allowed again). */
-export const SPLAT_INTERVAL_TURNS = 10;
-
-/** Minimum turns between dashes (turns until dash is allowed again). */
-export const DASH_INTERVAL_TURNS = 7;
 export const DASH_MIN_DISTANCE = 2;
 export const DASH_MAX_DISTANCE = 6;
 
@@ -18,9 +11,9 @@ export class BotData {
     this.facing = facing;
     /** Turns remaining before move/splat allowed after using splat. */
     this.splatCooldown = splatCooldown;
-    /** Turns until splat is allowed again (at most one splat per SPLAT_INTERVAL_TURNS). */
+    /** Turns until splat is allowed again (see `config.SPLAT_INTERVAL_TURNS`). */
     this.splatInterval = splatInterval;
-    /** Turns until dash is allowed again (one dash every DASH_INTERVAL_TURNS). */
+    /** Turns until dash is allowed again (see `config.DASH_INTERVAL_TURNS`). */
     this.dashInterval = dashInterval;
   }
 }
@@ -135,7 +128,7 @@ export class GameState {
       if (bot.dashInterval > 0) {
         if (logFn) {
           logFn(
-            `Bot ${pid} cannot dash for ${bot.dashInterval} more turn(s) (one dash every ${DASH_INTERVAL_TURNS} turns)`,
+            `Bot ${pid} cannot dash for ${bot.dashInterval} more turn(s) (one dash every ${config.DASH_INTERVAL_TURNS} turns)`,
           );
         }
         return;
@@ -157,7 +150,7 @@ export class GameState {
         dest = next;
       }
 
-      bot.dashInterval = DASH_INTERVAL_TURNS;
+      bot.dashInterval = config.DASH_INTERVAL_TURNS;
       if (!dest.equals(start)) {
         bot.position = dest;
         bot.facing = action.direction;
@@ -176,7 +169,7 @@ export class GameState {
       if (bot.splatInterval > 0) {
         if (logFn) {
           logFn(
-            `Bot ${pid} cannot splat for ${bot.splatInterval} more turn(s) (one splat every ${SPLAT_INTERVAL_TURNS} turns)`,
+            `Bot ${pid} cannot splat for ${bot.splatInterval} more turn(s) (one splat every ${config.SPLAT_INTERVAL_TURNS} turns)`,
           );
         }
         return;
@@ -187,8 +180,8 @@ export class GameState {
           this.tilePids.set(n.key, pid);
         }
       }
-      bot.splatCooldown = SPLAT_ACTION_LOCKOUT_TURNS;
-      bot.splatInterval = SPLAT_INTERVAL_TURNS;
+      bot.splatCooldown = config.SPLAT_ACTION_LOCKOUT_TURNS;
+      bot.splatInterval = config.SPLAT_INTERVAL_TURNS;
     } else if (action.type === "skip") {
       // do nothing
     } else {

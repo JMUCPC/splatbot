@@ -61,5 +61,5 @@ Available imports inside the sandbox: `utils.hex_grid` and `utils.actions`.
 
 - Click **SETTINGS** in the top bar to edit runtime game/render settings.
 - Settings are persisted per browser via `localStorage`.
-- `js/config.js` holds the default values.
+- `js/config.js` holds the default values (including splat/dash cooldown and interval; editable in **SETTINGS**).
 - Applying settings resets the current match.

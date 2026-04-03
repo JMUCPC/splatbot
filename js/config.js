@@ -3,6 +3,12 @@ const config = {
   MAX_TURNS: 200,
   TICK_DELAY: 0.15,
   TIMEOUT: 1.0,
+  /** After splat: turns where move/splat are blocked. */
+  SPLAT_ACTION_LOCKOUT_TURNS: 3,
+  /** Turns between splats (minimum gap). */
+  SPLAT_INTERVAL_TURNS: 10,
+  /** Turns between dashes (minimum gap). */
+  DASH_INTERVAL_TURNS: 7,
   BOT_DISPLAY_TYPE: "triangles",
   PLAYER_TILE_COLORS: { 1: "#b84010", 2: "#0a7090" },
   PLAYER_BOT_COLORS: { 1: "#ff6b2b", 2: "#00d4ff" },

@@ -323,7 +323,81 @@ body {
 .settings-fields {
   width: 100%;
   max-height: 55vh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.settings-tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #1a2a40;
+  flex-shrink: 0;
+}
+.settings-tab {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #5a6a82;
+  padding: 8px 12px 6px;
+  margin-bottom: -10px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.settings-tab:hover {
+  color: #9aacbf;
+}
+.settings-tab--active {
+  color: #dde8f0;
+  border-bottom-color: #3a5070;
+}
+.settings-panels-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  padding-right: 4px;
+}
+.settings-tab-panel {
+  width: 100%;
+}
+.settings-field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.settings-field-label {
+  width: min(280px, 38%);
+  flex-shrink: 0;
+}
+.settings-input {
+  flex: 1;
+  min-width: 0;
+  background: #070d1a;
+  color: #9aacbf;
+  border: 1px solid #1a2a40;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.02rem;
+}
+.settings-input--enum {
+  padding: 9px 12px;
+}
+.settings-input--number {
+  padding: 9px 12px;
+}
+.settings-input--color {
+  height: 44px;
+  cursor: pointer;
 }
 .settings-actions {
   display: flex;
