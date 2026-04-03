@@ -43,6 +43,24 @@ export const SETTING_SPECS = [
     step: 1,
   },
   {
+    key: 'SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS',
+    tab: 'rules',
+    label: 'Paintball lockout (turns)',
+    kind: 'int',
+    min: 0,
+    max: 100,
+    step: 1,
+  },
+  {
+    key: 'SHOOT_PAINTBALL_INTERVAL_TURNS',
+    tab: 'rules',
+    label: 'Paintball interval (turns)',
+    kind: 'int',
+    min: 0,
+    max: 100,
+    step: 1,
+  },
+  {
     key: 'BOT_DISPLAY_TYPE',
     tab: 'appearance',
     label: 'Bot marker shape',
@@ -71,6 +89,8 @@ function getDefaultFlat() {
     SPLAT_ACTION_LOCKOUT_TURNS: 3,
     SPLAT_INTERVAL_TURNS: 10,
     DASH_INTERVAL_TURNS: 7,
+    SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS: 7,
+    SHOOT_PAINTBALL_INTERVAL_TURNS: 20,
     BOT_DISPLAY_TYPE: 'triangles',
     'PLAYER_TILE_COLORS.1': '#b84010',
     'PLAYER_TILE_COLORS.2': '#0a7090',
@@ -145,6 +165,8 @@ export function applyToConfig(flat) {
   config.SPLAT_ACTION_LOCKOUT_TURNS = flat.SPLAT_ACTION_LOCKOUT_TURNS;
   config.SPLAT_INTERVAL_TURNS = flat.SPLAT_INTERVAL_TURNS;
   config.DASH_INTERVAL_TURNS = flat.DASH_INTERVAL_TURNS;
+  config.SHOOT_PAINTBALL_INTERVAL_TURNS = flat.SHOOT_PAINTBALL_INTERVAL_TURNS;
+  config.SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS = flat.SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS;
   config.BOT_DISPLAY_TYPE = flat.BOT_DISPLAY_TYPE;
   config.PLAYER_TILE_COLORS = { 1: flat['PLAYER_TILE_COLORS.1'], 2: flat['PLAYER_TILE_COLORS.2'] };
   config.PLAYER_BOT_COLORS = { 1: flat['PLAYER_BOT_COLORS.1'], 2: flat['PLAYER_BOT_COLORS.2'] };

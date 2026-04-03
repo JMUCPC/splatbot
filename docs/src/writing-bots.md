@@ -27,6 +27,7 @@ class Bot:
 - `Actions.skip()` — no effect.
 - `Actions.splat()` — paint every **in-grid** neighbor of your current hex (not the tile you stand on). After splat: **3 turns** where you cannot move or splat (`my_splat_cooldown`), and a separate **10-turn** timer before you may splat again (`my_splat_interval`; at most one splat every 10 turns). You may still `skip()` during the 3-turn lockout.
 - `Actions.dash(direction, distance)` — dash **2-6** hexes in `direction` and paint **only the destination** hex (if that would leave the map, you stop at the **edge**). A bot can dash once every **7 turns**; check `game_state.my_dash_interval` (`0` = dash available).
+- `Actions.shoot_paintball(direction)` — you do **not** move. Paint every in-grid hex in a straight line in `direction` until the **map edge** or the **other bot’s hex** (that hex is **not** painted; painting stops there). After shooting: default **7-turn** lockout where you **cannot move**, dash, splat, or shoot again (`my_paintball_cooldown`), plus a separate **20-turn** interval before another shot (`my_paintball_interval`). You cannot use paintball during the splat **move/splat** lockout (`my_splat_cooldown`). Lockout and interval are configurable in **SETTINGS**.
 
 ## Game state
 
@@ -38,9 +39,11 @@ Useful fields on `game_state`:
 | `my_splat_cooldown` | Turns before `move` / `splat` allowed after splat (`0` = not in 3-turn lockout) |
 | `my_splat_interval` | Turns until `splat` is allowed again (`0` = splat available; one splat every **10** turns) |
 | `my_dash_interval` | Turns until `dash` is allowed again (`0` = dash available; one dash every **7** turns) |
+| `my_paintball_interval` | Turns until `shoot_paintball` is allowed again (`0` = available; default **20** turns between shots) |
+| `my_paintball_cooldown` | Turns before **move** / **dash** / **splat** / **shoot_paintball** after a paintball shot (`0` = not in lockout; default **7** turns) |
 | `grid` | `frozenset` of hex tiles |
 | `tile_pids` | `dict` mapping tile → owner (`0` = unpainted) |
-| `bots` | `dict` of `BotInfo` (`position`, `facing`, `splat_cooldown`, `splat_interval`, `dash_interval`) |
+| `bots` | `dict` of `BotInfo` (`position`, `facing`, `splat_cooldown`, `splat_interval`, `dash_interval`, `paintball_interval`, `paintball_cooldown`) |
 | `turn` | Current turn |
 | `max_turns` | Match length |
 

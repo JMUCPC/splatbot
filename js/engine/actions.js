@@ -3,6 +3,7 @@ export const ActionType = Object.freeze({
   SKIP: 'skip',
   SPLAT: 'splat',
   DASH: 'dash',
+  SHOOT_PAINTBALL: 'shoot_paintball',
 });
 
 export function MoveAction(direction) {
@@ -25,6 +26,13 @@ export function DashAction(direction, distance) {
   });
 }
 
+export function ShootPaintballAction(direction) {
+  return Object.freeze({
+    type: ActionType.SHOOT_PAINTBALL,
+    direction: ((direction % 6) + 6) % 6,
+  });
+}
+
 export const Actions = {
   move(direction) {
     return MoveAction(((direction % 6) + 6) % 6);
@@ -37,5 +45,8 @@ export const Actions = {
   },
   dash(direction, distance) {
     return DashAction(((direction % 6) + 6) % 6, distance);
+  },
+  shoot_paintball(direction) {
+    return ShootPaintballAction(((direction % 6) + 6) % 6);
   },
 };

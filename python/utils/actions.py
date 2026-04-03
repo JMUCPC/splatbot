@@ -17,6 +17,7 @@ __all__ = [
     "SkipAction",
     "SplatAction",
     "DashAction",
+    "ShootPaintballAction",
     "Actions",
 ]
 
@@ -46,7 +47,14 @@ class DashAction:
     distance: int
 
 
-Action = MoveAction | SkipAction | SplatAction | DashAction
+@dataclass(frozen=True)
+class ShootPaintballAction:
+    """Paint a ray in ``direction`` until the map edge or another bot (you do not move)."""
+
+    direction: HexDirection
+
+
+Action = MoveAction | SkipAction | SplatAction | DashAction | ShootPaintballAction
 
 
 class Actions:
@@ -71,3 +79,9 @@ class Actions:
         if isinstance(direction, int):
             direction = HexDirection(direction % 6)
         return DashAction(direction, int(distance))
+
+    @staticmethod
+    def shoot_paintball(direction: int | HexDirection) -> ShootPaintballAction:
+        if isinstance(direction, int):
+            direction = HexDirection(direction % 6)
+        return ShootPaintballAction(direction)

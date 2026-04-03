@@ -40,6 +40,7 @@ class Bot:
 <li><code>Actions.skip()</code> — no effect.</li>
 <li><code>Actions.splat()</code> — paint every <strong>in-grid</strong> neighbor of your current hex (not the tile you stand on). After splat: <strong>3 turns</strong> where you cannot move or splat (<code>my_splat_cooldown</code>), and a separate <strong>10-turn</strong> timer before you may splat again (<code>my_splat_interval</code>; at most one splat every 10 turns). You may still <code>skip()</code> during the 3-turn lockout.</li>
 <li><code>Actions.dash(direction, distance)</code> — dash <strong>2-6</strong> hexes in <code>direction</code> and paint <strong>only the destination</strong> hex (if that would leave the map, you stop at the <strong>edge</strong>). A bot can dash once every <strong>7 turns</strong>; check <code>game_state.my_dash_interval</code> (<code>0</code> = dash available).</li>
+<li><code>Actions.shoot_paintball(direction)</code> — you do <strong>not</strong> move. Paint every in-grid hex in a straight line in <code>direction</code> until the <strong>map edge</strong> or the <strong>other bot’s hex</strong> (that hex is <strong>not</strong> painted; painting stops there). After shooting: default <strong>7-turn</strong> lockout where you <strong>cannot move</strong>, dash, splat, or shoot again (<code>my_paintball_cooldown</code>), plus a separate <strong>20-turn</strong> interval before another shot (<code>my_paintball_interval</code>). You cannot use paintball during the splat <strong>move/splat</strong> lockout (<code>my_splat_cooldown</code>). Lockout and interval are configurable in <strong>SETTINGS</strong>.</li>
 </ul>
 <h2 id="game-state" tabindex="-1">Game state</h2>
 <p>Useful fields on <code>game_state</code>:</p>
@@ -68,6 +69,14 @@ class Bot:
 <td>Turns until <code>dash</code> is allowed again (<code>0</code> = dash available; one dash every <strong>7</strong> turns)</td>
 </tr>
 <tr>
+<td><code>my_paintball_interval</code></td>
+<td>Turns until <code>shoot_paintball</code> is allowed again (<code>0</code> = available; default <strong>20</strong> turns between shots)</td>
+</tr>
+<tr>
+<td><code>my_paintball_cooldown</code></td>
+<td>Turns before <strong>move</strong> / <strong>dash</strong> / <strong>splat</strong> / <strong>shoot_paintball</strong> after a paintball shot (<code>0</code> = not in lockout; default <strong>7</strong> turns)</td>
+</tr>
+<tr>
 <td><code>grid</code></td>
 <td><code>frozenset</code> of hex tiles</td>
 </tr>
@@ -77,7 +86,7 @@ class Bot:
 </tr>
 <tr>
 <td><code>bots</code></td>
-<td><code>dict</code> of <code>BotInfo</code> (<code>position</code>, <code>facing</code>, <code>splat_cooldown</code>, <code>splat_interval</code>, <code>dash_interval</code>)</td>
+<td><code>dict</code> of <code>BotInfo</code> (<code>position</code>, <code>facing</code>, <code>splat_cooldown</code>, <code>splat_interval</code>, <code>dash_interval</code>, <code>paintball_interval</code>, <code>paintball_cooldown</code>)</td>
 </tr>
 <tr>
 <td><code>turn</code></td>

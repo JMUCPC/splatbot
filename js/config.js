@@ -9,6 +9,10 @@ const config = {
   SPLAT_INTERVAL_TURNS: 10,
   /** Turns between dashes (minimum gap). */
   DASH_INTERVAL_TURNS: 7,
+  /** Turns between shoot_paintball uses (minimum gap). */
+  SHOOT_PAINTBALL_INTERVAL_TURNS: 20,
+  /** After shoot_paintball: turns where move/dash/splat/paintball are blocked. */
+  SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS: 7,
   BOT_DISPLAY_TYPE: "triangles",
   PLAYER_TILE_COLORS: { 1: "#b84010", 2: "#0a7090" },
   PLAYER_BOT_COLORS: { 1: "#ff6b2b", 2: "#00d4ff" },
@@ -23,6 +27,7 @@ const config = {
     random: "random_bot.py",
     random_dash: "random_dash_bot.py",
     random_splat: "random_splat_bot.py",
+    random_paintball: "random_paintball_bot.py",
     straight_line: "straight_line_bot.py",
     ping_pong: "ping_pong_bot.py",
   },

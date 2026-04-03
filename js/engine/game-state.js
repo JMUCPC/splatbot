@@ -5,7 +5,16 @@ export const DASH_MIN_DISTANCE = 2;
 export const DASH_MAX_DISTANCE = 6;
 
 export class BotData {
-  constructor(pid, position, facing, splatCooldown = 0, splatInterval = 0, dashInterval = 0) {
+  constructor(
+    pid,
+    position,
+    facing,
+    splatCooldown = 0,
+    splatInterval = 0,
+    dashInterval = 0,
+    paintballInterval = 0,
+    paintballCooldown = 0,
+  ) {
     this.pid = pid;
     this.position = position;
     this.facing = facing;
@@ -15,6 +24,10 @@ export class BotData {
     this.splatInterval = splatInterval;
     /** Turns until dash is allowed again (see `config.DASH_INTERVAL_TURNS`). */
     this.dashInterval = dashInterval;
+    /** Turns until shoot_paintball is allowed again (see `config.SHOOT_PAINTBALL_INTERVAL_TURNS`). */
+    this.paintballInterval = paintballInterval;
+    /** Turns remaining before move/dash/splat/paintball after shoot_paintball (see `config.SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS`). */
+    this.paintballCooldown = paintballCooldown;
   }
 }
 
@@ -75,6 +88,8 @@ export class GameState {
       if (bot.splatCooldown > 0) bot.splatCooldown -= 1;
       if (bot.splatInterval > 0) bot.splatInterval -= 1;
       if (bot.dashInterval > 0) bot.dashInterval -= 1;
+      if (bot.paintballInterval > 0) bot.paintballInterval -= 1;
+      if (bot.paintballCooldown > 0) bot.paintballCooldown -= 1;
     }
   }
 
@@ -108,6 +123,14 @@ export class GameState {
         }
         return;
       }
+      if (bot.paintballCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on paintball lockout (${bot.paintballCooldown} turn${bot.paintballCooldown === 1 ? "" : "s"} left) — cannot move`,
+          );
+        }
+        return;
+      }
       const newPos = hexNeighbor(bot.position, action.direction);
       if (this.grid.has(newPos.key)) {
         bot.position = newPos;
@@ -121,6 +144,14 @@ export class GameState {
         if (logFn) {
           logFn(
             `Bot ${pid} is on splat cooldown (${bot.splatCooldown} turn${bot.splatCooldown === 1 ? "" : "s"} left) — cannot dash`,
+          );
+        }
+        return;
+      }
+      if (bot.paintballCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on paintball lockout (${bot.paintballCooldown} turn${bot.paintballCooldown === 1 ? "" : "s"} left) — cannot dash`,
           );
         }
         return;
@@ -166,6 +197,14 @@ export class GameState {
         }
         return;
       }
+      if (bot.paintballCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on paintball lockout (${bot.paintballCooldown} turn${bot.paintballCooldown === 1 ? "" : "s"} left) — cannot splat`,
+          );
+        }
+        return;
+      }
       if (bot.splatInterval > 0) {
         if (logFn) {
           logFn(
@@ -182,6 +221,49 @@ export class GameState {
       }
       bot.splatCooldown = config.SPLAT_ACTION_LOCKOUT_TURNS;
       bot.splatInterval = config.SPLAT_INTERVAL_TURNS;
+    } else if (action.type === "shoot_paintball") {
+      if (bot.splatCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on splat cooldown (${bot.splatCooldown} turn${bot.splatCooldown === 1 ? "" : "s"} left) — cannot shoot paintball`,
+          );
+        }
+        return;
+      }
+      if (bot.paintballCooldown > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is on paintball lockout (${bot.paintballCooldown} turn${bot.paintballCooldown === 1 ? "" : "s"} left) — cannot shoot paintball`,
+          );
+        }
+        return;
+      }
+      if (bot.paintballInterval > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} cannot shoot paintball for ${bot.paintballInterval} more turn(s) (one shot every ${config.SHOOT_PAINTBALL_INTERVAL_TURNS} turns)`,
+          );
+        }
+        return;
+      }
+      const dir = ((Math.trunc(Number(action.direction)) % 6) + 6) % 6;
+      let cur = bot.position;
+      while (true) {
+        cur = hexNeighbor(cur, dir);
+        if (!this.grid.has(cur.key)) break;
+        let blocked = false;
+        for (const [opid, other] of this.bots) {
+          if (opid !== pid && other.position.key === cur.key) {
+            blocked = true;
+            break;
+          }
+        }
+        if (blocked) break;
+        this.tilePids.set(cur.key, pid);
+      }
+      bot.facing = dir;
+      bot.paintballInterval = config.SHOOT_PAINTBALL_INTERVAL_TURNS;
+      bot.paintballCooldown = config.SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS;
     } else if (action.type === "skip") {
       // do nothing
     } else {
@@ -210,6 +292,8 @@ export class GameState {
         splat_cooldown: bot.splatCooldown,
         splat_interval: bot.splatInterval,
         dash_interval: bot.dashInterval,
+        paintball_interval: bot.paintballInterval,
+        paintball_cooldown: bot.paintballCooldown,
       };
     }
     const me = this.bots.get(pid);
@@ -218,6 +302,8 @@ export class GameState {
       my_splat_cooldown: me ? me.splatCooldown : 0,
       my_splat_interval: me ? me.splatInterval : 0,
       my_dash_interval: me ? me.dashInterval : 0,
+      my_paintball_interval: me ? me.paintballInterval : 0,
+      my_paintball_cooldown: me ? me.paintballCooldown : 0,
       grid,
       tile_pids: tilePids,
       bots,

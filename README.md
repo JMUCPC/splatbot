@@ -43,13 +43,15 @@ class Bot:
         # game_state.my_pid       — this bot's player id (1 or 2)
         # game_state.grid         — frozenset of Hex tiles
         # game_state.tile_pids    — dict[Hex, int] (0=unpainted, 1/2=player)
-        # game_state.bots         — dict[int, BotInfo] with .position, .facing, .splat_cooldown, .splat_interval, .dash_interval
+        # game_state.bots         — dict[int, BotInfo] with .position, .facing, cooldown/interval fields
         # game_state.my_splat_cooldown — turns left before move/splat (after splat)
         # game_state.my_splat_interval — turns until splat is allowed again (one splat every 10 turns)
-        # game_state.my_dash_interval — turns until dash is allowed again (one dash every 7 turns)
+        # game_state.my_dash_interval — turns until dash is allowed again
+        # game_state.my_paintball_interval — turns until shoot_paintball is allowed again
+        # game_state.my_paintball_cooldown — turns left before move/dash/splat/paintball (after shoot_paintball)
         # game_state.turn         — current turn number
         # game_state.max_turns    — total turns in the match
-        # Also: Actions.skip(), Actions.splat(), Actions.dash(direction, distance) — dash up to 2-6 tiles; paints only where you land (clamped to map edge if needed)
+        # Also: Actions.skip(), Actions.splat(), Actions.dash(direction, distance), Actions.shoot_paintball(direction)
         return Actions.move(HexDirection.E)
 ```
 
@@ -61,5 +63,5 @@ Available imports inside the sandbox: `utils.hex_grid` and `utils.actions`.
 
 - Click **SETTINGS** in the top bar to edit runtime game/render settings.
 - Settings are persisted per browser via `localStorage`.
-- `js/config.js` holds the default values (including splat/dash cooldown and interval; editable in **SETTINGS**).
+- `js/config.js` holds the default values (including splat/dash/paintball cooldown and interval; editable in **SETTINGS**).
 - Applying settings resets the current match.

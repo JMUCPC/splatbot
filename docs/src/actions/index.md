@@ -55,6 +55,26 @@ class Bot:
 
 See [Writing bots](../writing-bots/) for the full game state reference.
 
+## Shoot paintball
+
+`Actions.shoot_paintball(direction)` does **not** move your bot. It paints every in-grid hex in a straight line in `direction`, starting from the first hex **beyond** your current tile, until the ray leaves the map or reaches a hex occupied by the **other** bot (that hex is **not** painted; the ray stops there).
+
+You cannot use paintball during the splat **move/splat** lockout (`game_state.my_splat_cooldown`). After a shot, default **7 turns** where you **cannot move**, dash, splat, or shoot (`game_state.my_paintball_cooldown`). Separately, by default you can shoot again only after **20** turns (`game_state.my_paintball_interval`). Both are configurable in **SETTINGS** (Paintball lockout / interval).
+
+```python
+from utils.actions import Actions
+from utils.hex_grid import HexDirection
+
+
+class Bot:
+    def decide(self, game_state):
+        if game_state.my_splat_cooldown > 0 or game_state.my_paintball_cooldown > 0:
+            return Actions.skip()
+        if game_state.my_paintball_interval == 0:
+            return Actions.shoot_paintball(HexDirection.E)
+        return Actions.move(HexDirection.E)
+```
+
 ## Dash
 
 `Actions.dash(direction, distance)` moves a bot **2–6** hexes in the given `direction` and paints **only the destination** hex.
