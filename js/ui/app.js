@@ -1,7 +1,7 @@
 import config from '../config.js';
 import { makeInitialState } from '../engine/game-state.js';
 import { renderHexGrid } from '../renderer/hex-renderer.js';
-import { logEvent, initEventConsole } from './event-console.js';
+import { logEvent, clearLog, initEventConsole } from './event-console.js';
 import {
   loadOverrides, saveOverrides, mergeWithDefaults, applyToConfig,
   buildSettingsUI, validateOverrides, SETTING_SPECS,
@@ -213,7 +213,7 @@ export function initApp() {
   state = makeInitialState();
 
   if (els.runToggle) els.runToggle.addEventListener('click', toggleRun);
-  document.getElementById('btn-reset').addEventListener('click', resetGame);
+  document.getElementById('btn-reset').addEventListener('click', () => resetGame({ clearEventLog: true }));
   document.getElementById('btn-settings').addEventListener('click', openSettings);
   document.getElementById('btn-settings-reset').addEventListener('click', resetSettingsForm);
   document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings);
@@ -349,8 +349,10 @@ function pauseGame() {
   logEvent('Paused.');
 }
 
-function resetGame() {
+function resetGame(options = {}) {
+  const { clearEventLog = false } = options;
   running = false;
+  if (clearEventLog) clearLog();
   for (const pid of Object.keys(runners)) {
     runners[pid].resetTimingStats();
   }
