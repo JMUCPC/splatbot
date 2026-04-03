@@ -189,6 +189,7 @@ export function initApp() {
   els.eventLog = document.getElementById('event-log');
   els.settingsModal = document.getElementById('settings-modal');
   els.settingsFields = document.getElementById('settings-fields');
+  els.runToggle = document.getElementById('btn-run');
   els.botSelect1 = document.getElementById('bot-select-1');
   els.botSelect2 = document.getElementById('bot-select-2');
   els.botFile1 = document.getElementById('bot-file-1');
@@ -211,8 +212,7 @@ export function initApp() {
 
   state = makeInitialState();
 
-  document.getElementById('btn-start').addEventListener('click', startGame);
-  document.getElementById('btn-pause').addEventListener('click', pauseGame);
+  if (els.runToggle) els.runToggle.addEventListener('click', toggleRun);
   document.getElementById('btn-reset').addEventListener('click', resetGame);
   document.getElementById('btn-settings').addEventListener('click', openSettings);
   document.getElementById('btn-settings-reset').addEventListener('click', resetSettingsForm);
@@ -320,9 +320,20 @@ function push() {
     els.status.textContent = '● PAUSED';
     els.status.style.color = '#4a6080';
   }
+
+  if (els.runToggle) {
+    els.runToggle.textContent = running ? '\u23F8  PAUSE' : '\u25B6  START';
+    els.runToggle.setAttribute('aria-pressed', running ? 'true' : 'false');
+    els.runToggle.setAttribute('aria-label', running ? 'Pause match' : 'Start match');
+  }
 }
 
 // ── Control callbacks ────────────────────────────────────────────────────
+
+function toggleRun() {
+  if (running) pauseGame();
+  else startGame();
+}
 
 function startGame() {
   if (running) return;
