@@ -17,6 +17,19 @@ let state = null;
 let running = false;
 let tickDelay = config.TICK_DELAY;
 let lastTick = 0;
+
+/** Slider 1–20 ↔ delay (s); must stay consistent with `#speed-slider` min/max. */
+const SPEED_SLIDER_MIN = 1;
+const SPEED_SLIDER_MAX = 20;
+
+function tickDelayFromSlider(val) {
+  return Math.max(0.03, 0.53 - val * 0.025);
+}
+
+function sliderValueFromTickDelay(delay) {
+  const v = Math.round((0.53 - delay) / 0.025);
+  return Math.min(SPEED_SLIDER_MAX, Math.max(SPEED_SLIDER_MIN, v));
+}
 const runners = {};
 let settingsForm = null;
 
@@ -209,6 +222,11 @@ export function initApp() {
   const effective = mergeWithDefaults(overrides);
   applyToConfig(effective);
   tickDelay = config.TICK_DELAY;
+  if (els.speedSlider) {
+    els.speedSlider.min = String(SPEED_SLIDER_MIN);
+    els.speedSlider.max = String(SPEED_SLIDER_MAX);
+    els.speedSlider.value = String(sliderValueFromTickDelay(tickDelay));
+  }
 
   state = makeInitialState();
 
@@ -362,7 +380,7 @@ function resetGame(options = {}) {
 }
 
 function setSpeed(val) {
-  tickDelay = Math.max(0.03, 0.53 - val * 0.025);
+  tickDelay = tickDelayFromSlider(val);
 }
 
 // ── Game loop ────────────────────────────────────────────────────────────
@@ -436,6 +454,9 @@ function applySettings() {
   saveOverrides(clean);
   applyToConfig(mergeWithDefaults(clean));
   tickDelay = config.TICK_DELAY;
+  if (els.speedSlider) {
+    els.speedSlider.value = String(sliderValueFromTickDelay(tickDelay));
+  }
   if (running) {
     logEvent('Settings changed while live — pausing and resetting match.');
   }
