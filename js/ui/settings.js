@@ -132,11 +132,11 @@ export function buildSettingsUI(container, currentValues) {
 
   for (const spec of SETTING_SPECS) {
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex; align-items:center; gap:10px; width:100%; margin-bottom:8px';
+    row.style.cssText = 'display:flex; align-items:center; gap:12px; width:100%; margin-bottom:10px';
 
     const label = document.createElement('div');
     label.className = 'sb-label-xs';
-    label.style.cssText = 'width:240px; flex-shrink:0';
+    label.style.cssText = 'width:min(280px, 38%); flex-shrink:0';
     label.textContent = spec.key;
     row.appendChild(label);
 
@@ -144,8 +144,8 @@ export function buildSettingsUI(container, currentValues) {
     if (spec.kind === 'enum') {
       input = document.createElement('select');
       input.style.cssText =
-        'flex:1; background:#070d1a; color:#607080; border:1px solid #1a2a40; ' +
-        'border-radius:4px; padding:4px 8px; font-family:"Share Tech Mono",monospace; font-size:0.7rem';
+        'flex:1; background:#070d1a; color:#9aacbf; border:1px solid #1a2a40; ' +
+        'border-radius:4px; padding:9px 12px; font-family:"Share Tech Mono",monospace; font-size:1.02rem';
       for (const choice of spec.choices) {
         const opt = document.createElement('option');
         opt.value = choice;
@@ -157,7 +157,7 @@ export function buildSettingsUI(container, currentValues) {
       input = document.createElement('input');
       input.type = 'color';
       input.value = currentValues[spec.key] || '#000000';
-      input.style.cssText = 'flex:1; background:#070d1a; border:1px solid #1a2a40; border-radius:4px; height:30px; cursor:pointer';
+      input.style.cssText = 'flex:1; background:#070d1a; border:1px solid #1a2a40; border-radius:4px; height:44px; cursor:pointer';
     } else {
       input = document.createElement('input');
       input.type = 'number';
@@ -166,8 +166,8 @@ export function buildSettingsUI(container, currentValues) {
       if (spec.max != null) input.max = spec.max;
       if (spec.step != null) input.step = spec.step;
       input.style.cssText =
-        'flex:1; background:#070d1a; color:#607080; border:1px solid #1a2a40; ' +
-        'border-radius:4px; padding:4px 8px; font-family:"Share Tech Mono",monospace; font-size:0.7rem';
+        'flex:1; background:#070d1a; color:#9aacbf; border:1px solid #1a2a40; ' +
+        'border-radius:4px; padding:9px 12px; font-family:"Share Tech Mono",monospace; font-size:1.02rem';
     }
 
     controls[spec.key] = input;

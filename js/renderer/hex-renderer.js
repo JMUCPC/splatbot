@@ -123,7 +123,7 @@ export function renderHexGrid(state, hexSize) {
       parts.push(`<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${rInner.toFixed(2)}" fill="rgba(0,0,0,0.3)"/>`);
     }
 
-    const fs = Math.max(9, Math.floor(hexSize * 0.36));
+    const fs = Math.max(12, Math.floor(hexSize * 0.46));
     parts.push(
       `<text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="${fs}" font-weight="700" font-family="monospace" opacity="0.9">${bot.pid}</text>`,
     );

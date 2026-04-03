@@ -11,16 +11,16 @@
 </head>
 <body>
   <div id="loading" class="loading-overlay">
-    <div class="sb-cond" style="font-size:2rem; font-weight:700; letter-spacing:0.2em; color:#dde8f0">SPLATBOT</div>
+    <div class="sb-cond" style="font-size:2.75rem; font-weight:700; letter-spacing:0.2em; color:#dde8f0">SPLATBOT</div>
     <div>Loading Python sandbox...</div>
-    <div id="loading-status" style="font-size:0.7rem; color:#3a5070"></div>
+    <div id="loading-status" style="font-size:1.02rem; color:#3a5070"></div>
   </div>
 
   <div id="app" class="app-container">
     <div class="header-row">
       <div class="sb-cond title" style="display:flex;align-items:center;gap:14px">
         <span>SPLATBOT</span>
-        <a href="docs/" class="sb-btn" style="font-size:0.68rem;letter-spacing:0.2em;text-decoration:none;display:inline-flex;align-items:center">DOCS</a>
+        <a href="docs/" class="sb-btn" style="letter-spacing:0.2em;text-decoration:none;display:inline-flex;align-items:center">DOCS</a>
       </div>
       <div id="status" class="status">● PAUSED</div>
       <div class="button-group">
@@ -32,16 +32,16 @@
 
     <div class="main-row">
       <div class="sb-card player-card">
-        <div class="sb-label-xs" style="color:#7a2e10; margin-bottom:4px">PLAYER  1</div>
+        <div class="sb-label-xs" style="color:#c24a28; margin-bottom:4px">PLAYER  1</div>
         <div id="score-1" class="sb-score" style="color:#ff6b2b">0</div>
-        <div id="pct-1" class="sb-label-xs" style="color:#7a3010; margin-top:2px; margin-bottom:10px">0.0%</div>
-        <div id="decision-time-1" class="sb-label-xs" style="color:#7a3010; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
+        <div id="pct-1" class="sb-label-xs" style="color:#d08060; margin-top:2px; margin-bottom:10px">0.0%</div>
+        <div id="decision-time-1" class="sb-label-xs" style="color:#d08060; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
         <hr class="sb-divider" style="margin-bottom:10px">
         <div class="sb-label-xs">BOT SCRIPT</div>
         <select id="bot-select-1" class="sb-select" aria-label="Player 1 bot script"></select>
         <div class="sb-label-xs" style="margin-top:10px">BOT FILE</div>
         <input type="file" id="bot-file-1" class="sb-input" accept=".py,text/plain" style="margin-top:4px" aria-label="Upload player 1 bot Python file">
-        <div class="sb-label-xs" style="color:#226644; margin-top:8px">DEMO MODE</div>
+        <div class="sb-label-xs" style="color:#4cba88; margin-top:8px">DEMO MODE</div>
       </div>
 
       <div class="hex-column">
@@ -49,16 +49,16 @@
       </div>
 
       <div class="sb-card player-card">
-        <div class="sb-label-xs" style="color:#0a4a5c; margin-bottom:4px">PLAYER  2</div>
+        <div class="sb-label-xs" style="color:#2a9ec0; margin-bottom:4px">PLAYER  2</div>
         <div id="score-2" class="sb-score" style="color:#00d4ff">0</div>
-        <div id="pct-2" class="sb-label-xs" style="color:#0a3a4c; margin-top:2px; margin-bottom:10px">0.0%</div>
-        <div id="decision-time-2" class="sb-label-xs" style="color:#0a3a4c; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
+        <div id="pct-2" class="sb-label-xs" style="color:#5cc8e0; margin-top:2px; margin-bottom:10px">0.0%</div>
+        <div id="decision-time-2" class="sb-label-xs" style="color:#5cc8e0; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
         <hr class="sb-divider" style="margin-bottom:10px">
         <div class="sb-label-xs">BOT SCRIPT</div>
         <select id="bot-select-2" class="sb-select" aria-label="Player 2 bot script"></select>
         <div class="sb-label-xs" style="margin-top:10px">BOT FILE</div>
         <input type="file" id="bot-file-2" class="sb-input" accept=".py,text/plain" style="margin-top:4px" aria-label="Upload player 2 bot Python file">
-        <div class="sb-label-xs" style="color:#226644; margin-top:8px">DEMO MODE</div>
+        <div class="sb-label-xs" style="color:#4cba88; margin-top:8px">DEMO MODE</div>
       </div>
     </div>
 
@@ -81,8 +81,8 @@
 
   <div id="settings-modal" class="modal-overlay">
     <div class="sb-card settings-card">
-      <div class="sb-cond" style="font-size:1.2rem; font-weight:700; letter-spacing:0.14em; color:#dde8f0">SETTINGS</div>
-      <div style="font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:#607080; margin-bottom:8px">
+      <div class="sb-cond" style="font-size:1.75rem; font-weight:700; letter-spacing:0.14em; color:#dde8f0">SETTINGS</div>
+      <div style="font-family:'Share Tech Mono',monospace; font-size:1.02rem; color:#8a9db4; margin-bottom:8px">
         Changes apply at runtime and are saved per browser.
       </div>
       <div id="settings-fields" class="settings-fields"></div>
