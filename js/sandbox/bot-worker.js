@@ -37,15 +37,14 @@ from utils.actions import MoveAction as _MA, SkipAction as _SA, SplatAction as _
 import json as _json
 
 class _BotInfo:
-    __slots__ = ('pid', 'position', 'facing', 'splat_cooldown', 'splat_interval', 'dash_interval', 'paintball_interval', 'paintball_cooldown')
-    def __init__(self, pid, position, facing, splat_cooldown=0, splat_interval=0, dash_interval=0, paintball_interval=0, paintball_cooldown=0):
+    __slots__ = ('pid', 'position', 'facing', 'stun', 'splat_cooldown', 'dash_cooldown', 'paintball_cooldown')
+    def __init__(self, pid, position, facing, stun=0, splat_cooldown=0, dash_cooldown=0, paintball_cooldown=0):
         object.__setattr__(self, 'pid', pid)
         object.__setattr__(self, 'position', position)
         object.__setattr__(self, 'facing', facing)
+        object.__setattr__(self, 'stun', int(stun))
         object.__setattr__(self, 'splat_cooldown', int(splat_cooldown))
-        object.__setattr__(self, 'splat_interval', int(splat_interval))
-        object.__setattr__(self, 'dash_interval', int(dash_interval))
-        object.__setattr__(self, 'paintball_interval', int(paintball_interval))
+        object.__setattr__(self, 'dash_cooldown', int(dash_cooldown))
         object.__setattr__(self, 'paintball_cooldown', int(paintball_cooldown))
     def __setattr__(self, *a):
         raise AttributeError("BotInfo is read-only")
@@ -53,13 +52,12 @@ class _BotInfo:
         return f"BotInfo(pid={self.pid}, pos={self.position}, facing={self.facing})"
 
 class _Snapshot:
-    __slots__ = ('my_pid', 'my_splat_cooldown', 'my_splat_interval', 'my_dash_interval', 'my_paintball_interval', 'my_paintball_cooldown', 'grid', 'tile_pids', 'bots', 'turn', 'max_turns')
+    __slots__ = ('my_pid', 'my_stun', 'my_splat_cooldown', 'my_dash_cooldown', 'my_paintball_cooldown', 'grid', 'tile_pids', 'bots', 'turn', 'max_turns')
     def __init__(self, d):
         object.__setattr__(self, 'my_pid', d['my_pid'])
+        object.__setattr__(self, 'my_stun', int(d.get('my_stun', 0)))
         object.__setattr__(self, 'my_splat_cooldown', int(d.get('my_splat_cooldown', 0)))
-        object.__setattr__(self, 'my_splat_interval', int(d.get('my_splat_interval', 0)))
-        object.__setattr__(self, 'my_dash_interval', int(d.get('my_dash_interval', 0)))
-        object.__setattr__(self, 'my_paintball_interval', int(d.get('my_paintball_interval', 0)))
+        object.__setattr__(self, 'my_dash_cooldown', int(d.get('my_dash_cooldown', 0)))
         object.__setattr__(self, 'my_paintball_cooldown', int(d.get('my_paintball_cooldown', 0)))
         object.__setattr__(self, 'grid', frozenset(_Hex(q, r) for q, r in d['grid']))
         tp = {}
@@ -70,12 +68,11 @@ class _Snapshot:
         bots = {}
         for ps, bd in d['bots'].items():
             p = int(ps)
+            st = int(bd.get('stun', 0))
             sc = int(bd.get('splat_cooldown', 0))
-            si = int(bd.get('splat_interval', 0))
-            di = int(bd.get('dash_interval', 0))
-            pi = int(bd.get('paintball_interval', 0))
+            dc = int(bd.get('dash_cooldown', 0))
             pc = int(bd.get('paintball_cooldown', 0))
-            bots[p] = _BotInfo(p, _Hex(*bd['position']), _HD(bd['facing']), sc, si, di, pi, pc)
+            bots[p] = _BotInfo(p, _Hex(*bd['position']), _HD(bd['facing']), st, sc, dc, pc)
         object.__setattr__(self, 'bots', _MPT(bots))
         object.__setattr__(self, 'turn', d['turn'])
         object.__setattr__(self, 'max_turns', d['max_turns'])

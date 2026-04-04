@@ -547,7 +547,7 @@ async function advanceSingleTick() {
   }
 
   state.neutralizeCollidingTiles(logEvent);
-  state.tickSplatCooldowns();
+  state.tickBotTimers();
 
   push();
 

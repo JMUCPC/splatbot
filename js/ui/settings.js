@@ -16,45 +16,54 @@ export const SETTING_SPECS = [
   { key: 'TICK_DELAY', tab: 'match', label: 'Tick delay (s)', kind: 'float', min: 0.01, max: 5.0, step: 0.01 },
   { key: 'TIMEOUT', tab: 'match', label: 'Bot timeout (s)', kind: 'float', min: 0.6, max: 30.0, step: 0.1 },
   {
-    key: 'SPLAT_ACTION_LOCKOUT_TURNS',
+    key: 'SPLAT_STUN_TURNS',
     tab: 'rules',
-    label: 'Splat lockout (turns)',
+    label: 'Splat stun (turns)',
     kind: 'int',
     min: 0,
     max: 100,
     step: 1,
   },
   {
-    key: 'SPLAT_INTERVAL_TURNS',
+    key: 'SPLAT_COOLDOWN_TURNS',
     tab: 'rules',
-    label: 'Splat interval (turns)',
+    label: 'Splat cooldown (turns)',
     kind: 'int',
     min: 0,
     max: 100,
     step: 1,
   },
   {
-    key: 'DASH_INTERVAL_TURNS',
+    key: 'DASH_COOLDOWN_TURNS',
     tab: 'rules',
-    label: 'Dash interval (turns)',
+    label: 'Dash cooldown (turns)',
     kind: 'int',
     min: 0,
     max: 100,
     step: 1,
   },
   {
-    key: 'SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS',
+    key: 'DASH_STUN_TURNS',
     tab: 'rules',
-    label: 'Paintball lockout (turns)',
+    label: 'Dash stun (turns)',
     kind: 'int',
     min: 0,
     max: 100,
     step: 1,
   },
   {
-    key: 'SHOOT_PAINTBALL_INTERVAL_TURNS',
+    key: 'PAINTBALL_STUN_TURNS',
     tab: 'rules',
-    label: 'Paintball interval (turns)',
+    label: 'Paintball stun (turns)',
+    kind: 'int',
+    min: 0,
+    max: 100,
+    step: 1,
+  },
+  {
+    key: 'SHOOT_PAINTBALL_COOLDOWN_TURNS',
+    tab: 'rules',
+    label: 'Paintball cooldown (turns)',
     kind: 'int',
     min: 0,
     max: 100,
@@ -80,17 +89,34 @@ export const SETTING_SPECS = [
 
 const SPEC_BY_KEY = Object.fromEntries(SETTING_SPECS.map(s => [s.key, s]));
 
+/** Map pre-refactor localStorage keys to current keys so saved settings still apply. */
+function migrateLegacySettingsKeys(overrides) {
+  const o = { ...overrides };
+  const pairs = [
+    ['SPLAT_ACTION_LOCKOUT_TURNS', 'SPLAT_STUN_TURNS'],
+    ['SPLAT_INTERVAL_TURNS', 'SPLAT_COOLDOWN_TURNS'],
+    ['DASH_INTERVAL_TURNS', 'DASH_COOLDOWN_TURNS'],
+    ['SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS', 'PAINTBALL_STUN_TURNS'],
+    ['SHOOT_PAINTBALL_INTERVAL_TURNS', 'SHOOT_PAINTBALL_COOLDOWN_TURNS'],
+  ];
+  for (const [oldKey, newKey] of pairs) {
+    if (oldKey in o && !(newKey in o)) o[newKey] = o[oldKey];
+  }
+  return o;
+}
+
 function getDefaultFlat() {
   return {
     GRID_RADIUS: 8,
     MAX_TURNS: 200,
     TICK_DELAY: 0.15,
     TIMEOUT: 1.0,
-    SPLAT_ACTION_LOCKOUT_TURNS: 3,
-    SPLAT_INTERVAL_TURNS: 10,
-    DASH_INTERVAL_TURNS: 7,
-    SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS: 7,
-    SHOOT_PAINTBALL_INTERVAL_TURNS: 20,
+    SPLAT_STUN_TURNS: 3,
+    SPLAT_COOLDOWN_TURNS: 10,
+    DASH_COOLDOWN_TURNS: 7,
+    DASH_STUN_TURNS: 0,
+    PAINTBALL_STUN_TURNS: 7,
+    SHOOT_PAINTBALL_COOLDOWN_TURNS: 20,
     BOT_DISPLAY_TYPE: 'triangles',
     'PLAYER_TILE_COLORS.1': '#b84010',
     'PLAYER_TILE_COLORS.2': '#0a7090',
@@ -146,11 +172,12 @@ export function saveOverrides(overrides) {
 }
 
 export function mergeWithDefaults(overrides) {
+  const migrated = migrateLegacySettingsKeys(overrides);
   const merged = getDefaultFlat();
   for (const spec of SETTING_SPECS) {
-    if (spec.key in overrides) {
+    if (spec.key in migrated) {
       try {
-        merged[spec.key] = coerceSetting(spec, overrides[spec.key]);
+        merged[spec.key] = coerceSetting(spec, migrated[spec.key]);
       } catch { /* keep default */ }
     }
   }
@@ -162,11 +189,12 @@ export function applyToConfig(flat) {
   config.MAX_TURNS = flat.MAX_TURNS;
   config.TICK_DELAY = flat.TICK_DELAY;
   config.TIMEOUT = flat.TIMEOUT;
-  config.SPLAT_ACTION_LOCKOUT_TURNS = flat.SPLAT_ACTION_LOCKOUT_TURNS;
-  config.SPLAT_INTERVAL_TURNS = flat.SPLAT_INTERVAL_TURNS;
-  config.DASH_INTERVAL_TURNS = flat.DASH_INTERVAL_TURNS;
-  config.SHOOT_PAINTBALL_INTERVAL_TURNS = flat.SHOOT_PAINTBALL_INTERVAL_TURNS;
-  config.SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS = flat.SHOOT_PAINTBALL_ACTION_LOCKOUT_TURNS;
+  config.SPLAT_STUN_TURNS = flat.SPLAT_STUN_TURNS;
+  config.SPLAT_COOLDOWN_TURNS = flat.SPLAT_COOLDOWN_TURNS;
+  config.DASH_COOLDOWN_TURNS = flat.DASH_COOLDOWN_TURNS;
+  config.DASH_STUN_TURNS = flat.DASH_STUN_TURNS;
+  config.PAINTBALL_STUN_TURNS = flat.PAINTBALL_STUN_TURNS;
+  config.SHOOT_PAINTBALL_COOLDOWN_TURNS = flat.SHOOT_PAINTBALL_COOLDOWN_TURNS;
   config.BOT_DISPLAY_TYPE = flat.BOT_DISPLAY_TYPE;
   config.PLAYER_TILE_COLORS = { 1: flat['PLAYER_TILE_COLORS.1'], 2: flat['PLAYER_TILE_COLORS.2'] };
   config.PLAYER_BOT_COLORS = { 1: flat['PLAYER_BOT_COLORS.1'], 2: flat['PLAYER_BOT_COLORS.2'] };

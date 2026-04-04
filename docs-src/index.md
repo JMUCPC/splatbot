@@ -7,7 +7,6 @@ Splatbot is a two-player hex-grid game that runs in the browser. Bots are writte
 - **[Writing bots](writing-bots/)** — `Bot.decide`, game state, `move` / `skip` / `splat`, and examples.
 - **[Actions](actions/)** — What each action does.
 - **[Utilities](utilities/)** — `HexDirection` and other helpers exposed to bots.
-- **[Architecture overview](architecture/overview/)** — UI, engine, renderer, and workers.
 
 ## Editing these pages
 

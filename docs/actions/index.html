@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Actions · Splatbot</title>
+  <link rel="icon" href="../../images/splat.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/docs.css">
@@ -22,14 +23,6 @@
 <p>A bot performs <strong>exactly one</strong> action per turn. Your <code>Bot.decide</code> method must return a value from the <strong><code>Actions</code></strong> helpers below.</p>
 <h2 id="skip" tabindex="-1">Skip</h2>
 <p>The skip action tells a splatbot to skip a turn.</p>
-<div class="action-demo" data-action-demo="skip">
-  <div class="action-demo-grid" aria-label="Skip action demo hex grid"></div>
-  <div class="action-demo-buttons">
-    <button type="button" class="action-demo-btn" data-demo-play>Play</button>
-    <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-  </div>
-  <p class="action-demo-caption">Player 1 (orange) uses <code>skip()</code> — the runner applies no tile or position change.</p>
-</div>
 <pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 
 
@@ -40,14 +33,6 @@
 </code></pre>
 <h2 id="move" tabindex="-1">Move</h2>
 <p>The move action tells a splatbot to move in a given direction. The direction given may be either an integer or (recommended) a <a href="../utilities/index.html#hex-direction">HexDirection</a>. A splatbot will move one tile in the given direction, and paint the tile that it lands on. If the movement would result in the splatbot moving to an invalid position, then nothing will happen.</p>
-<div class="action-demo" data-action-demo="move">
-  <div class="action-demo-grid" aria-label="Move action demo hex grid"></div>
-  <div class="action-demo-buttons">
-    <button type="button" class="action-demo-btn" data-demo-play>Play</button>
-    <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-  </div>
-  <p class="action-demo-caption">Player 1 moves one step east and paints the hex they enter (same rules as the live runner).</p>
-</div>
 <pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
@@ -61,87 +46,54 @@
 <p><code>Actions.splat()</code> paints every <strong>in-grid neighbor</strong> of your current hex (not the tile you stand on).</p>
 <p>After splat:</p>
 <ol>
-<li><strong>3 turns</strong> — you cannot <strong>move</strong> or <strong>splat</strong> (<code>game_state.my_splat_cooldown</code>). Use <code>Actions.skip()</code> if you have no other option.</li>
-<li><strong>10 turns</strong> — you cannot <strong>splat</strong> again (<code>game_state.my_splat_interval</code>); you may <strong>move</strong> once the 3-turn lockout ends. This enforces at most <strong>one splat every 10 turns</strong>.</li>
+<li><strong>Stun</strong> — for a number of turns you cannot <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, or <strong>shoot paintball</strong> (<code>game_state.my_stun</code>). Use <code>Actions.skip()</code> if you have no other option. Duration is configurable as <strong>Splat stun</strong> in <strong>SETTINGS</strong>.</li>
+<li><strong>Splat cooldown</strong> — you cannot <strong>splat</strong> again until this reaches <code>0</code> (<code>game_state.my_splat_cooldown</code>; default spacing enforces at most about one splat every 10 turns). You may <strong>move</strong> once stun ends even if splat cooldown is still counting down.</li>
 </ol>
-<div class="action-demo" data-action-demo="splat">
-  <div class="action-demo-grid" aria-label="Splat action demo hex grid"></div>
-  <div class="action-demo-buttons">
-    <button type="button" class="action-demo-btn" data-demo-play>Play</button>
-    <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-  </div>
-  <p class="action-demo-caption">Player 1 splats — all in-grid neighbors are painted; your own tile is not.</p>
-</div>
 <pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-keyword">if</span> game_state.my_splat_cooldown &gt; <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">if</span> game_state.my_stun &gt; <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.skip()
-        <span class="hljs-keyword">if</span> game_state.my_splat_interval == <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">if</span> game_state.my_splat_cooldown == <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.splat()
         <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
 </code></pre>
 <p>See <a href="../writing-bots/">Writing bots</a> for the full game state reference.</p>
 <h2 id="shoot-paintball" tabindex="-1">Shoot paintball</h2>
 <p><code>Actions.shoot_paintball(direction)</code> does <strong>not</strong> move your bot. It paints every in-grid hex in a straight line in <code>direction</code>, starting from the first hex <strong>beyond</strong> your current tile, until the ray leaves the map or reaches a hex occupied by the <strong>other</strong> bot (that hex is <strong>not</strong> painted; the ray stops there).</p>
-<p>You cannot use paintball during the splat <strong>move/splat</strong> lockout (<code>game_state.my_splat_cooldown</code>). After a shot, default <strong>7 turns</strong> where you <strong>cannot move</strong>, dash, splat, or shoot (<code>game_state.my_paintball_cooldown</code>). Separately, by default you can shoot again only after <strong>20</strong> turns (<code>game_state.my_paintball_interval</code>). Both are configurable in <strong>SETTINGS</strong> (Paintball lockout / interval).</p>
-<div class="action-demo" data-action-demo="shoot-paintball-edge">
-  <div class="action-demo-grid" aria-label="Shoot paintball to map edge demo"></div>
-  <div class="action-demo-buttons">
-    <button type="button" class="action-demo-btn" data-demo-play>Play</button>
-    <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-  </div>
-  <p class="action-demo-caption">Only player 1 on the board. Shooting east paints every in-grid hex in the ray until it reaches the <strong>edge</strong> of the map (no other bot).</p>
-</div>
-<div class="action-demo" data-action-demo="shoot-paintball-blocked">
-  <div class="action-demo-grid" aria-label="Shoot paintball blocked by player 2 demo"></div>
-  <div class="action-demo-buttons">
-    <button type="button" class="action-demo-btn" data-demo-play>Play</button>
-    <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-  </div>
-  <p class="action-demo-caption">Same setup, but with player 2 (cyan) on the board: the ray stops if it would hit the other player — that hex is <strong>not</strong> painted.</p>
-</div>
+<p>You cannot use paintball while <strong>stunned</strong> (<code>game_state.my_stun</code>). After a shot, you are <strong>stunned</strong> for a number of turns (default <strong>7</strong>; <strong>Paintball stun</strong> in <strong>SETTINGS</strong>). Separately, by default you can shoot again only after <strong>20</strong> turns (<code>game_state.my_paintball_cooldown</code>; <strong>Paintball cooldown</strong> in <strong>SETTINGS</strong>).</p>
 <pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-keyword">if</span> game_state.my_splat_cooldown &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> game_state.my_paintball_cooldown &gt; <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">if</span> game_state.my_stun &gt; <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.skip()
-        <span class="hljs-keyword">if</span> game_state.my_paintball_interval == <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">if</span> game_state.my_paintball_cooldown == <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.shoot_paintball(HexDirection.E)
         <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
 </code></pre>
 <h2 id="dash" tabindex="-1">Dash</h2>
 <p><code>Actions.dash(direction, distance)</code> moves a bot <strong>2–6</strong> hexes in the given <code>direction</code> and paints <strong>only the destination</strong> hex.</p>
-<p>A bot can dash once every <strong>7 turns</strong>; check <code>game_state.my_dash_interval</code> (<code>0</code> = dash available).</p>
+<p>A bot can dash once every <strong>7 turns</strong> by default; check <code>game_state.my_dash_cooldown</code> (<code>0</code> = dash available). Optionally, a <strong>Dash stun</strong> in <strong>SETTINGS</strong> (default <strong>0</strong>) applies stun after a dash the same way as splat/paintball.</p>
 <p>If the full distance would leave the grid, you stop at the <strong>last in-grid hex</strong> along that direction (the edge), paint only that hex, and the dash cooldown still applies.</p>
-<div class="action-demo" data-action-demo="dash">
-  <div class="action-demo-grid" aria-label="Dash action demo hex grid"></div>
-  <div class="action-demo-buttons">
-    <button type="button" class="action-demo-btn" data-demo-play>Play</button>
-    <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-  </div>
-  <p class="action-demo-caption">Player 1 dashes four steps east. Only the <strong>destination</strong> hex is painted (not the path).</p>
-</div>
 <pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-keyword">if</span> game_state.my_splat_cooldown &gt; <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">if</span> game_state.my_stun &gt; <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.skip()
-        <span class="hljs-keyword">if</span> game_state.my_dash_interval == <span class="hljs-number">0</span>:
+        <span class="hljs-keyword">if</span> game_state.my_dash_cooldown == <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.dash(HexDirection.E, <span class="hljs-number">4</span>)
         <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
 </code></pre>
 
   </main>
   <script src="../../js/docs-copy-code.js" defer></script>
-  <script type="module" src="../../js/docs/action-demos.js"></script>
 </body>
 </html>
