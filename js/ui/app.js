@@ -75,6 +75,7 @@ function setEventLogExpanded(expanded) {
   const app = document.getElementById('app');
   const panel = document.getElementById('event-log-panel');
   const expandBtn = document.getElementById('btn-event-log-expand');
+  const hideBtn = document.getElementById('btn-event-log-hide');
   if (!panel) return;
 
   /* Attribute + CSS `#event-log-panel[hidden]` — property alone can desync in some cases. */
@@ -88,20 +89,19 @@ function setEventLogExpanded(expanded) {
   else app?.classList.remove('event-log-expanded');
 
   if (expandBtn) {
-    expandBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    expandBtn.textContent = expanded ? 'HIDE LOG' : 'EVENT LOG';
-    expandBtn.setAttribute(
-      'aria-label',
-      expanded ? 'Hide event log' : 'Show event log',
-    );
+    if (expanded) {
+      expandBtn.setAttribute('hidden', '');
+    } else {
+      expandBtn.removeAttribute('hidden');
+    }
+    expandBtn.setAttribute('aria-expanded', 'false');
+    expandBtn.textContent = 'EVENT LOG';
+    expandBtn.setAttribute('aria-label', 'Show event log');
   }
-}
 
-function toggleEventLogPanel() {
-  const panel = document.getElementById('event-log-panel');
-  if (!panel) return;
-  const collapsed = panel.hasAttribute('hidden');
-  setEventLogExpanded(collapsed);
+  if (hideBtn) {
+    hideBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  }
 }
 
 function openEventLogPopout() {
@@ -334,17 +334,17 @@ export function initApp() {
   onLogClear(clearPlayerCardFeeds);
 
   const btnEventLogExpand = document.getElementById('btn-event-log-expand');
-  const btnEventLogCollapse = document.getElementById('btn-event-log-collapse');
   const btnEventLogPopout = document.getElementById('btn-event-log-popout');
   if (btnEventLogExpand) {
     btnEventLogExpand.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      toggleEventLogPanel();
+      setEventLogExpanded(true);
     });
   }
-  if (btnEventLogCollapse) {
-    btnEventLogCollapse.addEventListener('click', (e) => {
+  const btnEventLogHide = document.getElementById('btn-event-log-hide');
+  if (btnEventLogHide) {
+    btnEventLogHide.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       setEventLogExpanded(false);
