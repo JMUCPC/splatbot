@@ -18,7 +18,7 @@ Python bot code client-side in Web Workers.
 
 ## Documentation site
 
-Authoring content lives under `docs/src/` as Markdown. Generated HTML is written next to it under `docs/` (for example `docs/writing-bots/index.html`).
+Authoring content lives under `docs-src/` as Markdown. Generated HTML is written under `docs/` (for example `docs/writing-bots/index.html`).
 
 ```bash
 npm install

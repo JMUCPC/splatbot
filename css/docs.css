@@ -122,7 +122,16 @@
   border: none;
   padding: 0;
   font-size: 0.95rem;
+}
+
+/* Highlight.js fills in colors; keep a fallback for unlabeled fences */
+.markdown-body pre code:not(.hljs) {
   color: #8899aa;
+}
+
+/* github-dark.min.css adds padding on code.hljs; outer .markdown-body pre already pads */
+.markdown-body pre code.hljs {
+  padding: 0 !important;
 }
 
 .markdown-body hr {

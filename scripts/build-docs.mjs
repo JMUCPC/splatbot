@@ -3,12 +3,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import MarkdownIt from 'markdown-it';
 import markdownItAnchor from 'markdown-it-anchor';
+import markdownItHighlightjs from 'markdown-it-highlightjs';
 import GithubSlugger from 'github-slugger';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const DOCS = path.join(ROOT, 'docs');
-const SRC = path.join(DOCS, 'src');
+const SRC = path.join(ROOT, 'docs-src');
 
 /** Set before each `md.render()` — used by the `.md` link rewriter. */
 let renderAbsMd = '';
@@ -22,6 +23,7 @@ function pageShell({ title, bodyHtml, outFile }) {
   const outDir = path.dirname(outFile);
   const toRoot = path.relative(outDir, ROOT) || '.';
   const cssHref = path.join(toRoot, 'css', 'docs.css').split(path.sep).join('/');
+  const hljsHref = path.join(toRoot, 'css', 'docs-hljs.css').split(path.sep).join('/');
   const gameHref = path.join(toRoot, 'index.html').split(path.sep).join('/');
   const docsIndexHref = path.join(toRoot, 'docs', 'index.html').split(path.sep).join('/');
 
@@ -34,6 +36,7 @@ function pageShell({ title, bodyHtml, outFile }) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="${cssHref}">
+  <link rel="stylesheet" href="${hljsHref}">
 </head>
 <body class="docs-body">
   <header class="docs-header">
@@ -78,7 +81,7 @@ function outPathForSource(mdRelPosix) {
 }
 
 /**
- * Map a `.md` href under `docs/src` to the relative URL between built HTML files.
+ * Map a `.md` href under `docs-src` to the relative URL between built HTML files.
  * Matches `outPathForSource` (e.g. `overview.md` → `overview/index.html`).
  */
 function rewriteMdHref(href, currentAbsMd) {
@@ -145,6 +148,7 @@ const md = new MarkdownIt({
   linkify: true,
   typographer: true,
 })
+  .use(markdownItHighlightjs)
   .use(markdownItAnchor, {
     slugify: (s) => slugger.slug(s),
     permalink: false,
@@ -168,7 +172,6 @@ async function cleanGeneratedHtml() {
     for (const e of entries) {
       const p = path.join(dir, e.name);
       if (e.isDirectory()) {
-        if (path.resolve(p) === path.resolve(SRC)) continue;
         await walk(p);
       } else if (e.name.endsWith('.html')) {
         await fs.unlink(p);
@@ -205,7 +208,7 @@ async function buildOnce() {
     await fs.writeFile(outFile, html, 'utf8');
   }
 
-  console.log('docs: built HTML under docs/ from docs/src');
+  console.log('docs: built HTML under docs/ from docs-src');
 }
 
 const watch = process.argv.includes('--watch');

@@ -11,6 +11,6 @@ Splatbot is a two-player hex-grid game that runs in the browser. Bots are writte
 
 ## Editing these pages
 
-Sources live in `docs/src/` as Markdown. After you change them, run **`npm run docs:build`** and commit **both** the `.md` sources and the generated HTML under `docs/` (static hosting does not run Node).
+Sources live in `docs-src/` as Markdown. After you change them, run **`npm run docs:build`** and commit **both** the `.md` sources and the generated HTML under `docs/` (static hosting does not run Node).
 
 [← Back to the game](../index.html)

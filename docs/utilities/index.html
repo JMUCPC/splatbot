@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/docs.css">
+  <link rel="stylesheet" href="../../css/docs-hljs.css">
 </head>
 <body class="docs-body">
   <header class="docs-header">
@@ -21,7 +22,7 @@
 <p>Python bots can import <strong><code>utils</code></strong> modules inside the Pyodide sandbox. The usual pair is <strong><code>utils.hex_grid</code></strong> (coordinates and directions) and <strong><code>utils.actions</code></strong> (see the <a href="../actions/">Actions</a> page).</p>
 <h2 id="hexdirection" tabindex="-1">HexDirection</h2>
 <p>The map uses a <strong>pointy-top</strong> axial hex grid. There are six neighbor directions: <strong><code>E</code></strong>, <strong><code>NE</code></strong>, <strong><code>NW</code></strong>, <strong><code>W</code></strong>, <strong><code>SW</code></strong>, <strong><code>SE</code></strong>. Pass them to <code>Actions.move</code> (or an equivalent integer <code>0</code>–<code>5</code>).</p>
-<pre><code class="language-python">from utils.hex_grid import HexDirection
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 east = HexDirection.E
 north_east = HexDirection.NE

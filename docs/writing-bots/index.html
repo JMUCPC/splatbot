@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../css/docs.css">
+  <link rel="stylesheet" href="../../css/docs-hljs.css">
 </head>
 <body class="docs-body">
   <header class="docs-header">
@@ -26,13 +27,13 @@
 <li><code>utils.actions</code> (<code>Actions</code>)</li>
 </ul>
 <h2 id="example" tabindex="-1">Example</h2>
-<pre><code class="language-python">from utils.actions import Actions
-from utils.hex_grid import HexDirection
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
-class Bot:
-    def decide(self, game_state):
-        return Actions.move(HexDirection.E)
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
 </code></pre>
 <h2 id="actions" tabindex="-1">Actions</h2>
 <ul>
