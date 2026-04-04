@@ -40,6 +40,9 @@ const config = {
     print: "print_bot.py",
     error: "error_bot.py",
     slow_random: "slow_random.py",
+    util_prints: "util_prints.py",
+    edit_game_state: "edit_game_state.py",
+    print_game_state: "print_game_state.py",
   },
 };
 

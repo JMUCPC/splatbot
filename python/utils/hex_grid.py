@@ -47,6 +47,10 @@ HEX_DIRECTIONS: list[Hex] = [
 ]
 
 
+def hex_neighbors(h: Hex) -> list[Hex]:
+    return [hex_neighbor(h, d) for d in HexDirection]
+
+
 def hex_neighbor(h: Hex, direction: int | HexDirection) -> Hex:
     """Return the neighbor of `h` in direction 0–5 (wraps mod 6)."""
     return h + HEX_DIRECTIONS[int(direction) % 6]
@@ -58,29 +62,29 @@ def hex_distance(a: Hex, b: Hex) -> int:
     return (abs(d.q) + abs(d.q + d.r) + abs(d.r)) // 2
 
 
-def generate_hex_grid(radius: int) -> set[Hex]:
-    """All hexes whose axial distance from the origin is ≤ `radius`."""
-    return {
-        Hex(q, r)
-        for q in range(-radius, radius + 1)
-        for r in range(-radius, radius + 1)
-        if abs(q + r) <= radius
-    }
+# def generate_hex_grid(radius: int) -> set[Hex]:
+#     """All hexes whose axial distance from the origin is ≤ `radius`."""
+#     return {
+#         Hex(q, r)
+#         for q in range(-radius, radius + 1)
+#         for r in range(-radius, radius + 1)
+#         if abs(q + r) <= radius
+#     }
 
 
-def axial_to_pixel(q: int, r: int, size: float) -> tuple[float, float]:
-    """Pointy-top hex: axial (q, r) → pixel center (E increases x, W decreases x)."""
-    x = size * math.sqrt(3.0) * (q + r / 2.0)
-    y = size * 1.5 * r
-    return x, y
+# def axial_to_pixel(q: int, r: int, size: float) -> tuple[float, float]:
+#     """Pointy-top hex: axial (q, r) → pixel center (E increases x, W decreases x)."""
+#     x = size * math.sqrt(3.0) * (q + r / 2.0)
+#     y = size * 1.5 * r
+#     return x, y
 
 
-def hex_corners(cx: float, cy: float, size: float) -> list[tuple[float, float]]:
-    """Six corner points for a pointy-top hex (size = center to vertex)."""
-    return [
-        (
-            cx + size * math.cos(math.radians(60.0 * i - 90.0)),
-            cy + size * math.sin(math.radians(60.0 * i - 90.0)),
-        )
-        for i in range(6)
-    ]
+# def hex_corners(cx: float, cy: float, size: float) -> list[tuple[float, float]]:
+#     """Six corner points for a pointy-top hex (size = center to vertex)."""
+#     return [
+#         (
+#             cx + size * math.cos(math.radians(60.0 * i - 90.0)),
+#             cy + size * math.sin(math.radians(60.0 * i - 90.0)),
+#         )
+#         for i in range(6)
+# ]
