@@ -27,6 +27,7 @@ function pageShell({ title, bodyHtml, outFile }) {
   const copyJsHref = path.join(toRoot, 'js', 'docs-copy-code.js').split(path.sep).join('/');
   const gameHref = path.join(toRoot, 'index.html').split(path.sep).join('/');
   const docsIndexHref = path.join(toRoot, 'docs', 'index.html').split(path.sep).join('/');
+  const iconHref = path.join(toRoot, 'images', 'splat.ico').split(path.sep).join('/');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -34,6 +35,7 @@ function pageShell({ title, bodyHtml, outFile }) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)} · Splatbot</title>
+  <link rel="icon" href="${iconHref}" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="${cssHref}">
