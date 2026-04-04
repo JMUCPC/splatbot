@@ -35,7 +35,8 @@ export function renderHexGrid(state, hexSize) {
   const tileStroke = { 0: config.TILE_STROKE_COLOR, 1: '#8b2e06', 2: '#065066' };
   const botFill = config.PLAYER_BOT_COLORS;
   const botBright = config.PLAYER_BRIGHT_COLORS;
-  const padding = hexSize * 1.8;
+  /* Tight viewBox → map scales larger in the panel; keep ≥ ~1.2× for bot markers at rim hexes. */
+  const padding = hexSize * 1.2;
 
   const centers = new Map();
   for (const h of state.grid.values()) {
@@ -67,7 +68,7 @@ export function renderHexGrid(state, hexSize) {
   }
 
   const parts = [
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(1)} ${H.toFixed(1)}" width="100%" style="display:block;background:${config.CANVAS_BG}">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(1)} ${H.toFixed(1)}" preserveAspectRatio="xMidYMid meet" width="100%" height="100%" style="display:block;background:${config.CANVAS_BG}">`,
   ];
 
   // Hex tiles

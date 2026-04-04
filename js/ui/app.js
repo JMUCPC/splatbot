@@ -1,7 +1,19 @@
 import config from '../config.js';
 import { makeInitialState } from '../engine/game-state.js';
 import { renderHexGrid } from '../renderer/hex-renderer.js';
-import { logEvent, clearLog, initEventConsole } from './event-console.js';
+import {
+  logEvent,
+  clearLog,
+  initEventConsole,
+  attachEventLogMirror,
+  onLogLine,
+  onLogClear,
+} from './event-console.js';
+import {
+  initPlayerCardEventFeed,
+  syncPlayerCardsFromLogLine,
+  clearPlayerCardFeeds,
+} from './player-card-log-feed.js';
 import {
   loadOverrides, saveOverrides, mergeWithDefaults, applyToConfig,
   buildSettingsUI, validateOverrides, SETTING_SPECS,
@@ -17,6 +29,14 @@ let state = null;
 let running = false;
 let tickDelay = config.TICK_DELAY;
 let lastTick = 0;
+
+/** True while a multi-tick step is running (blocks live loop advances). */
+let stepBusy = false;
+/** Number of simulation ticks the Step button runs (dropdown). */
+let stepTickCount = 1;
+
+const STEP_PRESET_COUNTS = [1, 2, 3, 5, 10, 25, 50, 100];
+const STEP_TICK_MAX = 99999;
 
 /** Slider 1–20 ↔ delay (s); must stay consistent with `#speed-slider` min/max. */
 const SPEED_SLIDER_MIN = 1;
@@ -47,6 +67,98 @@ const playerBotId = { 1: null, 2: null };
 let botControlsReady = false;
 
 const els = {};
+
+let eventLogPopoutWin = null;
+let eventLogPopoutDetach = null;
+
+function setEventLogExpanded(expanded) {
+  const app = document.getElementById('app');
+  const panel = document.getElementById('event-log-panel');
+  const expandBtn = document.getElementById('btn-event-log-expand');
+  const hideBtn = document.getElementById('btn-event-log-hide');
+  if (!panel) return;
+
+  /* Attribute + CSS `#event-log-panel[hidden]` — property alone can desync in some cases. */
+  if (expanded) {
+    panel.removeAttribute('hidden');
+  } else {
+    panel.setAttribute('hidden', '');
+  }
+
+  if (expanded) app?.classList.add('event-log-expanded');
+  else app?.classList.remove('event-log-expanded');
+
+  if (expandBtn) {
+    if (expanded) {
+      expandBtn.setAttribute('hidden', '');
+    } else {
+      expandBtn.removeAttribute('hidden');
+    }
+    expandBtn.setAttribute('aria-expanded', 'false');
+    expandBtn.textContent = 'EVENT LOG';
+    expandBtn.setAttribute('aria-label', 'Show event log');
+  }
+
+  if (hideBtn) {
+    hideBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  }
+}
+
+function openEventLogPopout() {
+  if (eventLogPopoutWin && !eventLogPopoutWin.closed) {
+    eventLogPopoutWin.focus();
+    return;
+  }
+
+  const cssHref = new URL('css/styles.css', window.location.href).href;
+  const fontHref = 'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap';
+  const w = window.open(
+    '',
+    'SplatbotEventLog',
+    'width=720,height=520,menubar=no,toolbar=no,scrollbars=yes',
+  );
+  if (!w) {
+    logEvent('Pop-up blocked — allow pop-ups for this site to use Event log pop-out.');
+    return;
+  }
+
+  eventLogPopoutWin = w;
+  w.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splatbot — Event log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="${fontHref}" rel="stylesheet">
+<link rel="stylesheet" href="${cssHref}">
+<style>
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { display: flex; flex-direction: column; background: #080c14; }
+</style>
+</head>
+<body>
+  <div id="event-log-pop" class="event-log event-log--popout-fill"></div>
+</body>
+</html>`);
+  w.document.close();
+
+  const inner = w.document.getElementById('event-log-pop');
+  if (eventLogPopoutDetach) {
+    eventLogPopoutDetach();
+    eventLogPopoutDetach = null;
+  }
+  const detach = attachEventLogMirror(inner);
+  eventLogPopoutDetach = detach;
+
+  w.addEventListener('unload', () => {
+    if (eventLogPopoutWin === w) eventLogPopoutWin = null;
+    if (eventLogPopoutDetach === detach) eventLogPopoutDetach = null;
+    detach();
+  }, { once: true });
+
+  w.focus();
+}
 
 /** Heuristic: bot script should define class Bot with decide(self, ...) for Pyodide. */
 const BOT_CLASS_RE = /\bclass\s+Bot\b/;
@@ -217,6 +329,31 @@ export function initApp() {
   if (els.botFile2) els.botFile2.addEventListener('change', () => onBotFileChange(2, els.botFile2));
 
   initEventConsole(els.eventLog);
+  initPlayerCardEventFeed();
+  onLogLine(syncPlayerCardsFromLogLine);
+  onLogClear(clearPlayerCardFeeds);
+
+  const btnEventLogExpand = document.getElementById('btn-event-log-expand');
+  const btnEventLogPopout = document.getElementById('btn-event-log-popout');
+  if (btnEventLogExpand) {
+    btnEventLogExpand.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setEventLogExpanded(true);
+    });
+  }
+  const btnEventLogHide = document.getElementById('btn-event-log-hide');
+  if (btnEventLogHide) {
+    btnEventLogHide.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setEventLogExpanded(false);
+    });
+  }
+  if (btnEventLogPopout) {
+    btnEventLogPopout.addEventListener('click', () => openEventLogPopout());
+  }
+  setEventLogExpanded(false);
 
   const overrides = loadOverrides();
   const effective = mergeWithDefaults(overrides);
@@ -231,6 +368,7 @@ export function initApp() {
   state = makeInitialState();
 
   if (els.runToggle) els.runToggle.addEventListener('click', toggleRun);
+  initStepControl();
   document.getElementById('btn-reset').addEventListener('click', () => resetGame({ clearEventLog: true }));
   document.getElementById('btn-settings').addEventListener('click', openSettings);
   document.getElementById('btn-settings-reset').addEventListener('click', resetSettingsForm);
@@ -279,6 +417,7 @@ export async function preloadWorkers() {
   if (els.botSelect2) els.botSelect2.disabled = noBots;
 
   botControlsReady = true;
+  syncStepControls();
   updateLoadingStatus('Ready.');
 }
 
@@ -344,6 +483,8 @@ function push() {
     els.runToggle.setAttribute('aria-pressed', running ? 'true' : 'false');
     els.runToggle.setAttribute('aria-label', running ? 'Pause match' : 'Start match');
   }
+
+  syncStepControls();
 }
 
 // ── Control callbacks ────────────────────────────────────────────────────
@@ -383,46 +524,240 @@ function setSpeed(val) {
   tickDelay = tickDelayFromSlider(val);
 }
 
+// ── One simulation tick (both bots act) — shared by live loop and Step ──
+
+async function advanceSingleTick() {
+  if (!state || state.isOver) return;
+
+  const allReady = [1, 2].every(pid => !runners[pid] || runners[pid].ready);
+  if (!allReady) return;
+
+  state.advanceTurn();
+
+  for (const pid of [1, 2]) {
+    const runner = runners[pid];
+    if (!runner || !runner.ready) continue;
+    try {
+      const snapshot = state.toSnapshot(pid);
+      const action = await runner.decide(snapshot);
+      state.applyAction(pid, action, logEvent);
+    } catch (err) {
+      logEvent(`Error in bot ${pid}: ${err}`);
+    }
+  }
+
+  state.neutralizeCollidingTiles(logEvent);
+  state.tickSplatCooldowns();
+
+  push();
+
+  if (state.isOver) {
+    running = false;
+    const sc = state.score();
+    logEvent(`Match over — P1: ${sc[1]} tiles  |  P2: ${sc[2]} tiles`);
+  }
+}
+
+function syncStepControls() {
+  const stepBtn = document.getElementById('btn-step');
+  const menuBtn = document.getElementById('btn-step-menu');
+  if (!stepBtn || !menuBtn) return;
+
+  const disable = stepBusy || !botControlsReady || !state || state.isOver;
+  stepBtn.disabled = disable;
+  menuBtn.disabled = disable;
+  if (disable) closeStepMenu();
+}
+
+function updateStepMainLabel() {
+  const stepBtn = document.getElementById('btn-step');
+  if (!stepBtn) return;
+  const n = stepTickCount;
+  const word = n === 1 ? 'tick' : 'ticks';
+  stepBtn.textContent = `Step ${n} ${word}`;
+}
+
+function setStepMenuSelection(n) {
+  const menu = document.getElementById('step-tick-menu');
+  const customBtn = document.getElementById('btn-step-custom');
+  if (!menu) return;
+
+  menu.querySelectorAll('button[data-ticks]').forEach((opt) => {
+    const v = parseInt(opt.getAttribute('data-ticks'), 10);
+    const sel = v === n;
+    opt.setAttribute('aria-selected', sel ? 'true' : 'false');
+  });
+
+  if (customBtn) {
+    const customSel = !STEP_PRESET_COUNTS.includes(n);
+    customBtn.setAttribute('aria-selected', customSel ? 'true' : 'false');
+  }
+
+  const input = document.getElementById('step-tick-custom-input');
+  if (input) input.value = String(Math.min(STEP_TICK_MAX, Math.max(1, n)));
+}
+
+function closeStepMenu() {
+  const menu = document.getElementById('step-tick-menu');
+  const menuBtn = document.getElementById('btn-step-menu');
+  const panel = document.getElementById('step-tick-custom-panel');
+  if (panel) {
+    panel.setAttribute('hidden', '');
+  }
+  if (menu) {
+    menu.setAttribute('hidden', '');
+  }
+  if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
+}
+
+function applyCustomStepTicks() {
+  const input = document.getElementById('step-tick-custom-input');
+  if (!input) return;
+  let v = parseInt(String(input.value).trim(), 10);
+  if (!Number.isFinite(v)) v = 1;
+  v = Math.min(STEP_TICK_MAX, Math.max(1, v));
+  stepTickCount = v;
+  input.value = String(v);
+  updateStepMainLabel();
+  setStepMenuSelection(stepTickCount);
+  closeStepMenu();
+}
+
+function openStepMenu() {
+  const menu = document.getElementById('step-tick-menu');
+  const menuBtn = document.getElementById('btn-step-menu');
+  const panel = document.getElementById('step-tick-custom-panel');
+  if (!menu || !menuBtn || menuBtn.disabled) return;
+  if (panel) panel.setAttribute('hidden', '');
+  menu.removeAttribute('hidden');
+  menuBtn.setAttribute('aria-expanded', 'true');
+}
+
+async function runStepTicks() {
+  if (stepBusy || !botControlsReady || !state || state.isOver) return;
+
+  stepBusy = true;
+  syncStepControls();
+
+  if (running) {
+    running = false;
+    push();
+  }
+
+  const n = Math.min(STEP_TICK_MAX, Math.max(1, Math.floor(Number(stepTickCount)) || 1));
+  try {
+    for (let i = 0; i < n; i++) {
+      if (!state || state.isOver) break;
+      await advanceSingleTick();
+    }
+  } finally {
+    stepBusy = false;
+    syncStepControls();
+    push();
+  }
+}
+
+function initStepControl() {
+  const stepBtn = document.getElementById('btn-step');
+  const menuBtn = document.getElementById('btn-step-menu');
+  const menu = document.getElementById('step-tick-menu');
+  const wrap = document.getElementById('step-control-wrap');
+  const customBtn = document.getElementById('btn-step-custom');
+  const customPanel = document.getElementById('step-tick-custom-panel');
+  const customInput = document.getElementById('step-tick-custom-input');
+  const customApply = document.getElementById('step-tick-custom-apply');
+  if (!stepBtn || !menuBtn || !menu) return;
+
+  updateStepMainLabel();
+  setStepMenuSelection(stepTickCount);
+
+  stepBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeStepMenu();
+    runStepTicks();
+  });
+
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (menuBtn.disabled) return;
+    if (menu.hasAttribute('hidden')) openStepMenu();
+    else closeStepMenu();
+  });
+
+  menu.querySelectorAll('button[data-ticks]').forEach((opt) => {
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (customPanel) customPanel.setAttribute('hidden', '');
+      const v = parseInt(opt.getAttribute('data-ticks'), 10);
+      if (Number.isFinite(v) && v > 0) {
+        stepTickCount = Math.min(STEP_TICK_MAX, v);
+        updateStepMainLabel();
+        setStepMenuSelection(stepTickCount);
+      }
+      closeStepMenu();
+    });
+  });
+
+  if (customBtn && customPanel && customInput) {
+    customBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = !customPanel.hasAttribute('hidden');
+      if (open) {
+        customPanel.setAttribute('hidden', '');
+      } else {
+        customPanel.removeAttribute('hidden');
+        customInput.value = String(Math.min(STEP_TICK_MAX, Math.max(1, stepTickCount)));
+        customInput.focus();
+        customInput.select();
+      }
+    });
+  }
+
+  if (customApply) {
+    customApply.addEventListener('click', (e) => {
+      e.stopPropagation();
+      applyCustomStepTicks();
+    });
+  }
+
+  if (customInput) {
+    customInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyCustomStepTicks();
+      }
+    });
+    customInput.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  document.addEventListener('click', (e) => {
+    if (wrap && !wrap.contains(e.target)) closeStepMenu();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu && !menu.hasAttribute('hidden')) closeStepMenu();
+  });
+}
+
 // ── Game loop ────────────────────────────────────────────────────────────
 
 async function gameLoop() {
   while (true) {
     await new Promise(resolve => requestAnimationFrame(resolve));
+    if (stepBusy) continue;
     if (!running) continue;
 
     const now = performance.now();
     if (now - lastTick < tickDelay * 1000) continue;
     lastTick = now;
 
-    if (state.isOver) {
+    if (!state || state.isOver) {
       running = false;
       push();
-      const sc = state.score();
-      logEvent(`Match over — P1: ${sc[1]} tiles  |  P2: ${sc[2]} tiles`);
       continue;
     }
 
-    const allReady = [1, 2].every(pid => !runners[pid] || runners[pid].ready);
-    if (!allReady) continue;
-
-    state.advanceTurn();
-
-    for (const pid of [1, 2]) {
-      const runner = runners[pid];
-      if (!runner || !runner.ready) continue;
-      try {
-        const snapshot = state.toSnapshot(pid);
-        const action = await runner.decide(snapshot);
-        state.applyAction(pid, action, logEvent);
-      } catch (err) {
-        logEvent(`Error in bot ${pid}: ${err}`);
-      }
-    }
-
-    state.neutralizeCollidingTiles(logEvent);
-    state.tickSplatCooldowns();
-
-    push();
+    await advanceSingleTick();
   }
 }
 

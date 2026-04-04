@@ -1,0 +1,109 @@
+/**
+ * Interactive mini hex grids on docs/actions — one Play per reset, real GameState.applyAction.
+ */
+import { renderHexGrid } from '../renderer/hex-renderer.js';
+import { GameState, BotData } from '../engine/game-state.js';
+import { Hex, HexDirection, generateHexGrid } from '../engine/hex-grid.js';
+
+const DEMO_HEX_SIZE = 22;
+
+function tileMapForGrid(grid) {
+  const tilePids = new Map();
+  for (const h of grid.values()) tilePids.set(h.key, 0);
+  return tilePids;
+}
+
+/**
+ * @param {number} radius
+ * @param {Array<{ pid: number, qr: [number, number], facing?: number, splatCooldown?: number, splatInterval?: number, dashInterval?: number, paintballInterval?: number, paintballCooldown?: number }>} botSpecs
+ */
+function makeDemoState(radius, botSpecs) {
+  const grid = generateHexGrid(radius);
+  const tilePids = tileMapForGrid(grid);
+  const bots = new Map();
+  for (const spec of botSpecs) {
+    const pos = new Hex(spec.qr[0], spec.qr[1]);
+    const b = new BotData(
+      spec.pid,
+      pos,
+      spec.facing ?? HexDirection.E,
+      spec.splatCooldown ?? 0,
+      spec.splatInterval ?? 0,
+      spec.dashInterval ?? 0,
+      spec.paintballInterval ?? 0,
+      spec.paintballCooldown ?? 0,
+    );
+    bots.set(spec.pid, b);
+    tilePids.set(pos.key, spec.pid);
+  }
+  return new GameState(grid, tilePids, bots, 0, 200, radius);
+}
+
+const DEMOS = {
+  skip: {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0] }]),
+    action: { type: 'skip' },
+  },
+  move: {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0] }]),
+    action: { type: 'move', direction: HexDirection.E },
+  },
+  splat: {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0] }]),
+    action: { type: 'splat' },
+  },
+  'shoot-paintball-edge': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0] }]),
+    action: { type: 'shoot_paintball', direction: HexDirection.E },
+  },
+  'shoot-paintball-blocked': {
+    build: () => makeDemoState(3, [
+      { pid: 1, qr: [-1, 0] },
+      { pid: 2, qr: [2, 0] },
+    ]),
+    action: { type: 'shoot_paintball', direction: HexDirection.E },
+  },
+  dash: {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [-2, 0] }]),
+    action: { type: 'dash', direction: HexDirection.E, distance: 4 },
+  },
+};
+
+function mount(container) {
+  const kind = container.getAttribute('data-action-demo');
+  const spec = DEMOS[kind];
+  if (!spec) return;
+
+  const gridEl = container.querySelector('.action-demo-grid');
+  const playBtn = container.querySelector('[data-demo-play]');
+  const resetBtn = container.querySelector('[data-demo-reset]');
+  if (!gridEl || !playBtn || !resetBtn) return;
+
+  let state = spec.build();
+  let played = false;
+
+  function paint() {
+    gridEl.innerHTML = renderHexGrid(state, DEMO_HEX_SIZE);
+  }
+
+  function reset() {
+    state = spec.build();
+    played = false;
+    playBtn.disabled = false;
+    paint();
+  }
+
+  function play() {
+    if (played) return;
+    state.applyAction(1, spec.action, () => {});
+    played = true;
+    playBtn.disabled = true;
+    paint();
+  }
+
+  playBtn.addEventListener('click', play);
+  resetBtn.addEventListener('click', reset);
+  paint();
+}
+
+document.querySelectorAll('[data-action-demo]').forEach(mount);

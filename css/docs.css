@@ -194,3 +194,71 @@
   border-left: 3px solid #2e4060;
   color: #7a8a9a;
 }
+
+/* ── Actions page: mini hex demos ─────────────────────────────────────── */
+
+.action-demo {
+  margin: 1rem 0 1.35rem;
+  padding: 14px 16px;
+  background: #0e1525;
+  border: 1px solid #1a2a40;
+  border-radius: 8px;
+}
+
+.action-demo-grid {
+  height: min(220px, 48vw);
+  min-height: 150px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #070d1a;
+}
+
+.action-demo-grid svg {
+  width: 100%;
+  height: 100%;
+}
+
+.action-demo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.action-demo-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c0d0e0;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 4px;
+  padding: 0.45rem 1rem;
+  min-height: 40px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.action-demo-btn:hover:not(:disabled) {
+  border-color: #3a5070;
+  color: #eef4f8;
+}
+
+.action-demo-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.action-demo-btn--secondary {
+  color: #8a9db4;
+}
+
+.action-demo-caption {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #7a8a9a;
+  line-height: 1.45;
+}
