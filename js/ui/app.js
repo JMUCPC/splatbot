@@ -1,7 +1,19 @@
 import config from '../config.js';
 import { makeInitialState } from '../engine/game-state.js';
 import { renderHexGrid } from '../renderer/hex-renderer.js';
-import { logEvent, clearLog, initEventConsole } from './event-console.js';
+import {
+  logEvent,
+  clearLog,
+  initEventConsole,
+  attachEventLogMirror,
+  onLogLine,
+  onLogClear,
+} from './event-console.js';
+import {
+  initPlayerCardEventFeed,
+  syncPlayerCardsFromLogLine,
+  clearPlayerCardFeeds,
+} from './player-card-log-feed.js';
 import {
   loadOverrides, saveOverrides, mergeWithDefaults, applyToConfig,
   buildSettingsUI, validateOverrides, SETTING_SPECS,
@@ -47,6 +59,76 @@ const playerBotId = { 1: null, 2: null };
 let botControlsReady = false;
 
 const els = {};
+
+let eventLogPopoutWin = null;
+let eventLogPopoutDetach = null;
+
+function setEventLogExpanded(expanded) {
+  const app = document.getElementById('app');
+  const panel = document.getElementById('event-log-panel');
+  const expandBtn = document.getElementById('btn-event-log-expand');
+  if (!panel || !expandBtn) return;
+  panel.hidden = !expanded;
+  if (expanded) app?.classList.add('event-log-expanded');
+  else app?.classList.remove('event-log-expanded');
+  expandBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+}
+
+function openEventLogPopout() {
+  if (eventLogPopoutWin && !eventLogPopoutWin.closed) {
+    eventLogPopoutWin.focus();
+    return;
+  }
+
+  const cssHref = new URL('css/styles.css', window.location.href).href;
+  const fontHref = 'https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap';
+  const w = window.open(
+    '',
+    'SplatbotEventLog',
+    'width=720,height=520,menubar=no,toolbar=no,scrollbars=yes',
+  );
+  if (!w) {
+    logEvent('Pop-up blocked — allow pop-ups for this site to use Event log pop-out.');
+    return;
+  }
+
+  eventLogPopoutWin = w;
+  w.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splatbot — Event log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="${fontHref}" rel="stylesheet">
+<link rel="stylesheet" href="${cssHref}">
+<style>
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { display: flex; flex-direction: column; background: #080c14; }
+</style>
+</head>
+<body>
+  <div id="event-log-pop" class="event-log event-log--popout-fill"></div>
+</body>
+</html>`);
+  w.document.close();
+
+  const inner = w.document.getElementById('event-log-pop');
+  if (eventLogPopoutDetach) {
+    eventLogPopoutDetach();
+    eventLogPopoutDetach = null;
+  }
+  const detach = attachEventLogMirror(inner);
+  eventLogPopoutDetach = detach;
+
+  w.addEventListener('unload', () => {
+    if (eventLogPopoutWin === w) eventLogPopoutWin = null;
+    if (eventLogPopoutDetach === detach) eventLogPopoutDetach = null;
+    detach();
+  }, { once: true });
+
+  w.focus();
+}
 
 /** Heuristic: bot script should define class Bot with decide(self, ...) for Pyodide. */
 const BOT_CLASS_RE = /\bclass\s+Bot\b/;
@@ -217,6 +299,23 @@ export function initApp() {
   if (els.botFile2) els.botFile2.addEventListener('change', () => onBotFileChange(2, els.botFile2));
 
   initEventConsole(els.eventLog);
+  initPlayerCardEventFeed();
+  onLogLine(syncPlayerCardsFromLogLine);
+  onLogClear(clearPlayerCardFeeds);
+
+  const btnEventLogExpand = document.getElementById('btn-event-log-expand');
+  const btnEventLogCollapse = document.getElementById('btn-event-log-collapse');
+  const btnEventLogPopout = document.getElementById('btn-event-log-popout');
+  if (btnEventLogExpand) {
+    btnEventLogExpand.addEventListener('click', () => setEventLogExpanded(true));
+  }
+  if (btnEventLogCollapse) {
+    btnEventLogCollapse.addEventListener('click', () => setEventLogExpanded(false));
+  }
+  if (btnEventLogPopout) {
+    btnEventLogPopout.addEventListener('click', () => openEventLogPopout());
+  }
+  setEventLogExpanded(false);
 
   const overrides = loadOverrides();
   const effective = mergeWithDefaults(overrides);

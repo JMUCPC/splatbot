@@ -31,34 +31,42 @@
     </div>
 
     <div class="main-row">
-      <div class="sb-card player-card">
-        <div class="sb-label-xs" style="color:#c24a28; margin-bottom:4px">PLAYER  1</div>
+      <div class="sb-card player-card" id="player-card-1">
+        <div class="sb-label-xs" style="color:#c24a28">PLAYER  1</div>
         <div id="score-1" class="sb-score" style="color:#ff6b2b">0</div>
-        <div id="pct-1" class="sb-label-xs" style="color:#d08060; margin-top:2px; margin-bottom:10px">0.0%</div>
-        <div id="decision-time-1" class="sb-label-xs" style="color:#d08060; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
-        <hr class="sb-divider" style="margin-bottom:10px">
+        <div id="pct-1" class="sb-label-xs" style="color:#d08060">0.0%</div>
+        <div id="decision-time-1" class="sb-label-xs" style="color:#d08060">0.00000s/dec</div>
+        <hr class="sb-divider">
         <div class="sb-label-xs">BOT SCRIPT</div>
         <select id="bot-select-1" class="sb-select" aria-label="Player 1 bot script"></select>
-        <div class="sb-label-xs" style="margin-top:10px">BOT FILE</div>
-        <input type="file" id="bot-file-1" class="sb-input" accept=".py,text/plain" style="margin-top:4px" aria-label="Upload player 1 bot Python file">
-        <div class="sb-label-xs" style="color:#4cba88; margin-top:8px">DEMO MODE</div>
+        <div class="sb-label-xs">BOT FILE</div>
+        <input type="file" id="bot-file-1" class="sb-input" accept=".py,text/plain" aria-label="Upload player 1 bot Python file">
+        <div class="sb-label-xs" style="color:#4cba88">DEMO MODE</div>
+        <div class="player-card-log-block">
+          <div class="sb-label-xs player-card-feed-heading">FROM EVENT LOG</div>
+          <div id="player-card-feed-1" class="player-card-feed" role="status" aria-live="polite"></div>
+        </div>
       </div>
 
       <div class="hex-column">
         <div id="hex-grid" class="hex-wrap"></div>
       </div>
 
-      <div class="sb-card player-card">
-        <div class="sb-label-xs" style="color:#2a9ec0; margin-bottom:4px">PLAYER  2</div>
+      <div class="sb-card player-card" id="player-card-2">
+        <div class="sb-label-xs" style="color:#2a9ec0">PLAYER  2</div>
         <div id="score-2" class="sb-score" style="color:#00d4ff">0</div>
-        <div id="pct-2" class="sb-label-xs" style="color:#5cc8e0; margin-top:2px; margin-bottom:10px">0.0%</div>
-        <div id="decision-time-2" class="sb-label-xs" style="color:#5cc8e0; margin-top:2px; margin-bottom:10px">0.00000s/dec</div>
-        <hr class="sb-divider" style="margin-bottom:10px">
+        <div id="pct-2" class="sb-label-xs" style="color:#5cc8e0">0.0%</div>
+        <div id="decision-time-2" class="sb-label-xs" style="color:#5cc8e0">0.00000s/dec</div>
+        <hr class="sb-divider">
         <div class="sb-label-xs">BOT SCRIPT</div>
         <select id="bot-select-2" class="sb-select" aria-label="Player 2 bot script"></select>
-        <div class="sb-label-xs" style="margin-top:10px">BOT FILE</div>
-        <input type="file" id="bot-file-2" class="sb-input" accept=".py,text/plain" style="margin-top:4px" aria-label="Upload player 2 bot Python file">
-        <div class="sb-label-xs" style="color:#4cba88; margin-top:8px">DEMO MODE</div>
+        <div class="sb-label-xs">BOT FILE</div>
+        <input type="file" id="bot-file-2" class="sb-input" accept=".py,text/plain" aria-label="Upload player 2 bot Python file">
+        <div class="sb-label-xs" style="color:#4cba88">DEMO MODE</div>
+        <div class="player-card-log-block">
+          <div class="sb-label-xs player-card-feed-heading">FROM EVENT LOG</div>
+          <div id="player-card-feed-2" class="player-card-feed" role="status" aria-live="polite"></div>
+        </div>
       </div>
     </div>
 
@@ -71,10 +79,17 @@
       </div>
       <div class="sb-label-xs" style="flex-shrink:0">SPEED</div>
       <input type="range" id="speed-slider" class="sb-slider" min="1" max="20" step="1" value="15">
+      <button type="button" id="btn-event-log-expand" class="sb-btn sb-btn--compact turn-row-event-log-btn" aria-expanded="false" aria-controls="event-log-panel">EVENT LOG</button>
     </div>
 
-    <div class="sb-card event-log-card">
-      <div class="sb-label-xs" style="margin-bottom:6px">EVENT LOG</div>
+    <div id="event-log-panel" class="sb-card event-log-card" hidden>
+      <div class="event-log-toolbar">
+        <div class="sb-label-xs">EVENT LOG</div>
+        <div class="event-log-toolbar-actions">
+          <button type="button" id="btn-event-log-collapse" class="sb-btn sb-btn--compact" aria-controls="event-log-panel">COLLAPSE</button>
+          <button type="button" id="btn-event-log-popout" class="sb-btn sb-btn--compact">POP OUT</button>
+        </div>
+      </div>
       <div id="event-log" class="event-log"></div>
     </div>
   </div>
