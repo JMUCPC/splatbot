@@ -44,6 +44,11 @@ body {
   color: #c0d0e0;
 }
 
+.sb-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .sb-label-xs {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.92rem;
@@ -137,6 +142,95 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sb-step-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.sb-step-wrap .sb-btn {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sb-step-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+  padding-right: 14px;
+}
+
+.sb-step-chevron {
+  min-width: 42px;
+  padding: 0 8px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.sb-step-wrap .sb-step-chevron {
+  letter-spacing: 0;
+}
+
+.sb-step-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 60;
+  min-width: 11.5rem;
+  padding: 8px;
+  background: #0e1525;
+  border: 1px solid #1a2a40;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Author `display: flex` wins over the `hidden` attribute unless we restate it. */
+#step-tick-menu[hidden] {
+  display: none !important;
+}
+
+.sb-step-menu .sb-step-menu-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.sb-step-menu .sb-step-menu-btn[aria-selected='true'] {
+  border-color: #3a5070;
+  color: #dde8f0;
+  background: #151f35;
+}
+
+.sb-step-custom-panel {
+  padding-top: 2px;
+}
+
+.sb-step-custom-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.sb-step-custom-input {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+.sb-step-custom-apply {
+  flex-shrink: 0;
+  min-height: 44px;
 }
 
 .main-row {
@@ -264,9 +358,6 @@ body {
 }
 .turn-row-event-log-btn {
   margin-left: auto;
-}
-.app-container.event-log-expanded .turn-row-event-log-btn {
-  display: none;
 }
 .turn-num {
   font-family: 'Share Tech Mono', monospace;
