@@ -1,6 +1,7 @@
 {
   "name": "splatbot",
   "private": true,
+  "license": "CC-BY-NC-SA-4.0",
   "scripts": {
     "docs:build": "node scripts/build-docs.mjs",
     "docs:watch": "node scripts/build-docs.mjs --watch"

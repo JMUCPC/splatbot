@@ -65,3 +65,7 @@ Available imports inside the sandbox: `utils.hex_grid` and `utils.actions`.
 - Settings are persisted per browser via `localStorage`.
 - `js/config.js` holds the default values (including splat/dash/paintball cooldown and interval; editable in **SETTINGS**).
 - Applying settings resets the current match.
+
+## License
+
+**Splatbot** © 2026 by Nate and Layla is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). See the [`LICENSE`](LICENSE) file in this repository.
