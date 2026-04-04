@@ -24,6 +24,7 @@ function pageShell({ title, bodyHtml, outFile }) {
   const toRoot = path.relative(outDir, ROOT) || '.';
   const cssHref = path.join(toRoot, 'css', 'docs.css').split(path.sep).join('/');
   const hljsHref = path.join(toRoot, 'css', 'docs-hljs.css').split(path.sep).join('/');
+  const copyJsHref = path.join(toRoot, 'js', 'docs-copy-code.js').split(path.sep).join('/');
   const gameHref = path.join(toRoot, 'index.html').split(path.sep).join('/');
   const docsIndexHref = path.join(toRoot, 'docs', 'index.html').split(path.sep).join('/');
 
@@ -49,6 +50,7 @@ function pageShell({ title, bodyHtml, outFile }) {
   <main class="docs-main markdown-body">
 ${bodyHtml}
   </main>
+  <script src="${copyJsHref}" defer></script>
 </body>
 </html>
 `;

@@ -117,6 +117,54 @@
   overflow-x: auto;
 }
 
+.docs-code-wrap {
+  margin: 1em 0;
+  border: 1px solid #1a2a40;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #070d1a;
+}
+
+.docs-code-wrap pre {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.docs-code-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.4rem 0.55rem;
+  background: #0e1525;
+  border-bottom: 1px solid #1a2a40;
+}
+
+.docs-copy-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aacbf;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 4px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.docs-copy-btn:hover {
+  border-color: #3a5070;
+  color: #c0d0e0;
+}
+
+.docs-copy-btn--done {
+  border-color: #2a6048;
+  color: #7dccb0;
+}
+
 .markdown-body pre code {
   background: none;
   border: none;
