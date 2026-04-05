@@ -133,8 +133,16 @@ function openEventLogPopout() {
 <link href="${fontHref}" rel="stylesheet">
 <link rel="stylesheet" href="${cssHref}">
 <style>
-  html, body { height: 100%; margin: 0; overflow: hidden; }
-  body { display: flex; flex-direction: column; background: #080c14; }
+  html { height: 100%; margin: 0; overflow: hidden; }
+  body {
+    height: 100%;
+    margin: 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #080c14;
+  }
 </style>
 </head>
 <body>

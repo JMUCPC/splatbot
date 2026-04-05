@@ -432,11 +432,14 @@ body {
   font-size: 0.98rem;
 }
 
-.event-log--popout-fill {
+/* Pop-out window: cap height to the viewport and scroll inside (body uses overflow:hidden). */
+.event-log.event-log--popout-fill {
   flex: 1 1 auto;
+  align-self: stretch;
   min-height: 0 !important;
   height: auto !important;
-  max-height: none !important;
+  max-height: 100vh !important;
+  overflow-y: auto !important;
   border-radius: 0;
 }
 
