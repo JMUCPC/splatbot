@@ -2,9 +2,20 @@
 
 A bot performs **exactly one** action per turn. Your `Bot.decide` method must return a value from the **`Actions`** helpers below.
 
+Interactive examples below use the same rules as the main game (mini grid, player 1 in orange). **Play** applies the action once; **Reset** restores the starting position.
+
 ## Skip
 
 The skip action tells a splatbot to skip a turn.
+
+<div class="action-demo" data-action-demo="skip" role="region" aria-label="Skip action example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Skip does not move or paint — the board stays the same.</p>
+</div>
 
 ```python
 from utils.actions import Actions
@@ -19,6 +30,15 @@ class Bot:
 ## Move
 
 The move action tells a splatbot to move in a given direction. The direction given may be either an integer or (recommended) a [HexDirection](../utilities/index.md#hex-direction). A splatbot will move one tile in the given direction, and paint the tile that it lands on. If the movement would result in the splatbot moving to an invalid position, then nothing will happen.
+
+<div class="action-demo" data-action-demo="move" role="region" aria-label="Move action example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Player 1 moves one hex east (<code>HexDirection.E</code>) and paints the landing tile.</p>
+</div>
 
 ```python
 from utils.actions import Actions
@@ -39,6 +59,15 @@ After splat:
 
 1. **Stun** — for a number of turns you cannot **move**, **dash**, **splat**, or **shoot paintball** (`game_state.my_stun`). Use `Actions.skip()` if you have no other option. Duration is configurable as **Splat stun** in **SETTINGS**.
 2. **Splat cooldown** — you cannot **splat** again until this reaches `0` (`game_state.my_splat_cooldown`; default spacing enforces at most about one splat every 10 turns). You may **move** once stun ends even if splat cooldown is still counting down.
+
+<div class="action-demo" data-action-demo="splat" role="region" aria-label="Splat action example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">All in-grid neighbors of the bot are painted; the bot’s own tile is not.</p>
+</div>
 
 ```python
 from utils.actions import Actions
@@ -61,6 +90,24 @@ See [Writing bots](../writing-bots/) for the full game state reference.
 
 You cannot use paintball while **stunned** (`game_state.my_stun`). After a shot, you are **stunned** for a number of turns (default **7**; **Paintball stun** in **SETTINGS**). Separately, by default you can shoot again only after **20** turns (`game_state.my_paintball_cooldown`; **Paintball cooldown** in **SETTINGS**).
 
+<div class="action-demo" data-action-demo="shoot-paintball-edge" role="region" aria-label="Shoot paintball toward map edge">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Only player 1 (orange): a paintball east paints every hex along the line until the ray leaves the grid. Your own tile is not painted.</p>
+</div>
+
+<div class="action-demo" data-action-demo="shoot-paintball" role="region" aria-label="Shoot paintball blocked by other bot">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">With player 2 in the way: the ray travels east, painting each hex until it reaches the other bot — that hex is not painted.</p>
+</div>
+
 ```python
 from utils.actions import Actions
 from utils.hex_grid import HexDirection
@@ -82,6 +129,15 @@ class Bot:
 A bot can dash once every **7 turns** by default; check `game_state.my_dash_cooldown` (`0` = dash available). Optionally, a **Dash stun** in **SETTINGS** (default **0**) applies stun after a dash the same way as splat/paintball.
 
 If the full distance would leave the grid, you stop at the **last in-grid hex** along that direction (the edge), paint only that hex, and the dash cooldown still applies.
+
+<div class="action-demo" data-action-demo="dash" role="region" aria-label="Dash action example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Player 1 dashes four steps east; only the final hex is painted (not the path).</p>
+</div>
 
 ```python
 from utils.actions import Actions

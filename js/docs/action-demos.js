@@ -15,7 +15,7 @@ function tileMapForGrid(grid) {
 
 /**
  * @param {number} radius
- * @param {Array<{ pid: number, qr: [number, number], facing?: number, splatCooldown?: number, splatInterval?: number, dashInterval?: number, paintballInterval?: number, paintballCooldown?: number }>} botSpecs
+ * @param {Array<{ pid: number, qr: [number, number], facing?: number, stun?: number, splatCooldown?: number, dashCooldown?: number, paintballCooldown?: number }>} botSpecs
  */
 function makeDemoState(radius, botSpecs) {
   const grid = generateHexGrid(radius);
@@ -27,10 +27,9 @@ function makeDemoState(radius, botSpecs) {
       spec.pid,
       pos,
       spec.facing ?? HexDirection.E,
+      spec.stun ?? 0,
       spec.splatCooldown ?? 0,
-      spec.splatInterval ?? 0,
-      spec.dashInterval ?? 0,
-      spec.paintballInterval ?? 0,
+      spec.dashCooldown ?? 0,
       spec.paintballCooldown ?? 0,
     );
     bots.set(spec.pid, b);
@@ -56,7 +55,7 @@ const DEMOS = {
     build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0] }]),
     action: { type: 'shoot_paintball', direction: HexDirection.E },
   },
-  'shoot-paintball-blocked': {
+  'shoot-paintball': {
     build: () => makeDemoState(3, [
       { pid: 1, qr: [-1, 0] },
       { pid: 2, qr: [2, 0] },

@@ -39,7 +39,7 @@ export class BotRunner {
       this.ready = false;
       if (this.worker) this.worker.terminate();
 
-      this.worker = new Worker('js/sandbox/bot-worker.js');
+      this.worker = new Worker(new URL('./bot-worker.js', import.meta.url));
 
       this.worker.onmessage = (e) => {
         const { type } = e.data;
@@ -47,6 +47,11 @@ export class BotRunner {
         if (type === 'ready') {
           this.ready = true;
           resolve();
+          return;
+        }
+
+        if (type === 'init-error') {
+          reject(new Error(e.data.error || 'Worker failed to initialize'));
           return;
         }
 

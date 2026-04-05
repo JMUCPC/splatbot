@@ -8,9 +8,13 @@
  *
  * Messages OUT:
  *   { type: 'ready' }
+ *   { type: 'init-error', error: string }
  *   { type: 'result', action: { type, direction? }, elapsed }
  *   { type: 'error', error: string, elapsed? }
  */
+
+/** Must match `importScripts` below — tells Pyodide where to fetch .wasm and packages (worker `location` is this script, not the CDN). */
+const PYODIDE_INDEX_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
 
 let pyodide = null;
 
@@ -19,8 +23,8 @@ self.onmessage = async function (e) {
 
   if (type === 'init') {
     try {
-      importScripts('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js');
-      pyodide = await loadPyodide();
+      importScripts(`${PYODIDE_INDEX_URL}pyodide.js`);
+      pyodide = await loadPyodide({ indexURL: PYODIDE_INDEX_URL });
 
       pyodide.FS.mkdirTree('/lib/utils');
       pyodide.FS.writeFile('/lib/utils/__init__.py', '');
@@ -90,7 +94,7 @@ _bot = Bot()
 
       self.postMessage({ type: 'ready' });
     } catch (err) {
-      self.postMessage({ type: 'error', error: String(err) });
+      self.postMessage({ type: 'init-error', error: String(err) });
     }
     return;
   }

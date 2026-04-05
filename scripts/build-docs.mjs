@@ -25,6 +25,7 @@ function pageShell({ title, bodyHtml, outFile }) {
   const cssHref = path.join(toRoot, 'css', 'docs.css').split(path.sep).join('/');
   const hljsHref = path.join(toRoot, 'css', 'docs-hljs.css').split(path.sep).join('/');
   const copyJsHref = path.join(toRoot, 'js', 'docs-copy-code.js').split(path.sep).join('/');
+  const actionDemosHref = path.join(toRoot, 'js', 'docs', 'action-demos.js').split(path.sep).join('/');
   const gameHref = path.join(toRoot, 'index.html').split(path.sep).join('/');
   const docsIndexHref = path.join(toRoot, 'docs', 'index.html').split(path.sep).join('/');
   const iconHref = path.join(toRoot, 'images', 'splat.ico').split(path.sep).join('/');
@@ -53,6 +54,7 @@ function pageShell({ title, bodyHtml, outFile }) {
 ${bodyHtml}
   </main>
   <script src="${copyJsHref}" defer></script>
+  <script type="module" src="${actionDemosHref}"></script>
 </body>
 </html>
 `;
@@ -148,7 +150,8 @@ function mdLinkRewritePlugin(md) {
 let slugger = new GithubSlugger();
 
 const md = new MarkdownIt({
-  html: false,
+  /* Allow curated HTML in docs-src (e.g. action mini-grids). Sources are repo-controlled. */
+  html: true,
   linkify: true,
   typographer: true,
 })
