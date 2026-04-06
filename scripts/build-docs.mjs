@@ -19,7 +19,114 @@ function titleFromMarkdown(source, fallback) {
   return m ? m[1].trim() : fallback;
 }
 
-function pageShell({ title, bodyHtml, outFile }) {
+function formatNavLabel(segment) {
+  return segment
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function relHref(fromFile, toFile) {
+  let href = path.relative(path.dirname(fromFile), toFile).split(path.sep).join('/');
+  if (!href || href === '.') {
+    href = path.basename(toFile);
+  } else if (!href.startsWith('.')) {
+    href = `./${href}`;
+  }
+  return href;
+}
+
+function createNavNode(segment = '') {
+  return {
+    segment,
+    indexPage: null,
+    pages: [],
+    children: new Map(),
+  };
+}
+
+function buildDocsNav(pages) {
+  const root = createNavNode();
+
+  for (const page of pages) {
+    const base = page.rel.replace(/\.md$/i, '');
+    const segments = base.split('/').filter(Boolean);
+    if (segments.length === 0) {
+      root.indexPage = page;
+      continue;
+    }
+
+    const isIndex = segments[segments.length - 1] === 'index';
+    const dirSegments = isIndex ? segments.slice(0, -1) : segments.slice(0, -1);
+    let node = root;
+    for (const seg of dirSegments) {
+      if (!node.children.has(seg)) {
+        node.children.set(seg, createNavNode(seg));
+      }
+      node = node.children.get(seg);
+    }
+
+    if (isIndex) {
+      node.indexPage = page;
+    } else {
+      node.pages.push(page);
+    }
+  }
+
+  return root;
+}
+
+function renderDocsSidebar(navTree, currentRel, outFile) {
+  const sectionItems = [];
+
+  if (navTree.indexPage) {
+    const isActive = navTree.indexPage.rel === currentRel;
+    const activeClass = isActive ? ' docs-sidebar-link--active' : '';
+    const ariaCurrent = isActive ? ' aria-current="page"' : '';
+    sectionItems.push(
+      `<li class="docs-sidebar-item"><a class="docs-sidebar-link${activeClass}" href="${relHref(outFile, navTree.indexPage.outFile)}"${ariaCurrent}>${escapeHtml(navTree.indexPage.title)}</a></li>`
+    );
+  }
+
+  const renderNode = (node) => {
+    const parts = [];
+    const sortedPages = [...node.pages].sort((a, b) => a.title.localeCompare(b.title));
+    for (const page of sortedPages) {
+      const isActive = page.rel === currentRel;
+      const activeClass = isActive ? ' docs-sidebar-link--active' : '';
+      const ariaCurrent = isActive ? ' aria-current="page"' : '';
+      parts.push(
+        `<li class="docs-sidebar-item"><a class="docs-sidebar-link${activeClass}" href="${relHref(outFile, page.outFile)}"${ariaCurrent}>${escapeHtml(page.title)}</a></li>`
+      );
+    }
+
+    const sortedChildren = [...node.children.entries()].sort(([a], [b]) => a.localeCompare(b));
+    for (const [segment, child] of sortedChildren) {
+      const sectionLabel = child.indexPage ? child.indexPage.title : formatNavLabel(segment);
+      const sectionHeader = child.indexPage
+        ? `<a class="docs-sidebar-section-link" href="${relHref(outFile, child.indexPage.outFile)}">${escapeHtml(sectionLabel)}</a>`
+        : `<span class="docs-sidebar-section-link">${escapeHtml(sectionLabel)}</span>`;
+      const childItems = renderNode(child);
+      parts.push(
+        `<li class="docs-sidebar-section"><div class="docs-sidebar-section-head">${sectionHeader}</div>${childItems ? `<ul class="docs-sidebar-list docs-sidebar-list--nested">${childItems}</ul>` : ''}</li>`
+      );
+    }
+
+    return parts.join('\n');
+  };
+
+  sectionItems.push(renderNode(navTree));
+
+  return `<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        ${sectionItems.filter(Boolean).join('\n')}
+      </ul>
+    </div>
+  </aside>`;
+}
+
+function pageShell({ title, bodyHtml, outFile, sidebarHtml }) {
   const outDir = path.dirname(outFile);
   const toRoot = path.relative(outDir, ROOT) || '.';
   const cssHref = path.join(toRoot, 'css', 'docs.css').split(path.sep).join('/');
@@ -50,9 +157,12 @@ function pageShell({ title, bodyHtml, outFile }) {
       <a class="docs-crumb" href="${docsIndexHref}">Docs</a>
     </nav>
   </header>
-  <main class="docs-main markdown-body">
+  <div class="docs-layout">
+${sidebarHtml}
+    <main class="docs-main markdown-body">
 ${bodyHtml}
-  </main>
+    </main>
+  </div>
   <script src="${copyJsHref}" defer></script>
   <script type="module" src="${actionDemosHref}"></script>
 </body>
@@ -204,15 +314,29 @@ async function buildOnce() {
   await fs.mkdir(SRC, { recursive: true });
   await cleanGeneratedHtml();
 
+  const allFiles = [];
   for await (const absMd of iterMarkdownFiles(SRC)) {
+    allFiles.push(absMd);
+  }
+  allFiles.sort((a, b) => a.localeCompare(b));
+
+  const pages = [];
+  for (const absMd of allFiles) {
     const rel = path.relative(SRC, absMd).split(path.sep).join('/');
     const raw = await fs.readFile(absMd, 'utf8');
     const title = titleFromMarkdown(raw, rel.replace(/\.md$/i, ''));
-    const bodyHtml = renderMarkdown(raw, absMd);
     const outFile = outPathForSource(rel);
-    await fs.mkdir(path.dirname(outFile), { recursive: true });
-    const html = pageShell({ title, bodyHtml, outFile });
-    await fs.writeFile(outFile, html, 'utf8');
+    pages.push({ absMd, rel, raw, title, outFile });
+  }
+
+  const navTree = buildDocsNav(pages);
+
+  for (const page of pages) {
+    const bodyHtml = renderMarkdown(page.raw, page.absMd);
+    const sidebarHtml = renderDocsSidebar(navTree, page.rel, page.outFile);
+    await fs.mkdir(path.dirname(page.outFile), { recursive: true });
+    const html = pageShell({ title: page.title, bodyHtml, outFile: page.outFile, sidebarHtml });
+    await fs.writeFile(page.outFile, html, 'utf8');
   }
 
   console.log('docs: built HTML under docs/ from docs-src');
