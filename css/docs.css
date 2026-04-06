@@ -220,11 +220,25 @@
 
 .docs-code-toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+  gap: 0.8rem;
   padding: 0.4rem 0.55rem;
   background: #0e1525;
   border-bottom: 1px solid #1a2a40;
+}
+
+.docs-code-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9aacbf;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 
 .docs-copy-btn {
@@ -242,7 +256,21 @@
   transition: border-color 0.15s, color 0.15s;
 }
 
-.docs-copy-btn:hover {
+.docs-code-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+}
+
+.docs-code-toolbar .docs-copy-btn,
+.docs-code-toolbar .docs-try-btn {
+  flex: 0 0 auto;
+}
+
+.docs-copy-btn:hover,
+.docs-try-btn:hover {
   border-color: #3a5070;
   color: #c0d0e0;
 }
@@ -250,6 +278,21 @@
 .docs-copy-btn--done {
   border-color: #2a6048;
   color: #7dccb0;
+}
+
+.docs-try-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aacbf;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 4px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 .markdown-body pre code {

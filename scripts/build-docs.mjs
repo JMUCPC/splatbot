@@ -257,6 +257,43 @@ function mdLinkRewritePlugin(md) {
   });
 }
 
+function parseFenceInfo(infoRaw) {
+  const info = (infoRaw || '').trim();
+  if (!info) {
+    return { lang: '', attrs: {} };
+  }
+
+  const firstSpace = info.search(/\s/);
+  if (firstSpace < 0) {
+    return { lang: info, attrs: {} };
+  }
+
+  const lang = info.slice(0, firstSpace).trim();
+  const rest = info.slice(firstSpace).trim();
+  const attrs = {};
+  const attrRe = /([A-Za-z_][\w-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+  let m;
+  while ((m = attrRe.exec(rest))) {
+    attrs[m[1]] = m[2] ?? m[3] ?? '';
+  }
+  return { lang, attrs };
+}
+
+function codeFenceMetaPlugin(md) {
+  md.core.ruler.after('block', 'docs-code-fence-meta', (state) => {
+    for (const token of state.tokens) {
+      if (token.type !== 'fence') continue;
+      const { lang, attrs } = parseFenceInfo(token.info);
+      if (lang) {
+        token.attrSet('data-docs-code-lang', lang);
+      }
+      if (attrs.title) {
+        token.attrSet('data-docs-code-title', attrs.title);
+      }
+    }
+  });
+}
+
 let slugger = new GithubSlugger();
 
 const md = new MarkdownIt({
@@ -270,7 +307,8 @@ const md = new MarkdownIt({
     slugify: (s) => slugger.slug(s),
     permalink: false,
   })
-  .use(mdLinkRewritePlugin);
+  .use(mdLinkRewritePlugin)
+  .use(codeFenceMetaPlugin);
 
 function renderMarkdown(raw, absMd) {
   renderAbsMd = absMd;

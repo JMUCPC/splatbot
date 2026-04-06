@@ -18,7 +18,22 @@
       <a class="docs-crumb" href="../../docs/index.html">Docs</a>
     </nav>
   </header>
-  <main class="docs-main markdown-body">
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging your bot</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./index.html">Glossary</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing bots</a></div></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
 <h1 id="glossary" tabindex="-1">Glossary</h1>
 <p>Short definitions for terms used in these docs. First mention on other pages may use a hover hint (<code>&lt;abbr&gt;</code>) or link here for detail.</p>
 <h2 id="action" tabindex="-1">Action</h2>
@@ -53,7 +68,8 @@
 <p>A background thread where your Python runs so the page stays responsive. Your <code>print</code> output may show under the worker in the browser’s developer tools. See <a href="../debugging/#print-and-the-browser-console">Debugging</a>.</p>
 <p><a href="../">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>
 
-  </main>
+    </main>
+  </div>
   <script src="../../js/docs-copy-code.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
 </body>

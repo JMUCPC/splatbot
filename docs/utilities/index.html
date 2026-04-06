@@ -18,7 +18,22 @@
       <a class="docs-crumb" href="../../docs/index.html">Docs</a>
     </nav>
   </header>
-  <main class="docs-main markdown-body">
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging your bot</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../glossary/index.html">Glossary</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing bots</a></div></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
 <h1 id="utilities" tabindex="-1">Utilities</h1>
 <p>Bots run in a small Python sandbox. You may <strong><code>import</code></strong> from the <strong><code>utils</code></strong> package only (plus normal Python builtins). In practice you almost always use:</p>
 <ul>
@@ -51,7 +66,7 @@
 </tbody>
 </table>
 <p>Pass a direction to <code>Actions.move</code>, <code>Actions.dash</code>, or <code>Actions.shoot_paintball</code> (or use integers <code>0</code>–<code>5</code>; names are clearer).</p>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 east = HexDirection.E
 north_east = HexDirection.NE
@@ -75,7 +90,8 @@ south_east = HexDirection.SE
 <p>For everything your bot receives each turn, see <a href="../writing-bots/">Writing bots</a>.</p>
 <p><a href="../index.html">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>
 
-  </main>
+    </main>
+  </div>
   <script src="../../js/docs-copy-code.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
 </body>

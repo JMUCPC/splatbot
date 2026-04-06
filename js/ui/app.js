@@ -171,9 +171,63 @@ function openEventLogPopout() {
 /** Heuristic: bot script should define class Bot with decide(self, ...) for Pyodide. */
 const BOT_CLASS_RE = /\bclass\s+Bot\b/;
 const BOT_INSTANCE_DECIDE_RE = /\bdef\s+decide\s*\(\s*self\b/;
+const DOCS_IMPORT_KEY = 'splatbot_import_bot_p1_v1';
+const DOCS_IMPORT_FLAG = 'importBotP1';
 
 function looksLikeUploadableBot(source) {
   return BOT_CLASS_RE.test(source) && BOT_INSTANCE_DECIDE_RE.test(source);
+}
+
+function hasDocsImportFlag() {
+  const params = new URLSearchParams(window.location.search || '');
+  return params.get(DOCS_IMPORT_FLAG) === '1';
+}
+
+function clearDocsImportFlagFromUrl() {
+  if (!hasDocsImportFlag()) return;
+  const url = new URL(window.location.href);
+  url.searchParams.delete(DOCS_IMPORT_FLAG);
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  window.history.replaceState(null, '', next);
+}
+
+async function consumeDocsBotImportForPlayerOne() {
+  const shouldImport = hasDocsImportFlag();
+  if (!shouldImport) return;
+
+  let raw = null;
+  try {
+    raw = localStorage.getItem(DOCS_IMPORT_KEY);
+  } catch {
+    clearDocsImportFlagFromUrl();
+    return;
+  }
+
+  if (!raw) {
+    clearDocsImportFlagFromUrl();
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(raw);
+    const source = typeof payload?.source === 'string' ? payload.source : '';
+    if (!looksLikeUploadableBot(source)) {
+      logEvent('Docs bot import ignored: source must define class Bot with decide(self, game_state): ...');
+      return;
+    }
+    botSourceCache.set('upload:1', source);
+    await applyBotForPlayer(1, 'upload:1', { isInitialLoad: false });
+    logEvent('P1 loaded bot from docs example.');
+  } catch (err) {
+    logEvent(`Docs bot import failed: ${err.message || err}`);
+  } finally {
+    try {
+      localStorage.removeItem(DOCS_IMPORT_KEY);
+    } catch {
+      // Ignore storage cleanup failures.
+    }
+    clearDocsImportFlagFromUrl();
+  }
 }
 
 function rebuildCatalogMaps() {
@@ -419,6 +473,8 @@ export async function preloadWorkers() {
       applyBotForPlayer(2, defaultId, { isInitialLoad: true }),
     ]);
   }
+
+  await consumeDocsBotImportForPlayerOne();
 
   const noBots = botCatalog.length === 0;
   if (els.botSelect1) els.botSelect1.disabled = noBots;

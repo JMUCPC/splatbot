@@ -1,6 +1,6 @@
 import random
 from utils.actions import Actions
-from utils.hex_grid import HexDirection
+from utils.hex_grid import *
 
 
 class Bot:

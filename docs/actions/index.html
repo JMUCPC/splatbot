@@ -18,7 +18,22 @@
       <a class="docs-crumb" href="../../docs/index.html">Docs</a>
     </nav>
   </header>
-  <main class="docs-main markdown-body">
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging your bot</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../glossary/index.html">Glossary</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing bots</a></div></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
 <h1 id="actions" tabindex="-1">Actions</h1>
 <p>Each time your bot’s <code>decide</code> runs, it must return <strong>exactly one</strong> action built with the <strong><code>Actions</code></strong> helpers below. Think of it as picking a single move from a small menu: walk, stand still, splat, dash, or fire a paintball.</p>
 <ul>
@@ -37,7 +52,7 @@
 </div>
 <p class="action-demo-caption">Skip does not move or paint — the board stays the same.</p>
 </div>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
@@ -55,7 +70,7 @@
 </div>
 <p class="action-demo-caption">Player 1 moves one hex east (<code>HexDirection.E</code>) and paints the landing tile.</p>
 </div>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
@@ -79,7 +94,7 @@
 </div>
 <p class="action-demo-caption">All in-grid neighbors of the bot are painted; the bot’s own tile is not.</p>
 </div>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
@@ -110,7 +125,7 @@
 </div>
 <p class="action-demo-caption">With player 2 in the way: the ray travels east, painting each hex until it reaches the other bot — that hex is not painted.</p>
 </div>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
@@ -134,7 +149,7 @@
 </div>
 <p class="action-demo-caption">Player 1 dashes four steps east; only the final hex is painted (not the path).</p>
 </div>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
@@ -147,7 +162,8 @@
         <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
 </code></pre>
 
-  </main>
+    </main>
+  </div>
   <script src="../../js/docs-copy-code.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
 </body>

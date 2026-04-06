@@ -1,20 +1,27 @@
 # Splatbot documentation
 
-Welcome. These pages help you **write Python bots** for Splatbot: a two-player game on a hex map where bots compete to paint tiles.
+## What is Splatbot?
 
-You paste your code into the game, press **START**, and your bot’s `decide` function runs once per turn. You do **not** need to know how the website is built — only a little Python.
+Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame  by creating, well... **splatbots!** The game is divided up into a series of turns, also referred to as *ticks*. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform this tick. Then, the game will apply those actions to the bots. 
 
-## Suggested order
+Example of a tick:
+- The game prompts both splatbots to make a decision about what action to perform.
+- Splatbot 1 decides it wants to move west.
+- Simultaneously, splatbot 2 decides it wants to perform a "splat".
+- The game applies both of these actions at the same time.
+- The game continues on to the next tick.
+
+Example bots are provided, but it is easy to upload custom bots as well! Simply go to the home page, select the "Upload File" under whichever side the bot should play for. Then press the start button to begin the match!
+
+## Pages
 
 1. **[Writing bots](writing-bots/)** — What a bot is, a minimal template, and how to read `game_state`.
 2. **[Actions](actions/)** — What each move does (move, skip, splat, dash, paintball), with small interactive examples.
-3. **[Utilities](utilities/)** — Directions (`HexDirection`) and the hex helpers you can import.
+3. **[Utilities](utilities/)** — Provided functions to ease development of Splatbots.
 4. **[Examples](examples/)** — Longer example bots with step-by-step explanations.
-5. **[Debugging](debugging/)** — `print` output, the **Step** button, and the event log.
+5. **[Debugging](debugging/)** — `print` output, the step button, and the event log.
 6. **[Glossary](glossary/)** — Short definitions of terms used across these docs.
 
 Stuck on vocabulary? Open the [glossary](glossary/) or jump from linked terms on other pages.
-
-Repository contributors: to **edit or build** this documentation site from source, see **`README.md`** at the root of the repo (Markdown under `docs-src/`, `npm run docs:build`, commit generated HTML).
 
 [← Back to the game](../index.html)

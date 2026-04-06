@@ -18,12 +18,27 @@
       <a class="docs-crumb" href="../../docs/index.html">Docs</a>
     </nav>
   </header>
-  <main class="docs-main markdown-body">
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging your bot</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../glossary/index.html">Glossary</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing bots</a></div></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
 <h1 id="example-bots" tabindex="-1">Example bots</h1>
 <p>Full scripts below, then a short <strong>how it works</strong> list. Assumes you have read <a href="../writing-bots/">Writing bots</a> and skimmed <a href="../actions/">Actions</a>.</p>
 <h2 id="ping-pong-east--west" tabindex="-1">Ping-pong (east / west)</h2>
 <p>Same idea as on the writing-bots page, with a bit more narration.</p>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection, hex_neighbor
 
 
@@ -51,7 +66,7 @@
 <p><strong>Takeaways:</strong> <code>hex_neighbor</code>, <code>game_state.grid</code>, and stored state on <code>self</code>.</p>
 <h2 id="splat-when-ready-otherwise-move" tabindex="-1">Splat when ready, otherwise move</h2>
 <p>Uses <a href="../glossary/index.html#stun">stun</a> and <a href="../glossary/index.html#cooldown">cooldown</a> checks from <code>game_state</code> before calling special actions.</p>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
@@ -72,7 +87,7 @@
 <p><strong>Takeaways:</strong> Order matters — check stun before spending cooldowns. Tune the <code>else</code> branch for your strategy.</p>
 <h2 id="greedy-step-onto-an-unpainted-tile" tabindex="-1">Greedy: step onto an unpainted tile</h2>
 <p>Prefer any neighbor that is still neutral (<code>tile_pids</code> is <code>0</code>); otherwise fall back to moving east.</p>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection, hex_neighbor
 
 
@@ -98,7 +113,8 @@
 <hr>
 <p><a href="../writing-bots/">Writing bots</a> · <a href="../glossary/">Glossary</a> · <a href="../index.html">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>
 
-  </main>
+    </main>
+  </div>
   <script src="../../js/docs-copy-code.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
 </body>

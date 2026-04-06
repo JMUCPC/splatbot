@@ -33,6 +33,13 @@ Browse locally at `/docs/` (for example `http://localhost:3000/docs/`).
 
 - Change **Markdown only** under `docs-src/` (do not hand-edit generated `docs/**/*.html` or those edits will be overwritten on the next build).
 - The [Actions](docs/actions/) page includes **interactive hex demos** embedded as HTML in [`docs-src/actions/index.md`](docs-src/actions/index.md). To change demo **behavior**, edit [`js/docs/action-demos.js`](js/docs/action-demos.js), then run `npm run docs:build` again.
+- Code fences can include a toolbar label using a `title` attribute in the fence info string:
+  - ````md
+    ```python title="Minimal bot"
+    # your code...
+    ```
+    ````
+  - Keep the language token first (`python`, `js`, etc.) so syntax highlighting still works.
 
 ## Writing Bots
 
