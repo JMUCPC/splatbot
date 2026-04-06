@@ -20,16 +20,19 @@
   </header>
   <main class="docs-main markdown-body">
 <h1 id="splatbot-documentation" tabindex="-1">Splatbot documentation</h1>
-<p>Splatbot is a two-player hex-grid game that runs in the browser. Bots are written in <strong>Python</strong> and run in Web Workers via <strong>Pyodide</strong>. This site explains how to author bots and how the project is structured.</p>
-<h2 id="in-this-site" tabindex="-1">In this site</h2>
-<ul>
-<li><strong><a href="writing-bots/">Writing bots</a></strong> — <code>Bot.decide</code>, game state, <code>move</code> / <code>skip</code> / <code>splat</code>, and examples.</li>
-<li><strong><a href="actions/">Actions</a></strong> — What each action does.</li>
-<li><strong><a href="utilities/">Utilities</a></strong> — <code>HexDirection</code> and other helpers exposed to bots.</li>
-</ul>
-<h2 id="editing-these-pages" tabindex="-1">Editing these pages</h2>
-<p>Sources live in <code>docs-src/</code> as Markdown. After you change them, run <strong><code>npm run docs:build</code></strong> and commit <strong>both</strong> the <code>.md</code> sources and the generated HTML under <code>docs/</code> (static hosting does not run Node).</p>
-<p>The <a href="actions/">Actions</a> page embeds small interactive hex demos as HTML inside <code>docs-src/actions/index.md</code>. Edit that Markdown (or <code>js/docs/action-demos.js</code> for behavior), then rebuild — do not hand-edit the generated <code>docs/actions/index.html</code> or your changes will be lost on the next build.</p>
+<p>Welcome. These pages help you <strong>write Python bots</strong> for Splatbot: a two-player game on a hex map where bots compete to paint tiles.</p>
+<p>You paste your code into the game, press <strong>START</strong>, and your bot’s <code>decide</code> function runs once per turn. You do <strong>not</strong> need to know how the website is built — only a little Python.</p>
+<h2 id="suggested-order" tabindex="-1">Suggested order</h2>
+<ol>
+<li><strong><a href="writing-bots/">Writing bots</a></strong> — What a bot is, a minimal template, and how to read <code>game_state</code>.</li>
+<li><strong><a href="actions/">Actions</a></strong> — What each move does (move, skip, splat, dash, paintball), with small interactive examples.</li>
+<li><strong><a href="utilities/">Utilities</a></strong> — Directions (<code>HexDirection</code>) and the hex helpers you can import.</li>
+<li><strong><a href="examples/">Examples</a></strong> — Longer example bots with step-by-step explanations.</li>
+<li><strong><a href="debugging/">Debugging</a></strong> — <code>print</code> output, the <strong>Step</strong> button, and the event log.</li>
+<li><strong><a href="glossary/">Glossary</a></strong> — Short definitions of terms used across these docs.</li>
+</ol>
+<p>Stuck on vocabulary? Open the <a href="glossary/">glossary</a> or jump from linked terms on other pages.</p>
+<p>Repository contributors: to <strong>edit or build</strong> this documentation site from source, see <strong><code>README.md</code></strong> at the root of the repo (Markdown under <code>docs-src/</code>, <code>npm run docs:build</code>, commit generated HTML).</p>
 <p><a href="../index.html">← Back to the game</a></p>
 
   </main>

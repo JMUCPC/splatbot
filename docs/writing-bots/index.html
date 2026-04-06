@@ -20,51 +20,103 @@
   </header>
   <main class="docs-main markdown-body">
 <h1 id="writing-bots" tabindex="-1">Writing bots</h1>
-<p>Bots are written as Python scripts that define a <code>class Bot</code> with a <code>decide(self, game_state) -&gt; Action</code> method that returns an <code>Action</code> object. The <code>Action</code> object is used to define what actions the bot will take on its turn. The <code>game_state</code> object is used to get information about the current state of the game, and to make decisions about what actions to take.</p>
-<h2 id="template" tabindex="-1">Template</h2>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions <span class="hljs-comment"># Used for defining actions</span>
-<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection <span class="hljs-comment"># Useful utility functions for working with a hexagonal grid</span>
+<p>A <strong>bot</strong> is a Python script you paste into Splatbot. The site loads it once, then calls a function you provide <strong>once per <a href="../glossary/index.html#tick">tick</a></strong> (see <a href="../glossary/index.html#turn">turn vs tick</a> in the <a href="../glossary/index.html">glossary</a>) so your code can choose what to do next.</p>
+<p>You do <strong>not</strong> control the game loop directly. Each time, you <strong>read</strong> the current <abbr title="Read-only snapshot: board, positions, timers"><code>game_state</code></abbr> (see <a href="#game-state-quick-reference">below</a>) and <strong>return</strong> exactly one <a href="../glossary/index.html#action">action</a> — for example “move east” or “skip this turn.”</p>
+<p>If you know basic Python (variables, <code>if</code>, functions) you can start. The <code>class Bot</code> block below is a <strong>pattern to copy</strong>; treat <code>decide</code> as “the function that runs every turn.” Optional: learn why <code>self</code> appears under <a href="#remembering-things-between-turns">Remembering things between turns</a>.</p>
+<p>Stuck? Try <a href="../debugging/index.html">Debugging</a> (<code>print</code>, <strong>Step</strong>, event log) and the <a href="../glossary/index.html">glossary</a>.</p>
+<h2 id="smallest-working-bot" tabindex="-1">Smallest working bot</h2>
+<p>This bot always tries to move <strong>east</strong> one hex (and paint the tile it lands on). Copy it as a starting point.</p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
-    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>) -&gt; Action:
-        <span class="hljs-keyword">return</span> <span class="hljs-comment"># some kind of action, e.g. Actions.move(HexDirection.E)</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-comment"># game_state describes the board; we return one action.</span>
+        <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
 </code></pre>
-<h2 id="actions" tabindex="-1">Actions</h2>
-<p>Actions are used to define what a bot will do on its turn. An actions is chosen by the return value of the <code>decide</code> method (for example, if <code>decide</code> returns <code>Actions.move(HexDirection.E)</code>, the bot will move east). Special moves come with a cooldown - see <a href="../actions/index.html">Actions</a> for more details.</p>
+<ul>
+<li><strong><code>class Bot</code>:</strong> Required name. The site looks for this class.</li>
+<li><strong><code>decide(self, game_state):</code></strong> Required method. <code>game_state</code> is a read-only snapshot; see the <a href="#game-state-quick-reference">table below</a>.</li>
+<li><strong><code>return</code>:</strong> Must be an action from <code>Actions</code> (see <a href="../actions/index.html">Actions</a>).</li>
+</ul>
+<p>Wrong return type or raising an error usually shows up in the <a href="../debugging/index.html#event-log">event log</a> or console — see <a href="../debugging/index.html">Debugging</a>.</p>
+<h2 id="one-action-per-turn" tabindex="-1">One action per turn</h2>
+<p>Each call to <code>decide</code> must return <strong>one</strong> of:</p>
 <table>
 <thead>
 <tr>
 <th>Action</th>
-<th>Description</th>
+<th>Plain English</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="../actions/index.html#move">move</a></td>
-<td>Step to an adjacent hex (and paint it).</td>
+<td>Step to a neighbor hex; paint that hex.</td>
 </tr>
 <tr>
 <td><a href="../actions/index.html#skip">skip</a></td>
-<td>Do nothing this turn.</td>
+<td>Do nothing.</td>
 </tr>
 <tr>
 <td><a href="../actions/index.html#splat">splat</a></td>
-<td>Paint all neighbors of your current tile.</td>
+<td>Paint neighbors (with <a href="../glossary/index.html#stun">stun</a> / <a href="../glossary/index.html#cooldown">cooldown</a> rules).</td>
 </tr>
 <tr>
 <td><a href="../actions/index.html#dash">dash</a></td>
-<td>Move multiple tiles in a given direction, and paint only the tile you end up on.</td>
+<td>Move several hexes in a line; paint only where you land.</td>
 </tr>
 <tr>
-<td><a href="../actions/index.html#shoot_paintball">shoot_paintball</a></td>
-<td>Shoot a paintball in a given direction, which will paint every tile it comes across.</td>
+<td><a href="../actions/index.html#shoot-paintball">shoot_paintball</a></td>
+<td>Paint a straight line without moving.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="game-state" tabindex="-1">Game state</h2>
-<p>The <code>game_state</code> object is passed to the <code>decide</code> method, and is used to get information about the current state of the game, and to make decisions about what actions to take. It is read-only - bots can only interact with the game based on their returned action.</p>
-<p>Useful fields on <code>game_state</code>:</p>
+<p>Details and interactive demos are on the <a href="../actions/index.html">Actions</a> page.</p>
+<h2 id="remembering-things-between-turns" tabindex="-1">Remembering things between turns</h2>
+<p>The site creates <strong>one</strong> <code>Bot</code> instance when your script loads. If you need to remember a value after <code>decide</code> returns (for example “which way was I going?”), store it on <strong><code>self</code></strong>.</p>
+<p>You can add <code>def __init__(self):</code> to set starting values. This is optional; many bots only need <code>decide</code>.</p>
+<p><strong>Tiny example — a turn counter:</strong></p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._n = <span class="hljs-number">0</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-variable language_">self</span>._n += <span class="hljs-number">1</span>
+        <span class="hljs-comment"># print(self._n)  # see Debugging: print goes to the browser console</span>
+        <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
+</code></pre>
+<h2 id="example-ping-pong-on-the-map" tabindex="-1">Example: ping-pong on the map</h2>
+<p>This bot moves east until the next east step would leave the <a href="../glossary/index.html#hex">grid</a>, then flips and moves west until it hits the other edge, and repeats — the “ping-pong” pattern.</p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection, hex_neighbor
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._going_east = <span class="hljs-literal">True</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        me = game_state.bots[game_state.my_pid]
+        d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._going_east <span class="hljs-keyword">else</span> HexDirection.W
+        nbr = hex_neighbor(me.position, d)
+        <span class="hljs-keyword">if</span> nbr <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
+            <span class="hljs-variable language_">self</span>._going_east = <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._going_east
+            d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._going_east <span class="hljs-keyword">else</span> HexDirection.W
+        <span class="hljs-keyword">return</span> Actions.move(d)
+</code></pre>
+<ul>
+<li><code>game_state.bots[game_state.my_pid]</code> is <a href="../glossary/index.html#botinfo">your bot’s info</a> (<code>position</code>, etc.).</li>
+<li><code>hex_neighbor(hex, direction)</code> is the hex you would step into; if it is not in <code>game_state.grid</code>, that move would leave the map, so we flip direction first.</li>
+</ul>
+<p>More walkthroughs (cooldowns, painting empty tiles) are on <a href="../examples/index.html">Examples</a>.</p>
+<h2 id="game-state-quick-reference" tabindex="-1">Game state quick reference</h2>
+<p><a href="../glossary/index.html#game_state"><code>game_state</code></a> is <strong>read-only</strong>. You interact with the match only by <strong>returning</strong> an action.</p>
 <table>
 <thead>
 <tr>
@@ -75,67 +127,48 @@
 <tbody>
 <tr>
 <td><code>my_pid</code></td>
-<td>This bot’s player id as an integer</td>
+<td>Your <a href="../glossary/index.html#player-id">player id</a> (<code>1</code> or <code>2</code>).</td>
 </tr>
 <tr>
 <td><code>my_stun</code></td>
-<td>Turns until actions are allowed (<code>0</code> = not stunned). <code>Actions.skip()</code> is still valid while stunned.</td>
+<td>Turns until you cannot move/dash/splat/shoot (<code>0</code> = not <a href="../glossary/index.html#stun">stunned</a>). <code>Actions.skip()</code> still works.</td>
 </tr>
 <tr>
 <td><code>my_splat_cooldown</code></td>
-<td>Turns until the splat action is allowed again (<code>0</code> = splat available)</td>
+<td>Turns until <a href="../actions/index.html#splat">splat</a> is allowed (<code>0</code> = available).</td>
 </tr>
 <tr>
 <td><code>my_dash_cooldown</code></td>
-<td>Turns until the dash action is allowed again (<code>0</code> = dash available)</td>
+<td>Turns until <a href="../actions/index.html#dash">dash</a> is allowed (<code>0</code> = available).</td>
 </tr>
 <tr>
 <td><code>my_paintball_cooldown</code></td>
-<td>Turns until the shoot_paintball action is allowed again (<code>0</code> = paintball available)</td>
+<td>Turns until <a href="../actions/index.html#shoot-paintball">paintball</a> is allowed (<code>0</code> = available).</td>
 </tr>
 <tr>
 <td><code>grid</code></td>
-<td>A set of all tiles in the map.</td>
+<td>All hexes on the map (<code>Hex</code> values).</td>
 </tr>
 <tr>
 <td><code>tile_pids</code></td>
-<td><code>dict</code> mapping tile → owner (<code>0</code> = unpainted)</td>
+<td>Who paints each hex: <code>0</code> = unpainted, <code>1</code> / <code>2</code> = players. See <a href="../glossary/index.html#tile-owner">tile owner</a>.</td>
 </tr>
 <tr>
 <td><code>bots</code></td>
-<td><code>dict</code> of <code>BotInfo</code> (<code>position</code>, <code>facing</code>, <code>stun</code>, <code>splat_cooldown</code>, <code>dash_cooldown</code>, <code>paintball_cooldown</code>)</td>
+<td>Per-player <a href="../glossary/index.html#botinfo">BotInfo</a> (<code>position</code>, <code>facing</code>, timers).</td>
 </tr>
 <tr>
 <td><code>turn</code></td>
-<td>Current turn</td>
+<td>Current <a href="../glossary/index.html#turn">turn</a> index.</td>
 </tr>
 <tr>
 <td><code>max_turns</code></td>
-<td>Number of turns in match</td>
+<td>Match length.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="persistence" tabindex="-1">Persistence</h2>
-<p><code>Bot</code> is constructed once when your script loads. Use <code>self</code> on the instance to remember anything you need between turns. For example, this bot will remember the direction it last moved in:</p>
-<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
-<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection, hex_neighbor
-
-
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
-    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
-        <span class="hljs-variable language_">self</span>._going_east = <span class="hljs-literal">True</span>
-
-    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-string">&quot;&quot;&quot; Go east until an edge is hit, then go west until an edge is hit again, then repeat.
-        AKA the infamous &#x27;ping-pong&#x27; strategy. &quot;&quot;&quot;</span>
-        me = game_state.bots[game_state.my_pid]
-        d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._going_east <span class="hljs-keyword">else</span> HexDirection.W
-        nbr = hex_neighbor(me.position, d)
-        <span class="hljs-keyword">if</span> nbr <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
-            <span class="hljs-variable language_">self</span>._going_east = <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._going_east
-            d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._going_east <span class="hljs-keyword">else</span> HexDirection.W
-        <span class="hljs-keyword">return</span> Actions.move(d)
-</code></pre>
+<p>Imports available in the sandbox: <strong><code>utils.hex_grid</code></strong> and <strong><code>utils.actions</code></strong> (see <a href="../utilities/index.html">Utilities</a>).</p>
+<p><a href="../index.html">← Docs home</a> · <a href="../examples/index.html">Examples →</a> · <a href="../debugging/index.html">Debugging →</a></p>
 
   </main>
   <script src="../../js/docs-copy-code.js" defer></script>

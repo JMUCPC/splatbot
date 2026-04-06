@@ -18,7 +18,7 @@ Python bot code client-side in Web Workers.
 
 ## Documentation site
 
-Authoring content lives under `docs-src/` as Markdown. Generated HTML is written under `docs/` (for example `docs/writing-bots/index.html`).
+The player-facing docs (how to write bots, actions, examples, debugging, glossary) live under **`docs-src/`** as Markdown. The static site under **`docs/`** is **generated** — for example `docs/writing-bots/index.html` comes from `docs-src/writing-bots.md`.
 
 ```bash
 npm install
@@ -28,6 +28,11 @@ npm run docs:build
 Commit **both** the `.md` sources and the generated `.html` so static hosting does not need Node. Use `npm run docs:watch` to rebuild when files change while editing.
 
 Browse locally at `/docs/` (for example `http://localhost:3000/docs/`).
+
+### Editing the docs (contributors)
+
+- Change **Markdown only** under `docs-src/` (do not hand-edit generated `docs/**/*.html` or those edits will be overwritten on the next build).
+- The [Actions](docs/actions/) page includes **interactive hex demos** embedded as HTML in [`docs-src/actions/index.md`](docs-src/actions/index.md). To change demo **behavior**, edit [`js/docs/action-demos.js`](js/docs/action-demos.js), then run `npm run docs:build` again.
 
 ## Writing Bots
 

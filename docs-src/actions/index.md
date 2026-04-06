@@ -1,6 +1,10 @@
 # Actions
 
-A bot performs **exactly one** action per turn. Your `Bot.decide` method must return a value from the **`Actions`** helpers below.
+Each time your bot’s `decide` runs, it must return **exactly one** action built with the **`Actions`** helpers below. Think of it as picking a single move from a small menu: walk, stand still, splat, dash, or fire a paintball.
+
+- **Cooldowns:** After splat, dash, or paintball, counters on `game_state` must tick down before you can repeat that same action (see [Writing bots](../writing-bots/) for field names).
+- **Stun:** After some moves you may be unable to act for several turns except `skip` — check `game_state.my_stun`.
+- **Details:** The [Writing bots](../writing-bots/) page summarizes; this page explains each action in full, with demos.
 
 Interactive examples below use the same rules as the main game (mini grid, player 1 in orange). **Play** applies the action once; **Reset** restores the starting position.
 

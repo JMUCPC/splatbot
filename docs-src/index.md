@@ -1,17 +1,20 @@
 # Splatbot documentation
 
-Splatbot is a two-player hex-grid game that runs in the browser. Bots are written in **Python** and run in Web Workers via **Pyodide**. This site explains how to author bots and how the project is structured.
+Welcome. These pages help you **write Python bots** for Splatbot: a two-player game on a hex map where bots compete to paint tiles.
 
-## In this site
+You paste your code into the game, press **START**, and your bot’s `decide` function runs once per turn. You do **not** need to know how the website is built — only a little Python.
 
-- **[Writing bots](writing-bots/)** — `Bot.decide`, game state, `move` / `skip` / `splat`, and examples.
-- **[Actions](actions/)** — What each action does.
-- **[Utilities](utilities/)** — `HexDirection` and other helpers exposed to bots.
+## Suggested order
 
-## Editing these pages
+1. **[Writing bots](writing-bots/)** — What a bot is, a minimal template, and how to read `game_state`.
+2. **[Actions](actions/)** — What each move does (move, skip, splat, dash, paintball), with small interactive examples.
+3. **[Utilities](utilities/)** — Directions (`HexDirection`) and the hex helpers you can import.
+4. **[Examples](examples/)** — Longer example bots with step-by-step explanations.
+5. **[Debugging](debugging/)** — `print` output, the **Step** button, and the event log.
+6. **[Glossary](glossary/)** — Short definitions of terms used across these docs.
 
-Sources live in `docs-src/` as Markdown. After you change them, run **`npm run docs:build`** and commit **both** the `.md` sources and the generated HTML under `docs/` (static hosting does not run Node).
+Stuck on vocabulary? Open the [glossary](glossary/) or jump from linked terms on other pages.
 
-The [Actions](actions/) page embeds small interactive hex demos as HTML inside `docs-src/actions/index.md`. Edit that Markdown (or `js/docs/action-demos.js` for behavior), then rebuild — do not hand-edit the generated `docs/actions/index.html` or your changes will be lost on the next build.
+Repository contributors: to **edit or build** this documentation site from source, see **`README.md`** at the root of the repo (Markdown under `docs-src/`, `npm run docs:build`, commit generated HTML).
 
 [← Back to the game](../index.html)

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Example bots · Splatbot</title>
+  <link rel="icon" href="../../images/splat.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/docs.css">
+  <link rel="stylesheet" href="../../css/docs-hljs.css">
+</head>
+<body class="docs-body">
+  <header class="docs-header">
+    <nav class="docs-nav">
+      <a class="docs-brand" href="../../index.html">Splatbot</a>
+      <span class="docs-sep">/</span>
+      <a class="docs-crumb" href="../../docs/index.html">Docs</a>
+    </nav>
+  </header>
+  <main class="docs-main markdown-body">
+<h1 id="example-bots" tabindex="-1">Example bots</h1>
+<p>Full scripts below, then a short <strong>how it works</strong> list. Assumes you have read <a href="../writing-bots/">Writing bots</a> and skimmed <a href="../actions/">Actions</a>.</p>
+<h2 id="ping-pong-east--west" tabindex="-1">Ping-pong (east / west)</h2>
+<p>Same idea as on the writing-bots page, with a bit more narration.</p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection, hex_neighbor
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._going_east = <span class="hljs-literal">True</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        me = game_state.bots[game_state.my_pid]
+        d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._going_east <span class="hljs-keyword">else</span> HexDirection.W
+        nbr = hex_neighbor(me.position, d)
+        <span class="hljs-keyword">if</span> nbr <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
+            <span class="hljs-variable language_">self</span>._going_east = <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._going_east
+            d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._going_east <span class="hljs-keyword">else</span> HexDirection.W
+        <span class="hljs-keyword">return</span> Actions.move(d)
+</code></pre>
+<p><strong>How it works</strong></p>
+<ol>
+<li>Remember a boolean <code>_going_east</code> on <code>self</code> so the choice survives after <code>decide</code> returns.</li>
+<li>Look up this bot’s position: <code>game_state.bots[game_state.my_pid].position</code>.</li>
+<li>Pick east or west from that boolean; compute the neighbor hex in that direction.</li>
+<li>If that neighbor is <strong>not</strong> on the map (<code>not in game_state.grid</code>), flip direction and recompute the move direction.</li>
+<li>Return <code>Actions.move(d)</code>.</li>
+</ol>
+<p><strong>Takeaways:</strong> <code>hex_neighbor</code>, <code>game_state.grid</code>, and stored state on <code>self</code>.</p>
+<h2 id="splat-when-ready-otherwise-move" tabindex="-1">Splat when ready, otherwise move</h2>
+<p>Uses <a href="../glossary/index.html#stun">stun</a> and <a href="../glossary/index.html#cooldown">cooldown</a> checks from <code>game_state</code> before calling special actions.</p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-keyword">if</span> game_state.my_stun &gt; <span class="hljs-number">0</span>:
+            <span class="hljs-keyword">return</span> Actions.skip()
+        <span class="hljs-keyword">if</span> game_state.my_splat_cooldown == <span class="hljs-number">0</span>:
+            <span class="hljs-keyword">return</span> Actions.splat()
+        <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
+</code></pre>
+<p><strong>How it works</strong></p>
+<ol>
+<li>While stunned, the only safe choice is usually <code>skip</code> (you cannot splat or move depending on rules; here we skip whenever <code>my_stun &gt; 0</code>).</li>
+<li>When splat is off cooldown, splat to paint neighbors.</li>
+<li>Otherwise default to moving east.</li>
+</ol>
+<p><strong>Takeaways:</strong> Order matters — check stun before spending cooldowns. Tune the <code>else</code> branch for your strategy.</p>
+<h2 id="greedy-step-onto-an-unpainted-tile" tabindex="-1">Greedy: step onto an unpainted tile</h2>
+<p>Prefer any neighbor that is still neutral (<code>tile_pids</code> is <code>0</code>); otherwise fall back to moving east.</p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection, hex_neighbor
+
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        me = game_state.bots[game_state.my_pid]
+        <span class="hljs-keyword">for</span> d <span class="hljs-keyword">in</span> HexDirection:
+            nbr = hex_neighbor(me.position, d)
+            <span class="hljs-keyword">if</span> nbr <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
+                <span class="hljs-keyword">continue</span>
+            <span class="hljs-keyword">if</span> game_state.tile_pids.get(nbr, <span class="hljs-number">0</span>) == <span class="hljs-number">0</span>:
+                <span class="hljs-keyword">return</span> Actions.move(d)
+        <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
+</code></pre>
+<p><strong>How it works</strong></p>
+<ol>
+<li>Loop the six directions in <code>HexDirection</code> order.</li>
+<li>Skip neighbors that are off the map.</li>
+<li>If a neighbor is unpainted (<code>0</code>), move there immediately.</li>
+<li>If none are unpainted, keep moving east so the bot still does something.</li>
+</ol>
+<p><strong>Takeaways:</strong> <code>tile_pids</code>, iterating directions, and a simple priority rule.</p>
+<hr>
+<p><a href="../writing-bots/">Writing bots</a> · <a href="../glossary/">Glossary</a> · <a href="../index.html">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>
+
+  </main>
+  <script src="../../js/docs-copy-code.js" defer></script>
+  <script type="module" src="../../js/docs/action-demos.js"></script>
+</body>
+</html>

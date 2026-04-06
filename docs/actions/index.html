@@ -20,7 +20,12 @@
   </header>
   <main class="docs-main markdown-body">
 <h1 id="actions" tabindex="-1">Actions</h1>
-<p>A bot performs <strong>exactly one</strong> action per turn. Your <code>Bot.decide</code> method must return a value from the <strong><code>Actions</code></strong> helpers below.</p>
+<p>Each time your bot’s <code>decide</code> runs, it must return <strong>exactly one</strong> action built with the <strong><code>Actions</code></strong> helpers below. Think of it as picking a single move from a small menu: walk, stand still, splat, dash, or fire a paintball.</p>
+<ul>
+<li><strong>Cooldowns:</strong> After splat, dash, or paintball, counters on <code>game_state</code> must tick down before you can repeat that same action (see <a href="../writing-bots/">Writing bots</a> for field names).</li>
+<li><strong>Stun:</strong> After some moves you may be unable to act for several turns except <code>skip</code> — check <code>game_state.my_stun</code>.</li>
+<li><strong>Details:</strong> The <a href="../writing-bots/">Writing bots</a> page summarizes; this page explains each action in full, with demos.</li>
+</ul>
 <p>Interactive examples below use the same rules as the main game (mini grid, player 1 in orange). <strong>Play</strong> applies the action once; <strong>Reset</strong> restores the starting position.</p>
 <h2 id="skip" tabindex="-1">Skip</h2>
 <p>The skip action tells a splatbot to skip a turn.</p>

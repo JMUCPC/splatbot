@@ -20,9 +20,37 @@
   </header>
   <main class="docs-main markdown-body">
 <h1 id="utilities" tabindex="-1">Utilities</h1>
-<p>Python bots can import <strong><code>utils</code></strong> modules inside the Pyodide sandbox. The usual pair is <strong><code>utils.hex_grid</code></strong> (coordinates and directions) and <strong><code>utils.actions</code></strong> (see the <a href="../actions/">Actions</a> page).</p>
+<p>Bots run in a small Python sandbox. You may <strong><code>import</code></strong> from the <strong><code>utils</code></strong> package only (plus normal Python builtins). In practice you almost always use:</p>
+<ul>
+<li><strong><code>utils.hex_grid</code></strong> — hex coordinates, directions, helpers like <code>hex_neighbor</code>.</li>
+<li><strong><code>utils.actions</code></strong> — <code>Actions.move(...)</code>, etc. (see <a href="../actions/">Actions</a>).</li>
+</ul>
+<p>If you open this project’s source code, <code>python/utils/</code> is the same logic copied into the browser for Pyodide; you do not need the repo to write a bot in the game.</p>
 <h2 id="hexdirection" tabindex="-1">HexDirection</h2>
-<p>The map uses a <strong>pointy-top</strong> axial hex grid. There are six neighbor directions: <strong><code>E</code></strong>, <strong><code>NE</code></strong>, <strong><code>NW</code></strong>, <strong><code>W</code></strong>, <strong><code>SW</code></strong>, <strong><code>SE</code></strong>. Pass them to <code>Actions.move</code> (or an equivalent integer <code>0</code>–<code>5</code>).</p>
+<p>The map is a <strong>pointy-top</strong> hex grid using <strong>axial</strong> coordinates (<code>q</code>, <code>r</code>) — see <a href="../glossary/index.html#hex"><code>Hex</code></a> in the <a href="../glossary/">glossary</a>. There are six neighbor directions, named like compass points on the hex:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Often used as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>E</code></td>
+<td>screen right</td>
+</tr>
+<tr>
+<td><code>W</code></td>
+<td>screen left</td>
+</tr>
+<tr>
+<td><code>NE</code>, <code>NW</code>, <code>SE</code>, <code>SW</code></td>
+<td>the four diagonals on the hex lattice</td>
+</tr>
+</tbody>
+</table>
+<p>Pass a direction to <code>Actions.move</code>, <code>Actions.dash</code>, or <code>Actions.shoot_paintball</code> (or use integers <code>0</code>–<code>5</code>; names are clearer).</p>
 <pre><code class="hljs language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 east = HexDirection.E
@@ -32,7 +60,20 @@ west = HexDirection.W
 south_west = HexDirection.SW
 south_east = HexDirection.SE
 </code></pre>
-<p>For the full snapshot your bot receives each turn, see <a href="../writing-bots/">Writing bots</a>.</p>
+<p>Common helpers (import from <code>utils.hex_grid</code>):</p>
+<ul>
+<li>
+<p><strong><code>hex_neighbor(hex, direction)</code></strong> — one step from <code>hex</code> in direction <code>0</code>–<code>5</code> or <code>HexDirection</code>.</p>
+</li>
+<li>
+<p><strong><code>hex_neighbors(hex)</code></strong> — all six neighbors.</p>
+</li>
+<li>
+<p><strong><code>hex_distance(a, b)</code></strong> — grid distance between two hexes.</p>
+</li>
+</ul>
+<p>For everything your bot receives each turn, see <a href="../writing-bots/">Writing bots</a>.</p>
+<p><a href="../index.html">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>
 
   </main>
   <script src="../../js/docs-copy-code.js" defer></script>

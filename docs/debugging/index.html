@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debugging your bot · Splatbot</title>
+  <link rel="icon" href="../../images/splat.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/docs.css">
+  <link rel="stylesheet" href="../../css/docs-hljs.css">
+</head>
+<body class="docs-body">
+  <header class="docs-header">
+    <nav class="docs-nav">
+      <a class="docs-brand" href="../../index.html">Splatbot</a>
+      <span class="docs-sep">/</span>
+      <a class="docs-crumb" href="../../docs/index.html">Docs</a>
+    </nav>
+  </header>
+  <main class="docs-main markdown-body">
+<h1 id="debugging-your-bot" tabindex="-1">Debugging your bot</h1>
+<p>Three tools help you see what is going on: <strong><code>print()</code></strong> (browser <strong>console</strong>), <strong>Step</strong> (advance the match slowly), and the <strong>event log</strong> (in the game UI). They answer different questions.</p>
+<h2 id="print-and-the-browser-console" tabindex="-1">Print and the browser console</h2>
+<p>Your bot runs in <strong>Python</strong> inside a <strong>Web Worker</strong> (via Pyodide). <code>print(&quot;hello&quot;)</code> inside <code>decide</code> does <strong>not</strong> appear in the in-game <strong>event log</strong> — it goes to the browser’s <strong>developer console</strong>, where messages from the worker may be grouped under that worker.</p>
+<p><strong>Open the console (typical desktop browsers):</strong></p>
+<ul>
+<li><strong>Chrome / Edge:</strong> <code>F12</code> or <code>Ctrl+Shift+I</code> (Windows/Linux) / <code>Cmd+Option+I</code> (macOS), then open the <strong>Console</strong> tab.</li>
+<li><strong>Firefox:</strong> <code>F12</code> or <code>Ctrl+Shift+K</code> (Windows/Linux) / <code>Cmd+Option+K</code> (macOS) for the console directly.</li>
+</ul>
+<p>If you do not see <code>print</code> output, check for a dropdown or filter that says <strong>top</strong> vs <strong>worker</strong> / your site URL and select the worker context if needed.</p>
+<p>Use prints sparingly — each turn runs many times and too much output can slow things down.</p>
+<h2 id="step" tabindex="-1">Step</h2>
+<p>When the match is <strong>paused</strong>, the <strong>Step</strong> control runs the simulation <strong>one tick at a time</strong> (or several ticks in one click if you change the number next to the menu).</p>
+<p>Each <strong>tick</strong>:</p>
+<ol>
+<li>The internal <strong>turn</strong> counter advances.</li>
+<li><strong>Both</strong> bots’ <code>decide</code> functions run (with each bot’s snapshot of the game).</li>
+<li>Collisions and timers update.</li>
+</ol>
+<p>So one tick is <strong>not</strong> “one bot only” — both players act for that step. If the match is <strong>running</strong> live and you click <strong>Step</strong>, the game <strong>pauses</strong> first, then steps.</p>
+<p>Use Step when you want to watch the board and the <strong>event log</strong> change in sync without the match racing ahead.</p>
+<h2 id="event-log" tabindex="-1">Event log</h2>
+<p>The <strong>event log</strong> is the panel in the Splatbot UI (you can expand it or open it in a pop-out if your browser allows). It shows messages from the game engine, for example:</p>
+<ul>
+<li>Match <strong>started</strong>, <strong>paused</strong>, <strong>reset</strong>, <strong>over</strong> (with tile counts).</li>
+<li><strong>Errors</strong> loading a bot, <strong>Python exceptions</strong> inside <code>decide</code>, or a bot <strong>hitting the time limit</strong> (the bot <strong>skips</strong> that turn).</li>
+<li><strong>Blocked</strong> actions: stunned, wrong cooldown, move off the map, invalid dash distance, etc.</li>
+<li><strong>Collisions</strong> when two bots end up on the same hex (that tile is cleared).</li>
+</ul>
+<p><strong>Important:</strong> A successful <strong>move</strong> or <strong>skip</strong> often writes <strong>nothing</strong> to the log. No new line does <strong>not</strong> mean your bot failed — it may have moved quietly. Use <strong>Step</strong>, <strong>print</strong>, or watch the board to confirm behavior.</p>
+<p>See also <a href="../glossary/index.html#event-log">Glossary: event log</a> and <a href="../writing-bots/index.html">Writing bots</a>.</p>
+<p><a href="../">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>
+
+  </main>
+  <script src="../../js/docs-copy-code.js" defer></script>
+  <script type="module" src="../../js/docs/action-demos.js"></script>
+</body>
+</html>

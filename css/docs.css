@@ -279,3 +279,9 @@
 .markdown-body table th {
   background: #111c2e;
 }
+
+.markdown-body abbr[title] {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.15em;
+}
