@@ -33,7 +33,7 @@ class Bot:
 
 ## Move
 
-The move action tells a splatbot to move in a given direction. The direction given may be either an integer or (recommended) a [HexDirection](../utilities/index.md#hex-direction). A splatbot will move one tile in the given direction, and paint the tile that it lands on. If the movement would result in the splatbot moving to an invalid position, then nothing will happen.
+The move action tells a splatbot to move in a given direction. The direction given may be either an integer or (recommended) a [HexDirection](../utilities/index.md#hexdirection). A splatbot will move one tile in the given direction, and paint the tile that it lands on. If the movement would result in the splatbot moving to an invalid position, then nothing will happen.
 
 <div class="action-demo" data-action-demo="move" role="region" aria-label="Move action example">
 <div class="action-demo-grid" aria-hidden="true"></div>

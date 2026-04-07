@@ -18,7 +18,7 @@ class BotInfo:
     paintball_cooldown: int
 ```
 
-`Hex` and `HexDirection` come from [`utils.hex_grid`](utils/hex_grid/index.md).
+`Hex` and `HexDirection` come from [`utils.hex_grid`](utils/hex_grid.md).
 
 ---
 
@@ -59,6 +59,6 @@ Turns until **shoot_paintball** may be used again (`0` = ready).
 For **your** bot, the same cooldown and stun values appear on both:
 
 - `game_state.bots[game_state.my_pid]` (this object), and  
-- the convenience fields `game_state.my_stun`, `game_state.my_splat_cooldown`, `game_state.my_dash_cooldown`, `game_state.my_paintball_cooldown` on the snapshot (see [Game state](game_data/index.md)).
+- the convenience fields `game_state.my_stun`, `game_state.my_splat_cooldown`, `game_state.my_dash_cooldown`, `game_state.my_paintball_cooldown` on the snapshot (see [Game state](game_data.md)).
 
 Use either; they should stay in sync for a given `decide` call.

@@ -5,6 +5,7 @@ import MarkdownIt from 'markdown-it';
 import markdownItAnchor from 'markdown-it-anchor';
 import markdownItHighlightjs from 'markdown-it-highlightjs';
 import GithubSlugger from 'github-slugger';
+import { validateDocs } from './docs-validate.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -131,6 +132,7 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml }) {
   const toRoot = path.relative(outDir, ROOT) || '.';
   const cssHref = path.join(toRoot, 'css', 'docs.css').split(path.sep).join('/');
   const hljsHref = path.join(toRoot, 'css', 'docs-hljs.css').split(path.sep).join('/');
+  const botRunnableHref = path.join(toRoot, 'js', 'bot-runnable.js').split(path.sep).join('/');
   const copyJsHref = path.join(toRoot, 'js', 'docs-copy-code.js').split(path.sep).join('/');
   const actionDemosHref = path.join(toRoot, 'js', 'docs', 'action-demos.js').split(path.sep).join('/');
   const gameHref = path.join(toRoot, 'index.html').split(path.sep).join('/');
@@ -163,6 +165,7 @@ ${sidebarHtml}
 ${bodyHtml}
     </main>
   </div>
+  <script src="${botRunnableHref}" defer></script>
   <script src="${copyJsHref}" defer></script>
   <script type="module" src="${actionDemosHref}"></script>
 </body>
@@ -350,7 +353,6 @@ async function* iterMarkdownFiles(dir) {
 
 async function buildOnce() {
   await fs.mkdir(SRC, { recursive: true });
-  await cleanGeneratedHtml();
 
   const allFiles = [];
   for await (const absMd of iterMarkdownFiles(SRC)) {
@@ -366,6 +368,23 @@ async function buildOnce() {
     const outFile = outPathForSource(rel);
     pages.push({ absMd, rel, raw, title, outFile });
   }
+
+  const { errors: docErrors, warnings: docWarnings } = await validateDocs({
+    root: ROOT,
+    src: SRC,
+    docs: DOCS,
+    pages,
+  });
+  for (const w of docWarnings) {
+    console.warn(w);
+  }
+  if (docErrors.length) {
+    console.error(`docs: validation failed (${docErrors.length} issue(s)):\n${docErrors.join('\n')}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  await cleanGeneratedHtml();
 
   const navTree = buildDocsNav(pages);
 

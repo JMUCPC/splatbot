@@ -24,15 +24,15 @@ Two custom imports are provided to players wanting to create their own splatbot:
 
 On every tick, the game will call the `decide` method of each bot in the game. Each call to `decide` must return **one** of:
 
-| Action                                              | Description                                              |
-| --------------------------------------------------- | -------------------------------------------------------- |
-| [move](actions/index.md#move)                       | Step to a neighbor hex; paint that hex.                  |
-| [skip](actions/index.md#skip)                       | Do nothing.                                              |
-| [splat](actions/index.md#splat)                     | Paint all adjacent tiles.                                |
-| [dash](actions/index.md#dash)                       | Move several hexes in a line; paint only where you land. |
-| [shoot_paintball](actions/index.md#shoot-paintball) | Paint a straight line without moving.                    |
+| Action                                                 | Description                                              |
+| ------------------------------------------------------ | -------------------------------------------------------- |
+| [move](../actions/index.md#move)                       | Step to a neighbor hex; paint that hex.                  |
+| [skip](../actions/index.md#skip)                       | Do nothing.                                              |
+| [splat](../actions/index.md#splat)                     | Paint all adjacent tiles.                                |
+| [dash](../actions/index.md#dash)                       | Move several hexes in a line; paint only where you land. |
+| [shoot_paintball](../actions/index.md#shoot-paintball) | Paint a straight line without moving.                    |
 
-Details and interactive demos are on the [Actions](actions/index.md) page.
+Details and interactive demos are on the [Actions](../actions/index.md) page.
 
 If the returned action is invalid for any reason, or if the `decide` method raises an Error/Exception or exceeds the time limit (configurable via settings), then the bot's move will be skipped for the current turn.
 
@@ -69,7 +69,7 @@ class Bot:
 
     def decide(self, game_state):
         self.count += 1
-        print(self.count)  # see Debugging: print goes to the browser console
+        print(self.count)  # print goes to the browser console: open with F12
         return Actions.skip()
 ```
 
@@ -103,7 +103,7 @@ class Bot:
 - `game_state.bots[game_state.my_pid]` is [your bot’s info](../glossary/index.md#botinfo) (`position`, etc.).
 - `hex_neighbor(hex, direction)` is the hex you would step into; if it is not in `game_state.grid`, that move would leave the map, so we flip direction first.
 
-More walkthroughs (cooldowns, painting empty tiles) are on [Examples](examples/index.md).
+More walkthroughs (cooldowns, painting empty tiles) are on [Examples](../examples/index.md).
 
 ## Game state quick reference
 
@@ -113,13 +113,13 @@ More walkthroughs (cooldowns, painting empty tiles) are on [Examples](examples/i
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `my_pid`                | Your [player id](../glossary/index.md#player-id) (`1` or `2`).                                                               |
 | `my_stun`               | Turns until you cannot move/dash/splat/shoot (`0` = not [stunned](../glossary/index.md#stun)). `Actions.skip()` still works. |
-| `my_splat_cooldown`     | Turns until [splat](actions/index.md#splat) is allowed (`0` = available).                                                    |
-| `my_dash_cooldown`      | Turns until [dash](actions/index.md#dash) is allowed (`0` = available).                                                      |
-| `my_paintball_cooldown` | Turns until [paintball](actions/index.md#shoot-paintball) is allowed (`0` = available).                                      |
+| `my_splat_cooldown`     | Turns until [splat](../actions/index.md#splat) is allowed (`0` = available).                                                 |
+| `my_dash_cooldown`      | Turns until [dash](../actions/index.md#dash) is allowed (`0` = available).                                                   |
+| `my_paintball_cooldown` | Turns until [paintball](../actions/index.md#shoot-paintball) is allowed (`0` = available).                                   |
 | `grid`                  | All hexes on the map (`Hex` values).                                                                                         |
 | `tile_pids`             | Who paints each hex: `0` = unpainted, `1` / `2` = players. See [tile owner](../glossary/index.md#tile-owner).                |
 | `bots`                  | Per-player [BotInfo](../glossary/index.md#botinfo) (`position`, `facing`, timers).                                           |
 | `turn`                  | Current [turn](../glossary/index.md#turn) index.                                                                             |
 | `max_turns`             | Match length.                                                                                                                |
 
-[← Docs home](index.md) · [Examples →](examples/index.md) · [Debugging →](debugging/index.md)
+[← Docs home](index.md) · [Examples →](../examples/index.md) · [Debugging →](../debugging/index.md)

@@ -21,7 +21,7 @@ class GameStateSnapshot:
     max_turns: int
 ```
 
-`Hex` and bot entries use types from [`utils.hex_grid`](utils/hex_grid/index.md) and [Bot info](bot_data/index.md).
+`Hex` and bot entries use types from [`utils.hex_grid`](utils/hex_grid.md) and [Bot info](bot_data.md).
 
 ---
 
@@ -57,7 +57,7 @@ Paint ownership per hex: maps each `Hex` to a player id. **`0`** means **unpaint
 
 ### `bots: Mapping[int, BotInfo]`
 
-Per-player state keyed by player id. Values are read-only bot info objects; see [Bot info](bot_data/index.md).
+Per-player state keyed by player id. Values are read-only bot info objects; see [Bot info](bot_data.md).
 
 ### `turn: int`
 

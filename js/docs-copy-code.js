@@ -1,9 +1,8 @@
 /**
  * Docs site: add a labeled code toolbar + copy button to fenced code blocks.
+ * “Try it out” is added only for Python blocks that pass `splatbotLooksLikeRunnableBot` (see js/bot-runnable.js).
  */
 (function () {
-  const BOT_CLASS_RE = /\bclass\s+Bot\b/;
-  const BOT_INSTANCE_DECIDE_RE = /\bdef\s+decide\s*\(\s*self\b/;
   const DOCS_IMPORT_KEY = 'splatbot_import_bot_p1_v1';
   const DOCS_IMPORT_FLAG = 'importBotP1';
 
@@ -42,8 +41,18 @@
     return '';
   }
 
-  function looksLikeRunnableBot(source) {
-    return BOT_CLASS_RE.test(source) && BOT_INSTANCE_DECIDE_RE.test(source);
+  function getLooksLikeRunnableBot() {
+    const g = typeof globalThis !== 'undefined' ? globalThis : window;
+    return typeof g.splatbotLooksLikeRunnableBot === 'function' ? g.splatbotLooksLikeRunnableBot : null;
+  }
+
+  /** Try it out only for Python bot snippets (same idea as docs build validation). */
+  function shouldOfferTryInDocs(sourceText, langRaw) {
+    const lang = (langRaw || '').trim().toLowerCase();
+    if (lang !== 'python' && lang !== 'py') return false;
+    const looksLike = getLooksLikeRunnableBot();
+    if (!looksLike) return false;
+    return looksLike(sourceText);
   }
 
   function getGamePageUrl() {
@@ -113,7 +122,7 @@
 
         actions.appendChild(copyBtn);
         const sourceText = code.textContent ?? '';
-        if (looksLikeRunnableBot(sourceText)) {
+        if (shouldOfferTryInDocs(sourceText, lang)) {
           const tryBtn = document.createElement('button');
           tryBtn.type = 'button';
           tryBtn.className = 'docs-try-btn';

@@ -63,28 +63,28 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="./actions/index.html#move">move</a></td>
+<td><a href="../actions/index.html#move">move</a></td>
 <td>Step to a neighbor hex; paint that hex.</td>
 </tr>
 <tr>
-<td><a href="./actions/index.html#skip">skip</a></td>
+<td><a href="../actions/index.html#skip">skip</a></td>
 <td>Do nothing.</td>
 </tr>
 <tr>
-<td><a href="./actions/index.html#splat">splat</a></td>
+<td><a href="../actions/index.html#splat">splat</a></td>
 <td>Paint all adjacent tiles.</td>
 </tr>
 <tr>
-<td><a href="./actions/index.html#dash">dash</a></td>
+<td><a href="../actions/index.html#dash">dash</a></td>
 <td>Move several hexes in a line; paint only where you land.</td>
 </tr>
 <tr>
-<td><a href="./actions/index.html#shoot-paintball">shoot_paintball</a></td>
+<td><a href="../actions/index.html#shoot-paintball">shoot_paintball</a></td>
 <td>Paint a straight line without moving.</td>
 </tr>
 </tbody>
 </table>
-<p>Details and interactive demos are on the <a href="./actions/index.html">Actions</a> page.</p>
+<p>Details and interactive demos are on the <a href="../actions/index.html">Actions</a> page.</p>
 <p>If the returned action is invalid for any reason, or if the <code>decide</code> method raises an Error/Exception or exceeds the time limit (configurable via settings), then the bot’s move will be skipped for the current turn.</p>
 <h3 id="simple-example" tabindex="-1">Simple Example</h3>
 <p>This bot always tries to move <strong>east</strong> one hex (and paint the tile it lands on).</p>
@@ -110,7 +110,7 @@
 
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
         <span class="hljs-variable language_">self</span>.count += <span class="hljs-number">1</span>
-        <span class="hljs-built_in">print</span>(<span class="hljs-variable language_">self</span>.count)  <span class="hljs-comment"># see Debugging: print goes to the browser console</span>
+        <span class="hljs-built_in">print</span>(<span class="hljs-variable language_">self</span>.count)  <span class="hljs-comment"># print goes to the browser console: open with F12</span>
         <span class="hljs-keyword">return</span> Actions.skip()
 </code></pre>
 <h2 id="putting-it-all-together" tabindex="-1">Putting it all together</h2>
@@ -140,7 +140,7 @@
 <li><code>game_state.bots[game_state.my_pid]</code> is <a href="../glossary/index.html#botinfo">your bot’s info</a> (<code>position</code>, etc.).</li>
 <li><code>hex_neighbor(hex, direction)</code> is the hex you would step into; if it is not in <code>game_state.grid</code>, that move would leave the map, so we flip direction first.</li>
 </ul>
-<p>More walkthroughs (cooldowns, painting empty tiles) are on <a href="./examples/index.html">Examples</a>.</p>
+<p>More walkthroughs (cooldowns, painting empty tiles) are on <a href="../examples/index.html">Examples</a>.</p>
 <h2 id="game-state-quick-reference" tabindex="-1">Game state quick reference</h2>
 <p><a href="../glossary/index.html#game_state"><code>game_state</code></a> is <strong>read-only</strong>. You interact with the match only by <strong>returning</strong> an action.</p>
 <table>
@@ -161,15 +161,15 @@
 </tr>
 <tr>
 <td><code>my_splat_cooldown</code></td>
-<td>Turns until <a href="./actions/index.html#splat">splat</a> is allowed (<code>0</code> = available).</td>
+<td>Turns until <a href="../actions/index.html#splat">splat</a> is allowed (<code>0</code> = available).</td>
 </tr>
 <tr>
 <td><code>my_dash_cooldown</code></td>
-<td>Turns until <a href="./actions/index.html#dash">dash</a> is allowed (<code>0</code> = available).</td>
+<td>Turns until <a href="../actions/index.html#dash">dash</a> is allowed (<code>0</code> = available).</td>
 </tr>
 <tr>
 <td><code>my_paintball_cooldown</code></td>
-<td>Turns until <a href="./actions/index.html#shoot-paintball">paintball</a> is allowed (<code>0</code> = available).</td>
+<td>Turns until <a href="../actions/index.html#shoot-paintball">paintball</a> is allowed (<code>0</code> = available).</td>
 </tr>
 <tr>
 <td><code>grid</code></td>
@@ -193,10 +193,11 @@
 </tr>
 </tbody>
 </table>
-<p><a href="./index.html">← Docs home</a> · <a href="./examples/index.html">Examples →</a> · <a href="./debugging/index.html">Debugging →</a></p>
+<p><a href="./index.html">← Docs home</a> · <a href="../examples/index.html">Examples →</a> · <a href="../debugging/index.html">Debugging →</a></p>
 
     </main>
   </div>
+  <script src="../../js/bot-runnable.js" defer></script>
   <script src="../../js/docs-copy-code.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
 </body>
