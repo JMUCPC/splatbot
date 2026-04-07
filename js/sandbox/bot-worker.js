@@ -5,10 +5,13 @@
  * Messages IN:
  *   { type: 'init', data: { hexGridPy, actionsPy, botCode } }
  *   { type: 'decide', data: { gameState } }
+ *   { type: 'resetMatch' } — re-run Bot() so instance state does not persist across matches
  *
  * Messages OUT:
  *   { type: 'ready' }
  *   { type: 'init-error', error: string }
+ *   { type: 'match-reset-done' }
+ *   { type: 'match-reset-error', error: string }
  *   { type: 'result', action: { type, direction? }, elapsed }
  *   { type: 'error', error: string, elapsed? }
  */
@@ -95,6 +98,24 @@ _bot = Bot()
       self.postMessage({ type: 'ready' });
     } catch (err) {
       self.postMessage({ type: 'init-error', error: String(err) });
+    }
+    return;
+  }
+
+  if (type === 'resetMatch') {
+    if (!pyodide) {
+      self.postMessage({ type: 'match-reset-error', error: 'Not initialized' });
+      return;
+    }
+    try {
+      pyodide.runPython(`
+if 'Bot' not in globals():
+    raise ValueError("Bot script must define class Bot with decide(self, game_state)")
+_bot = Bot()
+`);
+      self.postMessage({ type: 'match-reset-done' });
+    } catch (err) {
+      self.postMessage({ type: 'match-reset-error', error: String(err) });
     }
     return;
   }

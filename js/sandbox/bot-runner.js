@@ -19,6 +19,7 @@ export class BotRunner {
     this._timeoutCount = 0;
     this._hexGridPy = null;
     this._actionsPy = null;
+    this._resetMatchResolve = null;
   }
 
   async init(hexGridPy, actionsPy) {
@@ -37,6 +38,10 @@ export class BotRunner {
   _spawnWorker() {
     return new Promise((resolve, reject) => {
       this.ready = false;
+      if (this._resetMatchResolve) {
+        this._resetMatchResolve();
+        this._resetMatchResolve = null;
+      }
       if (this.worker) this.worker.terminate();
 
       this.worker = new Worker(new URL('./bot-worker.js', import.meta.url));
@@ -69,6 +74,17 @@ export class BotRunner {
             if (this._pendingResolve) this._pendingResolve({ type: 'skip' });
           }
           this._pendingResolve = null;
+          return;
+        }
+
+        if (type === 'match-reset-done' || type === 'match-reset-error') {
+          if (type === 'match-reset-error') {
+            logEvent(`Bot ${this.pid} match reset: ${e.data.error}`);
+          }
+          if (this._resetMatchResolve) {
+            this._resetMatchResolve();
+            this._resetMatchResolve = null;
+          }
           return;
         }
       };
@@ -138,6 +154,15 @@ export class BotRunner {
     this._totalDecisionSeconds = 0;
     this._decisionCount = 0;
     this._timeoutCount = 0;
+  }
+
+  /** Re-instantiate Python Bot() so instance variables do not persist across matches. */
+  async resetBotInstance() {
+    if (!this.worker || !this.ready) return;
+    return new Promise((resolve) => {
+      this._resetMatchResolve = resolve;
+      this.worker.postMessage({ type: 'resetMatch' });
+    });
   }
 
   shutdown() {

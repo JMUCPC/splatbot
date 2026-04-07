@@ -302,6 +302,7 @@ async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
     for (const p of [1, 2]) {
       if (runners[p]) runners[p].resetTimingStats();
     }
+    await Promise.all([1, 2].map((p) => runners[p] && runners[p].resetBotInstance()));
     state = makeInitialState();
     push();
     logEvent(`P${pid} bot changed — match reset.`);
@@ -431,7 +432,9 @@ export function initApp() {
 
   if (els.runToggle) els.runToggle.addEventListener('click', toggleRun);
   initStepControl();
-  document.getElementById('btn-reset').addEventListener('click', () => resetGame({ clearEventLog: true }));
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    void resetGame({ clearEventLog: true });
+  });
   document.getElementById('btn-settings').addEventListener('click', openSettings);
   document.getElementById('btn-settings-reset').addEventListener('click', resetSettingsForm);
   document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings);
@@ -572,13 +575,14 @@ function pauseGame() {
   logEvent('Paused.');
 }
 
-function resetGame(options = {}) {
+async function resetGame(options = {}) {
   const { clearEventLog = false } = options;
   running = false;
   if (clearEventLog) clearLog();
   for (const pid of Object.keys(runners)) {
     runners[pid].resetTimingStats();
   }
+  await Promise.all(Object.keys(runners).map((pid) => runners[pid].resetBotInstance()));
   state = makeInitialState();
   push();
   logEvent('Match reset.');
@@ -859,7 +863,7 @@ function applySettings() {
   if (running) {
     logEvent('Settings changed while live — pausing and resetting match.');
   }
-  resetGame();
+  void resetGame();
   closeSettings();
   logEvent('Settings applied.');
 }
