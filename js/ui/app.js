@@ -715,6 +715,7 @@ async function advanceSingleTick() {
 
   state.advanceTurn();
 
+  state.resetPaintClaims();
   for (const pid of [1, 2]) {
     const runner = runners[pid];
     if (!runner || !runner.ready) continue;
@@ -727,6 +728,7 @@ async function advanceSingleTick() {
     }
   }
 
+  state.flushPaintClaims();
   state.neutralizeCollidingTiles(logEvent);
   state.tickBotTimers();
 

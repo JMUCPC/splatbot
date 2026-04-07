@@ -47,6 +47,8 @@ export class GameState {
     this.turn = turn;
     this.maxTurns = maxTurns;
     this.radius = radius;
+    /** @type {Map<string, Set<number>>} Hex keys touched by paint/move this tick → which pids tried to color them. */
+    this._paintClaims = new Map();
   }
 
   get isOver() {
@@ -84,6 +86,35 @@ export class GameState {
 
   advanceTurn() {
     this.turn++;
+  }
+
+  /**
+   * Start of each simulation tick: clear pending paint claims before applyAction runs.
+   */
+  resetPaintClaims() {
+    this._paintClaims.clear();
+  }
+
+  /**
+   * After all bots have applied actions this tick: each hex claimed by more than one
+   * player becomes unpainted (0); a single claimant gets the tile. Runs before
+   * neutralizeCollidingTiles so move/dash/splat/paintball ties are not last-writer-wins.
+   */
+  flushPaintClaims() {
+    for (const [key, pids] of this._paintClaims) {
+      if (pids.size > 1) this.tilePids.set(key, 0);
+      else this.tilePids.set(key, [...pids][0]);
+    }
+    this._paintClaims.clear();
+  }
+
+  _recordPaintIntent(hexKey, pid) {
+    let s = this._paintClaims.get(hexKey);
+    if (!s) {
+      s = new Set();
+      this._paintClaims.set(hexKey, s);
+    }
+    s.add(pid);
   }
 
   /**
@@ -135,7 +166,7 @@ export class GameState {
       if (this.grid.has(newPos.key)) {
         bot.position = newPos;
         bot.facing = dir;
-        this.tilePids.set(newPos.key, pid);
+        this._recordPaintIntent(newPos.key, pid);
       } else if (logFn) {
         logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
       }
@@ -180,7 +211,7 @@ export class GameState {
         bot.position = dest;
         bot.facing = facDir;
         // Dash paints only the destination hex (last hex reached, possibly short of requested distance).
-        this.tilePids.set(dest.key, pid);
+        this._recordPaintIntent(dest.key, pid);
       }
     } else if (action.type === "splat") {
       if (bot.stun > 0) {
@@ -202,7 +233,7 @@ export class GameState {
       for (let d = 0; d < 6; d++) {
         const n = hexNeighbor(bot.position, d);
         if (this.grid.has(n.key)) {
-          this.tilePids.set(n.key, pid);
+          this._recordPaintIntent(n.key, pid);
         }
       }
       bot.stun = config.SPLAT_STUN_TURNS;
@@ -237,7 +268,7 @@ export class GameState {
           }
         }
         if (blocked) break;
-        this.tilePids.set(cur.key, pid);
+        this._recordPaintIntent(cur.key, pid);
       }
       bot.paintballCooldown = config.SHOOT_PAINTBALL_COOLDOWN_TURNS;
       bot.stun = config.PAINTBALL_STUN_TURNS;
