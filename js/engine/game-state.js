@@ -29,13 +29,18 @@ export class BotData {
 }
 
 export class GameState {
-  constructor(grid, tilePids, bots, turn = 0, maxTurns = 200, radius = 8) {
-    this.grid = grid; // Map<string, Hex>
-    this.tilePids = tilePids; // Map<string, number>  (hex key -> player id, 0=unpainted)
-    this.bots = bots; // Map<number, BotData>
+  constructor(grid, bots, turn = 0, maxTurns = 200, radius = 8) {
+    this.grid = grid;       // Map<string, Hex>  — Hex.controller holds owner BotData|null
+    this.bots = bots;       // Map<number, BotData>
     this.turn = turn;
     this.maxTurns = maxTurns;
     this.radius = radius;
+  }
+
+  /** Set the controller (owner) of the tile at `key` to the given BotData (or null). */
+  _paint(key, bot) {
+    const h = this.grid.get(key);
+    if (h) h.controller = bot;
   }
 
   get isOver() {
@@ -44,7 +49,8 @@ export class GameState {
 
   score() {
     const sc = { 1: 0, 2: 0 };
-    for (const pid of this.tilePids.values()) {
+    for (const h of this.grid.values()) {
+      const pid = h.controller?.pid;
       if (pid === 1 || pid === 2) sc[pid]++;
     }
     return sc;
@@ -75,10 +81,6 @@ export class GameState {
     this.turn++;
   }
 
-  /**
-   * After both bots have moved in a turn: any hex with more than one bot is
-   * reset to unpainted (no race for which player "owns" the tile).
-   */
   /** Call once per game tick after both bots have acted. */
   tickBotTimers() {
     for (const bot of this.bots.values()) {
@@ -98,7 +100,7 @@ export class GameState {
     }
     for (const [key, pids] of byKey) {
       if (pids.length > 1) {
-        this.tilePids.set(key, 0);
+        this._paint(key, null);
         if (logFn) {
           logFn(`Collision on hex ${key} — tile cleared (bots ${pids.join(", ")})`);
         }
@@ -123,7 +125,7 @@ export class GameState {
       if (this.grid.has(newPos.key)) {
         bot.position = newPos;
         bot.facing = action.direction;
-        this.tilePids.set(newPos.key, pid);
+        this._paint(newPos.key, bot);
       } else if (logFn) {
         logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
       }
@@ -166,8 +168,7 @@ export class GameState {
       if (!dest.equals(start)) {
         bot.position = dest;
         bot.facing = action.direction;
-        // Dash paints only the destination hex (last hex reached, possibly short of requested distance).
-        this.tilePids.set(dest.key, pid);
+        this._paint(dest.key, bot);
       }
     } else if (action.type === "splat") {
       if (bot.stun > 0) {
@@ -189,7 +190,7 @@ export class GameState {
       for (let d = 0; d < 6; d++) {
         const n = hexNeighbor(bot.position, d);
         if (this.grid.has(n.key)) {
-          this.tilePids.set(n.key, pid);
+          this._paint(n.key, bot);
         }
       }
       bot.stun = config.SPLAT_STUN_TURNS;
@@ -224,7 +225,7 @@ export class GameState {
           }
         }
         if (blocked) break;
-        this.tilePids.set(cur.key, pid);
+        this._paint(cur.key, bot);
       }
       bot.facing = dir;
       bot.paintballCooldown = config.SHOOT_PAINTBALL_COOLDOWN_TURNS;
@@ -242,15 +243,12 @@ export class GameState {
   toSnapshot(pid) {
     const grid = [];
     for (const h of this.grid.values()) {
-      grid.push([h.q, h.r]);
+      const ownerPid = h.controller ? h.controller.pid : 0;
+      grid.push([h.q, h.r, ownerPid]);
     }
-    const tilePids = {};
-    for (const [key, owner] of this.tilePids.entries()) {
-      tilePids[key] = owner;
-    }
-    const bots = {};
-    for (const [botPid, bot] of this.bots.entries()) {
-      bots[botPid] = {
+
+    function serializeBot(bot) {
+      return {
         pid: bot.pid,
         position: [bot.position.q, bot.position.r],
         facing: bot.facing,
@@ -260,16 +258,21 @@ export class GameState {
         paintball_cooldown: bot.paintballCooldown,
       };
     }
-    const me = this.bots.get(pid);
+
+    const meBot = this.bots.get(pid);
+    const me = meBot ? serializeBot(meBot) : null;
+    const opponents = {};
+    for (const [botPid, bot] of this.bots.entries()) {
+      if (botPid !== pid) {
+        opponents[botPid] = serializeBot(bot);
+      }
+    }
+
     return {
-      my_pid: pid,
-      my_stun: me ? me.stun : 0,
-      my_splat_cooldown: me ? me.splatCooldown : 0,
-      my_dash_cooldown: me ? me.dashCooldown : 0,
-      my_paintball_cooldown: me ? me.paintballCooldown : 0,
+      pid,
+      me,
+      opponents,
       grid,
-      tile_pids: tilePids,
-      bots,
       turn: this.turn,
       max_turns: this.maxTurns,
     };
@@ -280,16 +283,18 @@ export function makeInitialState(radius, maxTurns) {
   const r = radius ?? config.GRID_RADIUS;
   const mt = maxTurns ?? config.MAX_TURNS;
   const grid = generateHexGrid(r);
-  const pos1 = new Hex(-(r - 1), 0);
-  const pos2 = new Hex(r - 1, 0);
-
-  const tilePids = new Map();
-  tilePids.set(pos1.key, 1);
-  tilePids.set(pos2.key, 2);
 
   const bots = new Map();
+  const pos1 = new Hex(-(r - 1), 0);
+  const pos2 = new Hex(r - 1, 0);
   bots.set(1, new BotData(1, pos1, HexDirection.E));
   bots.set(2, new BotData(2, pos2, HexDirection.W));
 
-  return new GameState(grid, tilePids, bots, 0, mt, r);
+  // Paint starting tiles
+  const h1 = grid.get(pos1.key);
+  if (h1) h1.controller = bots.get(1);
+  const h2 = grid.get(pos2.key);
+  if (h2) h2.controller = bots.get(2);
+
+  return new GameState(grid, bots, 0, mt, r);
 }

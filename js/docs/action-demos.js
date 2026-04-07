@@ -7,19 +7,12 @@ import { Hex, HexDirection, generateHexGrid } from '../engine/hex-grid.js';
 
 const DEMO_HEX_SIZE = 22;
 
-function tileMapForGrid(grid) {
-  const tilePids = new Map();
-  for (const h of grid.values()) tilePids.set(h.key, 0);
-  return tilePids;
-}
-
 /**
  * @param {number} radius
  * @param {Array<{ pid: number, qr: [number, number], facing?: number, stun?: number, splatCooldown?: number, dashCooldown?: number, paintballCooldown?: number }>} botSpecs
  */
 function makeDemoState(radius, botSpecs) {
   const grid = generateHexGrid(radius);
-  const tilePids = tileMapForGrid(grid);
   const bots = new Map();
   for (const spec of botSpecs) {
     const pos = new Hex(spec.qr[0], spec.qr[1]);
@@ -33,9 +26,10 @@ function makeDemoState(radius, botSpecs) {
       spec.paintballCooldown ?? 0,
     );
     bots.set(spec.pid, b);
-    tilePids.set(pos.key, spec.pid);
+    const h = grid.get(pos.key);
+    if (h) h.controller = b;
   }
-  return new GameState(grid, tilePids, bots, 0, 200, radius);
+  return new GameState(grid, bots, 0, 200, radius);
 }
 
 const DEMOS = {

@@ -75,7 +75,7 @@ export function renderHexGrid(state, hexSize) {
   for (const h of state.grid.values()) {
     const [rawCx, rawCy] = centers.get(h.key);
     const cx = rawCx + ox, cy = rawCy + oy;
-    const paintPid = state.tilePids.get(h.key) || 0;
+    const paintPid = h.controller ? h.controller.pid : 0;
     const isOccupied = occupied.has(h.key);
 
     let fill, stroke, sw;

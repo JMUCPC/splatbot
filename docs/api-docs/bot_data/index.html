@@ -39,7 +39,7 @@
   </aside>
     <main class="docs-main markdown-body">
 <h1 id="bot-info-api-reference" tabindex="-1">Bot info API Reference</h1>
-<p>Each entry in <code>game_state.bots</code> is a <strong>read-only</strong> object describing one player’s bot. You do not import this type; you access instances via <code>game_state.bots[pid]</code> (and your own id via <code>game_state.my_pid</code>). Assigning attributes raises <code>AttributeError</code>.</p>
+<p><code>BotInfo</code> is a <strong>read-only</strong> object describing one player’s bot. You access instances via <code>game_state.me</code> (your bot), <code>game_state.opponents[pid]</code> (other players), or <code>game_state.opponent</code> (the single opponent in a 1v1). Assigning attributes raises <code>AttributeError</code>.</p>
 <p>The worker’s internal class mirrors the engine’s bot state (cooldowns, stun, position, facing). Field names in Python use <strong>snake_case</strong> as below.</p>
 <h2 id="type-overview" tabindex="-1">Type overview</h2>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-comment"># Illustrative — injected read-only type; repr uses the name BotInfo.</span>
@@ -70,13 +70,36 @@
 <h3 id="paintball_cooldown-int" tabindex="-1"><code>paintball_cooldown: int</code></h3>
 <p>Turns until <strong>shoot_paintball</strong> may be used again (<code>0</code> = ready).</p>
 <hr>
-<h2 id="relationship-to-game_state" tabindex="-1">Relationship to <code>game_state</code></h2>
-<p>For <strong>your</strong> bot, the same cooldown and stun values appear on both:</p>
-<ul>
-<li><code>game_state.bots[game_state.my_pid]</code> (this object), and</li>
-<li>the convenience fields <code>game_state.my_stun</code>, <code>game_state.my_splat_cooldown</code>, <code>game_state.my_dash_cooldown</code>, <code>game_state.my_paintball_cooldown</code> on the snapshot (see <a href="../game_data/index.html">Game state</a>).</li>
-</ul>
-<p>Use either; they should stay in sync for a given <code>decide</code> call.</p>
+<h2 id="equality" tabindex="-1">Equality</h2>
+<p>Two <code>BotInfo</code> instances are equal if they have the same <code>pid</code>. This means comparisons like <code>hex.controller == game_state.me</code> work as expected.</p>
+<hr>
+<h2 id="accessing-botinfo" tabindex="-1">Accessing <code>BotInfo</code></h2>
+<table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>What it gives you</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>game_state.me</code></td>
+<td>Your bot’s <code>BotInfo</code>.</td>
+</tr>
+<tr>
+<td><code>game_state.opponent</code></td>
+<td>The single opponent in 1v1 (<code>None</code> otherwise).</td>
+</tr>
+<tr>
+<td><code>game_state.opponents[pid]</code></td>
+<td>A specific opponent by player id.</td>
+</tr>
+<tr>
+<td><code>hex.controller</code></td>
+<td>The <code>BotInfo</code> that controls this tile, or <code>None</code>.</td>
+</tr>
+</tbody>
+</table>
 
     </main>
   </div>

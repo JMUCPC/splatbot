@@ -124,20 +124,16 @@
         <span class="hljs-variable language_">self</span>.going_east = <span class="hljs-literal">True</span>
 
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-comment"># Which bot am I</span>
-        me = game_state.bots[game_state.my_pid]
-        <span class="hljs-comment"># Keep going in the same direction</span>
+        me = game_state.me
         direction = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.going_east <span class="hljs-keyword">else</span> HexDirection.W
-        <span class="hljs-comment"># If continuing to move this way is out of bounds, turn around</span>
         move_to = hex_neighbor(me.position, direction)
         <span class="hljs-keyword">if</span> move_to <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
             <span class="hljs-variable language_">self</span>.going_east = <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.going_east
             d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.going_east <span class="hljs-keyword">else</span> HexDirection.W
-        <span class="hljs-comment"># Move</span>
         <span class="hljs-keyword">return</span> Actions.move(direction)
 </code></pre>
 <ul>
-<li><code>game_state.bots[game_state.my_pid]</code> is <a href="../glossary/index.html#botinfo">your bot’s info</a> (<code>position</code>, etc.).</li>
+<li><code>game_state.me</code> is <a href="../glossary/index.html#botinfo">your bot’s info</a> (<code>position</code>, <code>facing</code>, cooldowns, etc.).</li>
 <li><code>hex_neighbor(hex, direction)</code> is the hex you would step into; if it is not in <code>game_state.grid</code>, that move would leave the map, so we flip direction first.</li>
 </ul>
 <p>More walkthroughs (cooldowns, painting empty tiles) are on <a href="../examples/index.html">Examples</a>.</p>
@@ -152,36 +148,24 @@
 </thead>
 <tbody>
 <tr>
-<td><code>my_pid</code></td>
+<td><code>pid</code></td>
 <td>Your <a href="../glossary/index.html#player-id">player id</a> (<code>1</code> or <code>2</code>).</td>
 </tr>
 <tr>
-<td><code>my_stun</code></td>
-<td>Turns until you cannot move/dash/splat/shoot (<code>0</code> = not <a href="../glossary/index.html#stun">stunned</a>). <code>Actions.skip()</code> still works.</td>
+<td><code>me</code></td>
+<td>Your <a href="../glossary/index.html#botinfo">BotInfo</a> — <code>position</code>, <code>facing</code>, <code>stun</code>, cooldowns.</td>
 </tr>
 <tr>
-<td><code>my_splat_cooldown</code></td>
-<td>Turns until <a href="../actions/index.html#splat">splat</a> is allowed (<code>0</code> = available).</td>
+<td><code>opponents</code></td>
+<td>Other players’ <a href="../glossary/index.html#botinfo">BotInfo</a>, keyed by player id.</td>
 </tr>
 <tr>
-<td><code>my_dash_cooldown</code></td>
-<td>Turns until <a href="../actions/index.html#dash">dash</a> is allowed (<code>0</code> = available).</td>
-</tr>
-<tr>
-<td><code>my_paintball_cooldown</code></td>
-<td>Turns until <a href="../actions/index.html#shoot-paintball">paintball</a> is allowed (<code>0</code> = available).</td>
+<td><code>opponent</code></td>
+<td>The single opponent’s <a href="../glossary/index.html#botinfo">BotInfo</a> in 1v1, or <code>None</code>.</td>
 </tr>
 <tr>
 <td><code>grid</code></td>
-<td>All hexes on the map (<code>Hex</code> values).</td>
-</tr>
-<tr>
-<td><code>tile_pids</code></td>
-<td>Who paints each hex: <code>0</code> = unpainted, <code>1</code> / <code>2</code> = players. See <a href="../glossary/index.html#tile-owner">tile owner</a>.</td>
-</tr>
-<tr>
-<td><code>bots</code></td>
-<td>Per-player <a href="../glossary/index.html#botinfo">BotInfo</a> (<code>position</code>, <code>facing</code>, timers).</td>
+<td>All hexes on the map (<code>Hex</code> values). Each has a <code>controller</code> (<code>BotInfo</code> or <code>None</code>).</td>
 </tr>
 <tr>
 <td><code>turn</code></td>

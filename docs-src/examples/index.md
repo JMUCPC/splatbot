@@ -16,7 +16,7 @@ class Bot:
         self._going_east = True
 
     def decide(self, game_state):
-        me = game_state.bots[game_state.my_pid]
+        me = game_state.me
         d = HexDirection.E if self._going_east else HexDirection.W
         nbr = hex_neighbor(me.position, d)
         if nbr not in game_state.grid:
@@ -28,7 +28,7 @@ class Bot:
 **How it works**
 
 1. Remember a boolean `_going_east` on `self` so the choice survives after `decide` returns.
-2. Look up this bot’s position: `game_state.bots[game_state.my_pid].position`.
+2. Look up this bot's position: `game_state.me.position`.
 3. Pick east or west from that boolean; compute the neighbor hex in that direction.
 4. If that neighbor is **not** on the map (`not in game_state.grid`), flip direction and recompute the move direction.
 5. Return `Actions.move(d)`.
@@ -37,7 +37,7 @@ class Bot:
 
 ## Splat when ready, otherwise move
 
-Uses [stun](../glossary/index.md#stun) and [cooldown](../glossary/index.md#cooldown) checks from `game_state` before calling special actions.
+Uses [stun](../glossary/index.md#stun) and [cooldown](../glossary/index.md#cooldown) checks from `game_state.me` before calling special actions.
 
 ```python
 from utils.actions import Actions
@@ -46,16 +46,16 @@ from utils.hex_grid import HexDirection
 
 class Bot:
     def decide(self, game_state):
-        if game_state.my_stun > 0:
+        if game_state.me.stun > 0:
             return Actions.skip()
-        if game_state.my_splat_cooldown == 0:
+        if game_state.me.splat_cooldown == 0:
             return Actions.splat()
         return Actions.move(HexDirection.E)
 ```
 
 **How it works**
 
-1. While stunned, the only safe choice is usually `skip` (you cannot splat or move depending on rules; here we skip whenever `my_stun > 0`).
+1. While stunned, the only safe choice is usually `skip` (you cannot splat or move depending on rules; here we skip whenever `me.stun > 0`).
 2. When splat is off cooldown, splat to paint neighbors.
 3. Otherwise default to moving east.
 
@@ -63,7 +63,7 @@ class Bot:
 
 ## Greedy: step onto an unpainted tile
 
-Prefer any neighbor that is still neutral (`tile_pids` is `0`); otherwise fall back to moving east.
+Prefer any neighbor that is still neutral (`controller` is `None`); otherwise fall back to moving east.
 
 ```python
 from utils.actions import Actions
@@ -72,24 +72,27 @@ from utils.hex_grid import HexDirection, hex_neighbor
 
 class Bot:
     def decide(self, game_state):
-        me = game_state.bots[game_state.my_pid]
+        me = game_state.me
+        grid_by_pos = {hex: hex for hex in game_state.grid}
         for d in HexDirection:
             nbr = hex_neighbor(me.position, d)
-            if nbr not in game_state.grid:
+            tile = grid_by_pos.get(nbr)
+            if tile is None:
                 continue
-            if game_state.tile_pids.get(nbr, 0) == 0:
+            if tile.controller is None:
                 return Actions.move(d)
         return Actions.move(HexDirection.E)
 ```
 
 **How it works**
 
-1. Loop the six directions in `HexDirection` order.
-2. Skip neighbors that are off the map.
-3. If a neighbor is unpainted (`0`), move there immediately.
-4. If none are unpainted, keep moving east so the bot still does something.
+1. Build a quick lookup from position to grid tile (since `Hex` equality is position-only, `hex_neighbor` results match grid tiles).
+2. Loop the six directions in `HexDirection` order.
+3. Skip neighbors that are off the map.
+4. If a neighbor is unpainted (`controller is None`), move there immediately.
+5. If none are unpainted, keep moving east so the bot still does something.
 
-**Takeaways:** `tile_pids`, iterating directions, and a simple priority rule.
+**Takeaways:** `hex.controller`, iterating directions, and a simple priority rule.
 
 ---
 
