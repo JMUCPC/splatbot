@@ -65,6 +65,8 @@ let botCatalog = [];
 /** @type {Map<string, { id: string, group: string, label: string, path: string }>} */
 let catalogById = new Map();
 const playerBotId = { 1: null, 2: null };
+/** Shown under CHOOSE FILE after a successful upload or docs import. */
+const uploadDisplayName = { 1: null, 2: null };
 let botControlsReady = false;
 
 const els = {};
@@ -255,7 +257,9 @@ async function consumeDocsBotImportForPlayerOne() {
       return;
     }
     botSourceCache.set('upload:1', source);
+    uploadDisplayName[1] = 'From docs';
     await applyBotForPlayer(1, 'upload:1', { isInitialLoad: false });
+    syncFileUploadRow(1);
     logEvent('P1 loaded bot from docs example.');
   } catch (err) {
     const detail = err?.message ?? String(err);
@@ -334,12 +338,29 @@ async function fetchBotSource(botId) {
   }
 }
 
+function syncFileUploadRow(pid) {
+  const input = els[`botFile${pid}`];
+  const clearBtn = els[`botFileClear${pid}`];
+  const statusEl = els[`botFileStatus${pid}`];
+  const botId = `upload:${pid}`;
+  const hasCache = botSourceCache.has(botId);
+  const hasPickedFile = Boolean(input?.files?.length);
+  if (clearBtn) clearBtn.disabled = !hasCache && !hasPickedFile;
+  if (statusEl) {
+    if (uploadDisplayName[pid]) statusEl.textContent = uploadDisplayName[pid];
+    else if (hasPickedFile && input?.files?.[0]) statusEl.textContent = input.files[0].name;
+    else if (hasCache) statusEl.textContent = 'Uploaded — in memory (pick "Uploaded file" in list or Clear)';
+    else statusEl.textContent = 'No file chosen';
+  }
+}
+
 async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
   const code = await fetchBotSource(botId);
   await runners[pid].setBotCode(code);
   playerBotId[pid] = botId;
   const sel = els[`botSelect${pid}`];
   if (sel) sel.value = botId;
+  syncFileUploadRow(pid);
   if (!isInitialLoad) {
     running = false;
     for (const p of [1, 2]) {
@@ -355,7 +376,10 @@ async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
 async function onBotFileChange(pid, input) {
   if (!botControlsReady || !input) return;
   const file = input.files?.[0];
-  if (!file) return;
+  if (!file) {
+    syncFileUploadRow(pid);
+    return;
+  }
   const botId = `upload:${pid}`;
   let text;
   try {
@@ -363,16 +387,20 @@ async function onBotFileChange(pid, input) {
   } catch (err) {
     input.value = '';
     logEvent(`Failed to read file: ${err.message || err}`);
+    syncFileUploadRow(pid);
     return;
   }
   const shapeIssues = describeBotScriptShapeIssues(text);
   if (shapeIssues) {
     input.value = '';
     logUploadShapeFailure(pid, shapeIssues);
+    syncFileUploadRow(pid);
     return;
   }
   const prevUpload = botSourceCache.get(botId);
+  const prevLabel = uploadDisplayName[pid];
   botSourceCache.set(botId, text);
+  uploadDisplayName[pid] = file.name;
   const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
   for (const s of locks) s.disabled = true;
   try {
@@ -381,10 +409,37 @@ async function onBotFileChange(pid, input) {
   } catch (err) {
     if (prevUpload !== undefined) botSourceCache.set(botId, prevUpload);
     else botSourceCache.delete(botId);
+    uploadDisplayName[pid] = prevLabel ?? null;
     input.value = '';
     logPythonLoadFailure(pid, err);
   } finally {
     for (const s of locks) s.disabled = false;
+    syncFileUploadRow(pid);
+  }
+}
+
+async function clearUploadedBot(pid) {
+  if (!botControlsReady) return;
+  const botId = `upload:${pid}`;
+  const input = els[`botFile${pid}`];
+  uploadDisplayName[pid] = null;
+  botSourceCache.delete(botId);
+  if (input) input.value = '';
+  const usingUpload = playerBotId[pid] === botId;
+  const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
+  for (const s of locks) s.disabled = true;
+  try {
+    if (usingUpload) {
+      const fallback = getDefaultBotId(botCatalog);
+      if (fallback) await applyBotForPlayer(pid, fallback, { isInitialLoad: false });
+      else syncFileUploadRow(pid);
+    } else {
+      syncFileUploadRow(pid);
+    }
+    logEvent(`P${pid} cleared uploaded bot file.`);
+  } finally {
+    for (const s of locks) s.disabled = false;
+    syncFileUploadRow(pid);
   }
 }
 
@@ -430,6 +485,10 @@ export function initApp() {
   els.botSelect2 = document.getElementById('bot-select-2');
   els.botFile1 = document.getElementById('bot-file-1');
   els.botFile2 = document.getElementById('bot-file-2');
+  els.botFileClear1 = document.getElementById('bot-file-clear-1');
+  els.botFileClear2 = document.getElementById('bot-file-clear-2');
+  els.botFileStatus1 = document.getElementById('bot-file-status-1');
+  els.botFileStatus2 = document.getElementById('bot-file-status-2');
 
   populateBotSelects();
   if (els.botSelect1) els.botSelect1.disabled = true;
@@ -438,6 +497,10 @@ export function initApp() {
   if (els.botSelect2) els.botSelect2.addEventListener('change', () => onBotSelectChange(2));
   if (els.botFile1) els.botFile1.addEventListener('change', () => onBotFileChange(1, els.botFile1));
   if (els.botFile2) els.botFile2.addEventListener('change', () => onBotFileChange(2, els.botFile2));
+  if (els.botFileClear1) els.botFileClear1.addEventListener('click', () => { void clearUploadedBot(1); });
+  if (els.botFileClear2) els.botFileClear2.addEventListener('click', () => { void clearUploadedBot(2); });
+  syncFileUploadRow(1);
+  syncFileUploadRow(2);
 
   initEventConsole(els.eventLog);
   initPlayerCardEventFeed();
@@ -532,6 +595,8 @@ export async function preloadWorkers() {
   if (els.botSelect2) els.botSelect2.disabled = noBots;
 
   botControlsReady = true;
+  syncFileUploadRow(1);
+  syncFileUploadRow(2);
   syncStepControls();
   updateLoadingStatus('Ready.');
 }
