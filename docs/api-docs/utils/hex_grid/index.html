@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>`utils.hex_grid` API Reference · Splatbot</title>
+  <link rel="icon" href="../../../../images/splat.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../css/docs.css">
+  <link rel="stylesheet" href="../../../../css/docs-hljs.css">
+</head>
+<body class="docs-body">
+  <header class="docs-header">
+    <nav class="docs-nav">
+      <a class="docs-brand" href="../../../../index.html">Splatbot</a>
+      <span class="docs-sep">/</span>
+      <a class="docs-crumb" href="../../../../docs/index.html">Docs</a>
+    </nav>
+  </header>
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../../index.html">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../bot_data/index.html">Bot info API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../game_data/index.html">Game state (`game_state`) API Reference</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../actions/index.html">`utils.actions` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Debugging your bot</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../examples/index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../glossary/index.html">Glossary</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../writing-bots/index.html">Writing bots</a></div></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
+<h1 id="utilshex_grid-api-reference" tabindex="-1"><code>utils.hex_grid</code> API Reference</h1>
+<p>Axial-coordinate utilities for the hex board. The engine uses <strong>pointy-top</strong> hexes; axial <strong>E/W</strong> line up with screen <strong>right/left</strong> (+x / −x). See <a href="https://www.redblobgames.com/grids/hexagons/">Red Blob Games — Hexagonal Grids</a> for background.</p>
+<h2 id="module-exports-public-api" tabindex="-1">Module exports (public API)</h2>
+<ul>
+<li><code>Hex</code></li>
+<li><code>HexDirection</code></li>
+<li><code>HEX_DIRECTIONS</code></li>
+<li><code>hex_neighbors</code></li>
+<li><code>hex_neighbor</code></li>
+<li><code>hex_distance</code></li>
+</ul>
+<hr>
+<h2 id="hex" tabindex="-1"><code>Hex</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Hex</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Axial (q, r) hex coordinate. Immutable and hashable.&quot;&quot;&quot;</span>
+    q: <span class="hljs-built_in">int</span>
+    r: <span class="hljs-built_in">int</span>
+</code></pre>
+<p><strong>Fields</strong></p>
+<ul>
+<li><code>q: int</code> — axial q component.</li>
+<li><code>r: int</code> — axial r component.</li>
+</ul>
+<p><strong>Methods</strong></p>
+<ul>
+<li><code>__add__(other: Hex) -&gt; Hex</code> — component-wise sum; returns a new <code>Hex</code>.</li>
+<li><code>__sub__(other: Hex) -&gt; Hex</code> — component-wise difference; returns a new <code>Hex</code>.</li>
+<li><code>__repr__() -&gt; str</code> — e.g. <code>Hex(0, -1)</code>.</li>
+</ul>
+<p><code>Hex</code> is suitable for use in sets and as dict keys (frozen dataclass).</p>
+<hr>
+<h2 id="hexdirection" tabindex="-1"><code>HexDirection</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">HexDirection</span>(<span class="hljs-title class_ inherited__">IntEnum</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Axial neighbor directions; 0 = +q (E). Screen: E → right, W → left.&quot;&quot;&quot;</span>
+
+    E = <span class="hljs-number">0</span>
+    NE = <span class="hljs-number">1</span>
+    NW = <span class="hljs-number">2</span>
+    W = <span class="hljs-number">3</span>
+    SW = <span class="hljs-number">4</span>
+    SE = <span class="hljs-number">5</span>
+</code></pre>
+<p>Integer enum values match indices into <code>HEX_DIRECTIONS</code> and are accepted wherever a direction is passed as <code>int | HexDirection</code> (typically normalized with <code>% 6</code>).</p>
+<hr>
+<h2 id="hex_directions" tabindex="-1"><code>HEX_DIRECTIONS</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python">HEX_DIRECTIONS: <span class="hljs-built_in">list</span>[Hex] = [
+    Hex(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),   <span class="hljs-comment"># 0 — E</span>
+    Hex(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>),  <span class="hljs-comment"># 1 — NE</span>
+    Hex(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>),  <span class="hljs-comment"># 2 — NW</span>
+    Hex(-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),  <span class="hljs-comment"># 3 — W</span>
+    Hex(-<span class="hljs-number">1</span>, <span class="hljs-number">1</span>),  <span class="hljs-comment"># 4 — SW</span>
+    Hex(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>),   <span class="hljs-comment"># 5 — SE</span>
+]
+</code></pre>
+<p>Axial step vector for each <code>HexDirection</code> value (same order as the enum).</p>
+<hr>
+<h2 id="hex_neighbors" tabindex="-1"><code>hex_neighbors</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_neighbors</span>(<span class="hljs-params">h: Hex</span>) -&gt; <span class="hljs-built_in">list</span>[Hex]
+</code></pre>
+<p>Returns the six neighboring hexes of <code>h</code>, one per <code>HexDirection</code>, in enum order (<code>E</code> through <code>SE</code>).</p>
+<hr>
+<h2 id="hex_neighbor" tabindex="-1"><code>hex_neighbor</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_neighbor</span>(<span class="hljs-params">h: Hex, direction: <span class="hljs-built_in">int</span> | HexDirection</span>) -&gt; Hex
+</code></pre>
+<p>Returns the neighbor of <code>h</code> in the given direction. The direction is taken as <code>int(direction) % 6</code>, so integer values wrap modulo 6.</p>
+<hr>
+<h2 id="hex_distance" tabindex="-1"><code>hex_distance</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_distance</span>(<span class="hljs-params">a: Hex, b: Hex</span>) -&gt; <span class="hljs-built_in">int</span>
+</code></pre>
+<p>Returns the <strong>axial cube distance</strong> between two hexes (integer steps on the hex grid).</p>
+<hr>
+<h2 id="commented-out-helpers-source-only" tabindex="-1">Commented-out helpers (source only)</h2>
+<p>The shipped <code>utils/hex_grid.py</code> file also contains commented definitions for <code>generate_hex_grid</code>, <code>axial_to_pixel</code>, and <code>hex_corners</code>. They are <strong>not</strong> part of the live module API in the sandbox; do not rely on them unless your project enables that code.</p>
+
+    </main>
+  </div>
+  <script src="../../../../js/docs-copy-code.js" defer></script>
+  <script type="module" src="../../../../js/docs/action-demos.js"></script>
+</body>
+</html>

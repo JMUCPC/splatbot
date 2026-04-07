@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game state (`game_state`) API Reference · Splatbot</title>
+  <link rel="icon" href="../../../images/splat.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/docs.css">
+  <link rel="stylesheet" href="../../../css/docs-hljs.css">
+</head>
+<body class="docs-body">
+  <header class="docs-header">
+    <nav class="docs-nav">
+      <a class="docs-brand" href="../../../index.html">Splatbot</a>
+      <span class="docs-sep">/</span>
+      <a class="docs-crumb" href="../../../docs/index.html">Docs</a>
+    </nav>
+  </header>
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../index.html">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../bot_data/index.html">Bot info API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Game state (`game_state`) API Reference</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../utils/actions/index.html">`utils.actions` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../debugging/index.html">Debugging your bot</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../examples/index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../glossary/index.html">Glossary</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../writing-bots/index.html">Writing bots</a></div></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
+<h1 id="game-state-game_state-api-reference" tabindex="-1">Game state (<code>game_state</code>) API Reference</h1>
+<p><code>Bot.decide(self, game_state)</code> receives a <strong>read-only snapshot</strong> of the match. It is built in the Pyodide worker from JSON and is <strong>not</strong> a module you import; attribute assignment raises <code>AttributeError</code> (including on nested <code>bots</code> and <code>tile_pids</code> mappings).</p>
+<p>Conceptually it matches the data described below. Names follow the Python attributes used in the worker (<code>snake_case</code> cooldown fields).</p>
+<h2 id="type-overview" tabindex="-1">Type overview</h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-comment"># Illustrative — actual class is injected by the sandbox; read-only.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">GameStateSnapshot</span>:
+    my_pid: <span class="hljs-built_in">int</span>
+    my_stun: <span class="hljs-built_in">int</span>
+    my_splat_cooldown: <span class="hljs-built_in">int</span>
+    my_dash_cooldown: <span class="hljs-built_in">int</span>
+    my_paintball_cooldown: <span class="hljs-built_in">int</span>
+    grid: <span class="hljs-built_in">frozenset</span>[Hex]
+    tile_pids: Mapping[Hex, <span class="hljs-built_in">int</span>]
+    bots: Mapping[<span class="hljs-built_in">int</span>, BotInfo]
+    turn: <span class="hljs-built_in">int</span>
+    max_turns: <span class="hljs-built_in">int</span>
+</code></pre>
+<p><code>Hex</code> and bot entries use types from <a href="../utils/hex_grid/index.html"><code>utils.hex_grid</code></a> and <a href="../bot_data/index.html">Bot info</a>.</p>
+<hr>
+<h2 id="fields" tabindex="-1">Fields</h2>
+<h3 id="my_pid-int" tabindex="-1"><code>my_pid: int</code></h3>
+<p>Your player id (<code>1</code> or <code>2</code> in a two-player match).</p>
+<h3 id="my_stun-int" tabindex="-1"><code>my_stun: int</code></h3>
+<p>Turns remaining during which <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, and <strong>shoot_paintball</strong> are blocked for your bot (<strong>skip</strong> is still allowed). Same semantics as <code>game_state.bots[my_pid].stun</code>; exposed for convenience.</p>
+<h3 id="my_splat_cooldown-int" tabindex="-1"><code>my_splat_cooldown: int</code></h3>
+<p>Turns until <strong>splat</strong> is allowed again for your bot (0 means ready). Mirrors <code>game_state.bots[my_pid].splat_cooldown</code>.</p>
+<h3 id="my_dash_cooldown-int" tabindex="-1"><code>my_dash_cooldown: int</code></h3>
+<p>Turns until <strong>dash</strong> is allowed again for your bot. Mirrors <code>game_state.bots[my_pid].dash_cooldown</code>.</p>
+<h3 id="my_paintball_cooldown-int" tabindex="-1"><code>my_paintball_cooldown: int</code></h3>
+<p>Turns until <strong>shoot_paintball</strong> is allowed again for your bot. Mirrors <code>game_state.bots[my_pid].paintball_cooldown</code>.</p>
+<h3 id="grid-frozensethex" tabindex="-1"><code>grid: frozenset[Hex]</code></h3>
+<p>All hex cells that exist on the map (in-bounds tiles). Use this to test whether a coordinate is on the board.</p>
+<h3 id="tile_pids-mappinghex-int" tabindex="-1"><code>tile_pids: Mapping[Hex, int]</code></h3>
+<p>Paint ownership per hex: maps each <code>Hex</code> to a player id. <strong><code>0</code></strong> means <strong>unpainted</strong>; <code>1</code> and <code>2</code> mean painted by that player. The mapping is read-only (<code>types.MappingProxyType</code>).</p>
+<h3 id="bots-mappingint-botinfo" tabindex="-1"><code>bots: Mapping[int, BotInfo]</code></h3>
+<p>Per-player state keyed by player id. Values are read-only bot info objects; see <a href="../bot_data/index.html">Bot info</a>.</p>
+<h3 id="turn-int" tabindex="-1"><code>turn: int</code></h3>
+<p>Current turn index provided by the engine (same field name as in the serialized snapshot).</p>
+<h3 id="max_turns-int" tabindex="-1"><code>max_turns: int</code></h3>
+<p>Maximum turns for the match (game ends when <code>turn</code> reaches this, per engine rules).</p>
+<hr>
+<h2 id="construction-note" tabindex="-1">Construction note</h2>
+<p>The worker parses JSON from the main thread, builds <code>Hex</code> / <code>HexDirection</code> values, wraps <code>tile_pids</code> and <code>bots</code> in read-only mappings, and passes the result to <code>decide</code>. You should treat <code>game_state</code> as an immutable view of the world for that call.</p>
+
+    </main>
+  </div>
+  <script src="../../../js/docs-copy-code.js" defer></script>
+  <script type="module" src="../../../js/docs/action-demos.js"></script>
+</body>
+</html>

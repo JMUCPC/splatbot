@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>`utils.actions` API Reference · Splatbot</title>
+  <link rel="icon" href="../../../../images/splat.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../css/docs.css">
+  <link rel="stylesheet" href="../../../../css/docs-hljs.css">
+</head>
+<body class="docs-body">
+  <header class="docs-header">
+    <nav class="docs-nav">
+      <a class="docs-brand" href="../../../../index.html">Splatbot</a>
+      <span class="docs-sep">/</span>
+      <a class="docs-crumb" href="../../../../docs/index.html">Docs</a>
+    </nav>
+  </header>
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <h2 class="docs-sidebar-title">Articles</h2>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../../index.html">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../bot_data/index.html">Bot info API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../game_data/index.html">Game state (`game_state`) API Reference</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">`utils.actions` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Debugging your bot</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../examples/index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../glossary/index.html">Glossary</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../writing-bots/index.html">Writing bots</a></div></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
+<h1 id="utilsactions-api-reference" tabindex="-1"><code>utils.actions</code> API Reference</h1>
+<p>Bot scripts should return a single <code>Action</code> from <code>Bot.decide(self, game_state)</code>.
+This module defines immutable action datatypes and a factory class (<code>Actions</code>)
+used to construct them.</p>
+<h2 id="exports" tabindex="-1">Exports</h2>
+<ul>
+<li><code>Action</code></li>
+<li><code>MoveAction</code></li>
+<li><code>SkipAction</code></li>
+<li><code>SplatAction</code></li>
+<li><code>DashAction</code></li>
+<li><code>ShootPaintballAction</code></li>
+<li><code>Actions</code></li>
+</ul>
+<h2 id="types" tabindex="-1">Types</h2>
+<h3 id="moveaction" tabindex="-1"><code>MoveAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MoveAction</span>:
+    direction: HexDirection
+</code></pre>
+<p>Represents a 1-hex move in a direction.</p>
+<p><strong>Fields</strong></p>
+<ul>
+<li><code>direction: HexDirection</code> - The move direction on the hex grid.</li>
+</ul>
+<hr>
+<h3 id="skipaction" tabindex="-1"><code>SkipAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SkipAction</span>:
+    <span class="hljs-keyword">pass</span>
+</code></pre>
+<p>Represents taking no action for the turn.</p>
+<p><strong>Fields</strong></p>
+<ul>
+<li>None</li>
+</ul>
+<hr>
+<h3 id="splataction" tabindex="-1"><code>SplatAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SplatAction</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Paint every in-grid neighbor of the bot&#x27;s current hex (not the hex you stand on).&quot;&quot;&quot;</span>
+</code></pre>
+<p>Paints every in-bounds neighboring hex around the bot’s current position.
+Does <strong>not</strong> paint the bot’s own hex.</p>
+<p><strong>Fields</strong></p>
+<ul>
+<li>None</li>
+</ul>
+<hr>
+<h3 id="dashaction" tabindex="-1"><code>DashAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DashAction</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Move 2-6 hexes in a direction, painting only the destination hex.&quot;&quot;&quot;</span>
+    direction: HexDirection
+    distance: <span class="hljs-built_in">int</span>
+</code></pre>
+<p>Represents a dash movement action.</p>
+<p><strong>Fields</strong></p>
+<ul>
+<li><code>direction: HexDirection</code> - Dash direction on the hex grid.</li>
+<li><code>distance: int</code> - Number of hexes to dash.</li>
+</ul>
+<hr>
+<h3 id="shootpaintballaction" tabindex="-1"><code>ShootPaintballAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ShootPaintballAction</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Paint a ray in ``direction`` until the map edge or another bot (you do not move).&quot;&quot;&quot;</span>
+    direction: HexDirection
+</code></pre>
+<p>Represents a ranged paint action without moving the bot.</p>
+<p><strong>Fields</strong></p>
+<ul>
+<li><code>direction: HexDirection</code> - Direction of the paintball ray.</li>
+</ul>
+<hr>
+<h3 id="action" tabindex="-1"><code>Action</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python">Action = MoveAction | SkipAction | SplatAction | DashAction | ShootPaintballAction
+</code></pre>
+<p>Union type for all legal bot actions.</p>
+<h2 id="factory-api-actions" tabindex="-1">Factory API: <code>Actions</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Actions</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Factories for :class:`Action` values (use from bot scripts / ``Bot.decide``).&quot;&quot;&quot;</span>
+</code></pre>
+<p>Static helpers to construct valid action objects.</p>
+<h3 id="actionsmovedirection-int--hexdirection---moveaction" tabindex="-1"><code>Actions.move(direction: int | HexDirection) -&gt; MoveAction</code></h3>
+<p>Create a <code>MoveAction</code>.</p>
+<ul>
+<li>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted
+to <code>HexDirection</code>.</li>
+<li>If <code>direction</code> is already <code>HexDirection</code>, it is used directly.</li>
+</ul>
+<h3 id="actionsskip---skipaction" tabindex="-1"><code>Actions.skip() -&gt; SkipAction</code></h3>
+<p>Create a <code>SkipAction</code>.</p>
+<h3 id="actionssplat---splataction" tabindex="-1"><code>Actions.splat() -&gt; SplatAction</code></h3>
+<p>Create a <code>SplatAction</code>.</p>
+<h3 id="actionsdashdirection-int--hexdirection-distance-int---dashaction" tabindex="-1"><code>Actions.dash(direction: int | HexDirection, distance: int) -&gt; DashAction</code></h3>
+<p>Create a <code>DashAction</code>.</p>
+<ul>
+<li>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted
+to <code>HexDirection</code>.</li>
+<li><code>distance</code> is cast via <code>int(distance)</code> before constructing the action.</li>
+</ul>
+<h3 id="actionsshoot_paintballdirection-int--hexdirection---shootpaintballaction" tabindex="-1"><code>Actions.shoot_paintball(direction: int | HexDirection) -&gt; ShootPaintballAction</code></h3>
+<p>Create a <code>ShootPaintballAction</code>.</p>
+<ul>
+<li>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted
+to <code>HexDirection</code>.</li>
+<li>If <code>direction</code> is already <code>HexDirection</code>, it is used directly.</li>
+</ul>
+
+    </main>
+  </div>
+  <script src="../../../../js/docs-copy-code.js" defer></script>
+  <script type="module" src="../../../../js/docs/action-demos.js"></script>
+</body>
+</html>
