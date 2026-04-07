@@ -4,7 +4,7 @@ Short definitions for terms used in these docs. First mention on other pages may
 
 ## Action
 
-One instruction your bot returns from `decide` each time: move, skip, splat, dash, or shoot paintball. See [Actions](../actions/).
+One instruction your bot returns from `decide` each time: move, skip, splat, dash, shoot paintball, or a turning action (`turn_left`, `turn_right`, `face_direction`, `turn_180`). See [Actions](../actions/).
 
 ## Axial coordinates
 
@@ -44,7 +44,7 @@ The in-browser Python runtime used to run your bot. Implementation detail; you w
 
 ## Stun
 
-After splat or paintball (and optionally dash), you may be **stunned** for several turns: you cannot move, dash, splat, or shoot paintball until `game_state.me.stun` is `0`. You **can** still `Actions.skip()`.
+After splat or paintball (and optionally dash), you may be **stunned** for several turns: you cannot move, dash, splat, shoot paintball, or turn until `game_state.me.stun` is `0`. You **can** still `Actions.skip()`.
 
 ## Tick
 

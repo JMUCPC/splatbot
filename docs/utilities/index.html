@@ -42,7 +42,7 @@
 <p>Bots run in a small Python sandbox. You may <strong><code>import</code></strong> from the <strong><code>utils</code></strong> package only (plus normal Python builtins). In practice you almost always use:</p>
 <ul>
 <li><strong><code>utils.hex_grid</code></strong> — hex coordinates, directions, helpers like <code>hex_neighbor</code>.</li>
-<li><strong><code>utils.actions</code></strong> — <code>Actions.move(...)</code>, etc. (see <a href="../actions/">Actions</a>).</li>
+<li><strong><code>utils.actions</code></strong> — <code>Actions.move()</code>, <code>Actions.face_direction()</code>, etc. (see <a href="../actions/">Actions</a>).</li>
 </ul>
 <p>If you open this project’s source code, <code>python/utils/</code> is the same logic copied into the browser for Pyodide; you do not need the repo to write a bot in the game.</p>
 <h2 id="hexdirection" tabindex="-1">HexDirection</h2>
@@ -69,7 +69,8 @@
 </tr>
 </tbody>
 </table>
-<p>Pass a direction to <code>Actions.move</code>, <code>Actions.dash</code>, or <code>Actions.shoot_paintball</code> (or use integers <code>0</code>–<code>5</code>; names are clearer).</p>
+<p>Use <code>HexDirection</code> with <code>Actions.face_direction(...)</code>, <code>hex_neighbor</code>, and when comparing to <code>game_state.bots[pid].facing</code>. You can also use integers <code>0</code>–<code>5</code> where an API accepts <code>int | HexDirection</code> (names are clearer).</p>
+<p><strong>Motion:</strong> <code>Actions.move()</code>, <code>Actions.dash(distance)</code>, and <code>Actions.shoot_paintball()</code> use your bot’s current <strong>facing</strong>, not a direction argument — turn first if you need a different heading.</p>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 east = HexDirection.E
@@ -81,15 +82,9 @@ south_east = HexDirection.SE
 </code></pre>
 <p>Common helpers (import from <code>utils.hex_grid</code>):</p>
 <ul>
-<li>
-<p><strong><code>hex_neighbor(hex, direction)</code></strong> — one step from <code>hex</code> in direction <code>0</code>–<code>5</code> or <code>HexDirection</code>.</p>
-</li>
-<li>
-<p><strong><code>hex_neighbors(hex)</code></strong> — all six neighbors.</p>
-</li>
-<li>
-<p><strong><code>hex_distance(a, b)</code></strong> — grid distance between two hexes.</p>
-</li>
+<li><strong><code>hex_neighbor(hex, direction)</code></strong> — one step from <code>hex</code> in direction <code>0</code>–<code>5</code> or <code>HexDirection</code>.</li>
+<li><strong><code>hex_neighbors(hex)</code></strong> — all six neighbors.</li>
+<li><strong><code>hex_distance(a, b)</code></strong> — grid distance between two hexes.</li>
 </ul>
 <p>For everything your bot receives each turn, see <a href="../writing-bots/">Writing bots</a>.</p>
 <p><a href="../index.html">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>

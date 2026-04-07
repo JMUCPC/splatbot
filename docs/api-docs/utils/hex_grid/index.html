@@ -87,7 +87,7 @@
     SW = <span class="hljs-number">4</span>
     SE = <span class="hljs-number">5</span>
 </code></pre>
-<p>Integer enum values match indices into <code>HEX_DIRECTIONS</code> and are accepted wherever a direction is passed as <code>int | HexDirection</code> (typically normalized with <code>% 6</code>).</p>
+<p>Integer enum values match indices into <code>HEX_DIRECTIONS</code> and are accepted wherever a direction is passed as <code>int | HexDirection</code> (for example <code>Actions.face_direction</code>, <code>hex_neighbor</code> — typically normalized with <code>% 6</code>).</p>
 <hr>
 <h2 id="hex_directions" tabindex="-1"><code>HEX_DIRECTIONS</code></h2>
 <pre><code data-docs-code-lang="python" class="language-python">HEX_DIRECTIONS: <span class="hljs-built_in">list</span>[Hex] = [

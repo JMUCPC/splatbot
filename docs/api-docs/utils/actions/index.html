@@ -50,18 +50,22 @@ used to construct them.</p>
 <li><code>SplatAction</code></li>
 <li><code>DashAction</code></li>
 <li><code>ShootPaintballAction</code></li>
+<li><code>TurnLeftAction</code></li>
+<li><code>TurnRightAction</code></li>
+<li><code>FaceDirectionAction</code></li>
+<li><code>Turn180Action</code></li>
 <li><code>Actions</code></li>
 </ul>
 <h2 id="types" tabindex="-1">Types</h2>
 <h3 id="moveaction" tabindex="-1"><code>MoveAction</code></h3>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">MoveAction</span>:
-    direction: HexDirection
+    <span class="hljs-keyword">pass</span>
 </code></pre>
-<p>Represents a 1-hex move in a direction.</p>
+<p>One hex forward in the bot’s current <strong>facing</strong>; paints the landing tile.</p>
 <p><strong>Fields</strong></p>
 <ul>
-<li><code>direction: HexDirection</code> - The move direction on the hex grid.</li>
+<li>None (direction comes from game state).</li>
 </ul>
 <hr>
 <h3 id="skipaction" tabindex="-1"><code>SkipAction</code></h3>
@@ -90,31 +94,65 @@ Does <strong>not</strong> paint the bot’s own hex.</p>
 <h3 id="dashaction" tabindex="-1"><code>DashAction</code></h3>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">DashAction</span>:
-    <span class="hljs-string">&quot;&quot;&quot;Move 2-6 hexes in a direction, painting only the destination hex.&quot;&quot;&quot;</span>
-    direction: HexDirection
+    <span class="hljs-string">&quot;&quot;&quot;Move ``distance`` hexes straight ahead (facing); paint only the destination hex.&quot;&quot;&quot;</span>
     distance: <span class="hljs-built_in">int</span>
 </code></pre>
-<p>Represents a dash movement action.</p>
 <p><strong>Fields</strong></p>
 <ul>
-<li><code>direction: HexDirection</code> - Dash direction on the hex grid.</li>
-<li><code>distance: int</code> - Number of hexes to dash.</li>
+<li><code>distance: int</code> — Number of hexes to dash (engine expects <strong>2–6</strong>).</li>
 </ul>
 <hr>
 <h3 id="shootpaintballaction" tabindex="-1"><code>ShootPaintballAction</code></h3>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">ShootPaintballAction</span>:
-    <span class="hljs-string">&quot;&quot;&quot;Paint a ray in ``direction`` until the map edge or another bot (you do not move).&quot;&quot;&quot;</span>
-    direction: HexDirection
+    <span class="hljs-string">&quot;&quot;&quot;Paint a ray straight ahead until the map edge or another bot (you do not move).&quot;&quot;&quot;</span>
+    <span class="hljs-keyword">pass</span>
 </code></pre>
-<p>Represents a ranged paint action without moving the bot.</p>
 <p><strong>Fields</strong></p>
 <ul>
-<li><code>direction: HexDirection</code> - Direction of the paintball ray.</li>
+<li>None (ray uses current <strong>facing</strong>).</li>
 </ul>
 <hr>
+<h3 id="turnleftaction" tabindex="-1"><code>TurnLeftAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TurnLeftAction</span>:
+    steps: <span class="hljs-built_in">int</span> = <span class="hljs-number">1</span>
+</code></pre>
+<p>Add <code>steps</code> to the direction index (mod 6), one tick — e.g. <strong>E → NE</strong> when <code>steps == 1</code> (pivots <strong>left</strong> on the default map view).</p>
+<hr>
+<h3 id="turnrightaction" tabindex="-1"><code>TurnRightAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TurnRightAction</span>:
+    steps: <span class="hljs-built_in">int</span> = <span class="hljs-number">1</span>
+</code></pre>
+<p>Subtract <code>steps</code> from the direction index (mod 6), one tick — e.g. <strong>E → SE</strong> when <code>steps == 1</code> (pivots <strong>right</strong> on the default map view).</p>
+<hr>
+<h3 id="facedirectionaction" tabindex="-1"><code>FaceDirectionAction</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FaceDirectionAction</span>:
+    direction: HexDirection
+</code></pre>
+<p>Set <strong>facing</strong> to an absolute direction, one tick.</p>
+<hr>
+<h3 id="turn180action" tabindex="-1"><code>Turn180Action</code></h3>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Turn180Action</span>:
+    <span class="hljs-keyword">pass</span>
+</code></pre>
+<p>Turn <strong>facing</strong> 180° (opposite direction), one tick.</p>
+<hr>
 <h3 id="action" tabindex="-1"><code>Action</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python">Action = MoveAction | SkipAction | SplatAction | DashAction | ShootPaintballAction
+<pre><code data-docs-code-lang="python" class="language-python">Action = (
+    MoveAction
+    | SkipAction
+    | SplatAction
+    | DashAction
+    | ShootPaintballAction
+    | TurnLeftAction
+    | TurnRightAction
+    | FaceDirectionAction
+    | Turn180Action
+)
 </code></pre>
 <p>Union type for all legal bot actions.</p>
 <h2 id="factory-api-actions" tabindex="-1">Factory API: <code>Actions</code></h2>
@@ -122,31 +160,22 @@ Does <strong>not</strong> paint the bot’s own hex.</p>
     <span class="hljs-string">&quot;&quot;&quot;Factories for :class:`Action` values (use from bot scripts / ``Bot.decide``).&quot;&quot;&quot;</span>
 </code></pre>
 <p>Static helpers to construct valid action objects.</p>
-<h3 id="actionsmovedirection-int--hexdirection---moveaction" tabindex="-1"><code>Actions.move(direction: int | HexDirection) -&gt; MoveAction</code></h3>
-<p>Create a <code>MoveAction</code>.</p>
-<ul>
-<li>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted
-to <code>HexDirection</code>.</li>
-<li>If <code>direction</code> is already <code>HexDirection</code>, it is used directly.</li>
-</ul>
+<h3 id="actionsmove---moveaction" tabindex="-1"><code>Actions.move() -&gt; MoveAction</code></h3>
+<p>Step one hex forward (current facing).</p>
 <h3 id="actionsskip---skipaction" tabindex="-1"><code>Actions.skip() -&gt; SkipAction</code></h3>
 <p>Create a <code>SkipAction</code>.</p>
 <h3 id="actionssplat---splataction" tabindex="-1"><code>Actions.splat() -&gt; SplatAction</code></h3>
 <p>Create a <code>SplatAction</code>.</p>
-<h3 id="actionsdashdirection-int--hexdirection-distance-int---dashaction" tabindex="-1"><code>Actions.dash(direction: int | HexDirection, distance: int) -&gt; DashAction</code></h3>
-<p>Create a <code>DashAction</code>.</p>
-<ul>
-<li>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted
-to <code>HexDirection</code>.</li>
-<li><code>distance</code> is cast via <code>int(distance)</code> before constructing the action.</li>
-</ul>
-<h3 id="actionsshoot_paintballdirection-int--hexdirection---shootpaintballaction" tabindex="-1"><code>Actions.shoot_paintball(direction: int | HexDirection) -&gt; ShootPaintballAction</code></h3>
-<p>Create a <code>ShootPaintballAction</code>.</p>
-<ul>
-<li>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted
-to <code>HexDirection</code>.</li>
-<li>If <code>direction</code> is already <code>HexDirection</code>, it is used directly.</li>
-</ul>
+<h3 id="actionsdashdistance-int---dashaction" tabindex="-1"><code>Actions.dash(distance: int) -&gt; DashAction</code></h3>
+<p>Dash straight ahead for <code>int(distance)</code> hexes (engine validates <strong>2–6</strong>).</p>
+<h3 id="actionsshoot_paintball---shootpaintballaction" tabindex="-1"><code>Actions.shoot_paintball() -&gt; ShootPaintballAction</code></h3>
+<p>Fire a paintball ray along current <strong>facing</strong>.</p>
+<h3 id="actionsturn_leftsteps-int--1---turnleftaction" tabindex="-1"><code>Actions.turn_left(steps: int = 1) -&gt; TurnLeftAction</code></h3>
+<h3 id="actionsturn_rightsteps-int--1---turnrightaction" tabindex="-1"><code>Actions.turn_right(steps: int = 1) -&gt; TurnRightAction</code></h3>
+<h3 id="actionsface_directiondirection-int--hexdirection---facedirectionaction" tabindex="-1"><code>Actions.face_direction(direction: int | HexDirection) -&gt; FaceDirectionAction</code></h3>
+<p>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted to <code>HexDirection</code>.</p>
+<h3 id="actionsturn_180---turn180action" tabindex="-1"><code>Actions.turn_180() -&gt; Turn180Action</code></h3>
+<p>Flip <strong>facing</strong> to the opposite direction.</p>
 
     </main>
   </div>

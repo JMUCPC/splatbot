@@ -58,7 +58,7 @@
 <h3 id="pid-int" tabindex="-1"><code>pid: int</code></h3>
 <p>Your player id (<code>1</code> or <code>2</code> in a two-player match). Same value as <code>me.pid</code>.</p>
 <h3 id="me-botinfo" tabindex="-1"><code>me: BotInfo</code></h3>
-<p>A read-only <a href="../bot_data/index.html">BotInfo</a> for <strong>your</strong> bot — position, facing, stun, and all cooldowns. This is the primary way to check your own state:</p>
+<p>A read-only <a href="../bot_data/index.html">BotInfo</a> for <strong>your</strong> bot — position, facing, stun, and all cooldowns. This is the primary way to check your own state. Stun counts turns where <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, <strong>shoot_paintball</strong>, and <strong>turning</strong> are blocked (<strong>skip</strong> is still allowed).</p>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">if</span> game_state.me.stun &gt; <span class="hljs-number">0</span>:
     <span class="hljs-keyword">return</span> Actions.skip()
 </code></pre>

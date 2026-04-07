@@ -5,11 +5,16 @@ from utils.hex_grid import HexDirection
 
 
 class Bot:
+    def __init__(self):
+        self._move_next = False
+
     def decide(self, game_state):
         if game_state.me.stun > 0:
             return Actions.skip()
+        if not self._move_next:
+            self._move_next = True
+            return Actions.face_direction(random.choice(list(HexDirection)))
+        self._move_next = False
         if game_state.me.dash_cooldown == 0 and random.random() < 0.25:
-            direction = random.choice(list(HexDirection))
-            distance = random.randint(2, 6)
-            return Actions.dash(direction, distance)
-        return Actions.move(random.choice(list(HexDirection)))
+            return Actions.dash(random.randint(2, 6))
+        return Actions.move()

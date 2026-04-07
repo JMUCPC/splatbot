@@ -1,4 +1,4 @@
-"""Ping-pong east/west using bot-managed direction state."""
+"""Ping-pong east/west along the q-axis using facing + ``face_direction`` at edges."""
 
 from utils.actions import Actions
 from utils.hex_grid import HexDirection, hex_neighbor
@@ -15,4 +15,6 @@ class Bot:
         if nbr not in game_state.grid:
             self._going_east = not self._going_east
             d = HexDirection.E if self._going_east else HexDirection.W
-        return Actions.move(d)
+        if me.facing != d:
+            return Actions.face_direction(d)
+        return Actions.move()

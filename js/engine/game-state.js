@@ -17,7 +17,7 @@ export class BotData {
     this.pid = pid;
     this.position = position;
     this.facing = facing;
-    /** Turns remaining where move / dash / splat / shoot_paintball are blocked (`skip` still allowed). */
+    /** Turns remaining where move / dash / splat / shoot_paintball / turning are blocked (`skip` still allowed). */
     this.stun = stun;
     /** Turns until splat is allowed again (see `config.SPLAT_COOLDOWN_TURNS`). */
     this.splatCooldown = splatCooldown;
@@ -28,10 +28,21 @@ export class BotData {
   }
 }
 
+function normFacing(d) {
+  return ((Math.trunc(Number(d)) % 6) + 6) % 6;
+}
+
+function normTurnSteps(steps) {
+  const raw = steps === undefined || steps === null ? 1 : steps;
+  const n = Math.trunc(Number(raw));
+  if (!Number.isFinite(n) || n === 0) return 0;
+  return ((n % 6) + 6) % 6;
+}
+
 export class GameState {
   constructor(grid, bots, turn = 0, maxTurns = 200, radius = 8) {
-    this.grid = grid;       // Map<string, Hex>  — Hex.controller holds owner BotData|null
-    this.bots = bots;       // Map<number, BotData>
+    this.grid = grid; // Map<string, Hex> — Hex.controller holds owner BotData|null
+    this.bots = bots; // Map<number, BotData>
     this.turn = turn;
     this.maxTurns = maxTurns;
     this.radius = radius;
@@ -121,10 +132,11 @@ export class GameState {
         }
         return;
       }
-      const newPos = hexNeighbor(bot.position, action.direction);
+      const dir = normFacing(bot.facing);
+      const newPos = hexNeighbor(bot.position, dir);
       if (this.grid.has(newPos.key)) {
         bot.position = newPos;
-        bot.facing = action.direction;
+        bot.facing = dir;
         this._paint(newPos.key, bot);
       } else if (logFn) {
         logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
@@ -155,10 +167,11 @@ export class GameState {
         return;
       }
 
+      const facDir = normFacing(bot.facing);
       const start = bot.position;
       let dest = start;
       for (let i = 0; i < dist; i++) {
-        const next = hexNeighbor(dest, action.direction);
+        const next = hexNeighbor(dest, facDir);
         if (!this.grid.has(next.key)) break;
         dest = next;
       }
@@ -167,7 +180,7 @@ export class GameState {
       bot.stun = Math.max(bot.stun, config.DASH_STUN_TURNS);
       if (!dest.equals(start)) {
         bot.position = dest;
-        bot.facing = action.direction;
+        bot.facing = facDir;
         this._paint(dest.key, bot);
       }
     } else if (action.type === "splat") {
@@ -212,7 +225,7 @@ export class GameState {
         }
         return;
       }
-      const dir = ((Math.trunc(Number(action.direction)) % 6) + 6) % 6;
+      const dir = normFacing(bot.facing);
       let cur = bot.position;
       while (true) {
         cur = hexNeighbor(cur, dir);
@@ -227,9 +240,35 @@ export class GameState {
         if (blocked) break;
         this._paint(cur.key, bot);
       }
-      bot.facing = dir;
       bot.paintballCooldown = config.SHOOT_PAINTBALL_COOLDOWN_TURNS;
       bot.stun = config.PAINTBALL_STUN_TURNS;
+    } else if (
+      action.type === "turn_left" ||
+      action.type === "turn_right" ||
+      action.type === "face_direction" ||
+      action.type === "turn_180"
+    ) {
+      if (bot.stun > 0) {
+        if (logFn) {
+          logFn(
+            `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot turn`,
+          );
+        }
+        return;
+      }
+      if (action.type === "turn_left") {
+        const s = normTurnSteps(action.steps);
+        if (s === 0) return;
+        bot.facing = (bot.facing + s) % 6;
+      } else if (action.type === "turn_right") {
+        const s = normTurnSteps(action.steps);
+        if (s === 0) return;
+        bot.facing = ((bot.facing - s) % 6 + 6) % 6;
+      } else if (action.type === "face_direction") {
+        bot.facing = normFacing(action.direction);
+      } else {
+        bot.facing = (bot.facing + 3) % 6;
+      }
     } else if (action.type === "skip") {
       // do nothing
     } else {

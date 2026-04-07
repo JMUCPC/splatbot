@@ -38,27 +38,43 @@ const DEMOS = {
     action: { type: 'skip' },
   },
   move: {
-    build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0] }]),
-    action: { type: 'move', direction: HexDirection.E },
+    build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0], facing: HexDirection.E }]),
+    action: { type: 'move' },
   },
   splat: {
     build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0] }]),
     action: { type: 'splat' },
   },
   'shoot-paintball-edge': {
-    build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0] }]),
-    action: { type: 'shoot_paintball', direction: HexDirection.E },
+    build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0], facing: HexDirection.E }]),
+    action: { type: 'shoot_paintball' },
   },
   'shoot-paintball': {
     build: () => makeDemoState(3, [
-      { pid: 1, qr: [-1, 0] },
+      { pid: 1, qr: [-1, 0], facing: HexDirection.E },
       { pid: 2, qr: [2, 0] },
     ]),
-    action: { type: 'shoot_paintball', direction: HexDirection.E },
+    action: { type: 'shoot_paintball' },
   },
   dash: {
-    build: () => makeDemoState(3, [{ pid: 1, qr: [-2, 0] }]),
-    action: { type: 'dash', direction: HexDirection.E, distance: 4 },
+    build: () => makeDemoState(3, [{ pid: 1, qr: [-2, 0], facing: HexDirection.E }]),
+    action: { type: 'dash', distance: 4 },
+  },
+  'turn-left': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_left', steps: 1 },
+  },
+  'turn-left-2': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_left', steps: 2 },
+  },
+  'face-direction': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'face_direction', direction: HexDirection.SW },
+  },
+  'turn-180': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_180' },
   },
 };
 

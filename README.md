@@ -69,8 +69,11 @@ class Bot:
         # game_state.grid         — frozenset of Hex tiles; each has .controller (BotInfo or None)
         # game_state.turn         — current turn number
         # game_state.max_turns    — total turns in the match
-        # Also: Actions.skip(), Actions.splat(), Actions.dash(direction, distance), Actions.shoot_paintball(direction)
-        return Actions.move(HexDirection.E)
+        # Also: Actions.skip(), Actions.splat(), turning helpers, Actions.dash(distance), Actions.shoot_paintball()
+        me = game_state.me
+        if me.facing != HexDirection.E:
+            return Actions.face_direction(HexDirection.E)
+        return Actions.move()
 ```
 
 `Bot()` is created once when your script loads in the worker; use `self` to keep state between turns.

@@ -12,6 +12,10 @@ used to construct them.
 - `SplatAction`
 - `DashAction`
 - `ShootPaintballAction`
+- `TurnLeftAction`
+- `TurnRightAction`
+- `FaceDirectionAction`
+- `Turn180Action`
 - `Actions`
 
 ## Types
@@ -21,13 +25,14 @@ used to construct them.
 ```python
 @dataclass(frozen=True)
 class MoveAction:
-    direction: HexDirection
+    pass
 ```
 
-Represents a 1-hex move in a direction.
+One hex forward in the bot’s current **facing**; paints the landing tile.
 
 **Fields**
-- `direction: HexDirection` - The move direction on the hex grid.
+
+- None (direction comes from game state).
 
 ---
 
@@ -42,6 +47,7 @@ class SkipAction:
 Represents taking no action for the turn.
 
 **Fields**
+
 - None
 
 ---
@@ -58,6 +64,7 @@ Paints every in-bounds neighboring hex around the bot's current position.
 Does **not** paint the bot's own hex.
 
 **Fields**
+
 - None
 
 ---
@@ -67,16 +74,13 @@ Does **not** paint the bot's own hex.
 ```python
 @dataclass(frozen=True)
 class DashAction:
-    """Move 2-6 hexes in a direction, painting only the destination hex."""
-    direction: HexDirection
+    """Move ``distance`` hexes straight ahead (facing); paint only the destination hex."""
     distance: int
 ```
 
-Represents a dash movement action.
-
 **Fields**
-- `direction: HexDirection` - Dash direction on the hex grid.
-- `distance: int` - Number of hexes to dash.
+
+- `distance: int` — Number of hexes to dash (engine expects **2–6**).
 
 ---
 
@@ -85,21 +89,78 @@ Represents a dash movement action.
 ```python
 @dataclass(frozen=True)
 class ShootPaintballAction:
-    """Paint a ray in ``direction`` until the map edge or another bot (you do not move)."""
+    """Paint a ray straight ahead until the map edge or another bot (you do not move)."""
+    pass
+```
+
+**Fields**
+
+- None (ray uses current **facing**).
+
+---
+
+### `TurnLeftAction`
+
+```python
+@dataclass(frozen=True)
+class TurnLeftAction:
+    steps: int = 1
+```
+
+Add `steps` to the direction index (mod 6), one tick — e.g. **E → NE** when `steps == 1` (pivots **left** on the default map view).
+
+---
+
+### `TurnRightAction`
+
+```python
+@dataclass(frozen=True)
+class TurnRightAction:
+    steps: int = 1
+```
+
+Subtract `steps` from the direction index (mod 6), one tick — e.g. **E → SE** when `steps == 1` (pivots **right** on the default map view).
+
+---
+
+### `FaceDirectionAction`
+
+```python
+@dataclass(frozen=True)
+class FaceDirectionAction:
     direction: HexDirection
 ```
 
-Represents a ranged paint action without moving the bot.
+Set **facing** to an absolute direction, one tick.
 
-**Fields**
-- `direction: HexDirection` - Direction of the paintball ray.
+---
+
+### `Turn180Action`
+
+```python
+@dataclass(frozen=True)
+class Turn180Action:
+    pass
+```
+
+Turn **facing** 180° (opposite direction), one tick.
 
 ---
 
 ### `Action`
 
 ```python
-Action = MoveAction | SkipAction | SplatAction | DashAction | ShootPaintballAction
+Action = (
+    MoveAction
+    | SkipAction
+    | SplatAction
+    | DashAction
+    | ShootPaintballAction
+    | TurnLeftAction
+    | TurnRightAction
+    | FaceDirectionAction
+    | Turn180Action
+)
 ```
 
 Union type for all legal bot actions.
@@ -113,13 +174,9 @@ class Actions:
 
 Static helpers to construct valid action objects.
 
-### `Actions.move(direction: int | HexDirection) -> MoveAction`
+### `Actions.move() -> MoveAction`
 
-Create a `MoveAction`.
-
-- If `direction` is an `int`, it is normalized with `direction % 6` and converted
-  to `HexDirection`.
-- If `direction` is already `HexDirection`, it is used directly.
+Step one hex forward (current facing).
 
 ### `Actions.skip() -> SkipAction`
 
@@ -129,18 +186,22 @@ Create a `SkipAction`.
 
 Create a `SplatAction`.
 
-### `Actions.dash(direction: int | HexDirection, distance: int) -> DashAction`
+### `Actions.dash(distance: int) -> DashAction`
 
-Create a `DashAction`.
+Dash straight ahead for `int(distance)` hexes (engine validates **2–6**).
 
-- If `direction` is an `int`, it is normalized with `direction % 6` and converted
-  to `HexDirection`.
-- `distance` is cast via `int(distance)` before constructing the action.
+### `Actions.shoot_paintball() -> ShootPaintballAction`
 
-### `Actions.shoot_paintball(direction: int | HexDirection) -> ShootPaintballAction`
+Fire a paintball ray along current **facing**.
 
-Create a `ShootPaintballAction`.
+### `Actions.turn_left(steps: int = 1) -> TurnLeftAction`
 
-- If `direction` is an `int`, it is normalized with `direction % 6` and converted
-  to `HexDirection`.
-- If `direction` is already `HexDirection`, it is used directly.
+### `Actions.turn_right(steps: int = 1) -> TurnRightAction`
+
+### `Actions.face_direction(direction: int | HexDirection) -> FaceDirectionAction`
+
+If `direction` is an `int`, it is normalized with `direction % 6` and converted to `HexDirection`.
+
+### `Actions.turn_180() -> Turn180Action`
+
+Flip **facing** to the opposite direction.

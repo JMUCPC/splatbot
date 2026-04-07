@@ -38,7 +38,7 @@ The direction the bot is facing (same six-way scheme as `HexDirection` in `utils
 
 ### `stun: int`
 
-Turns remaining where **move**, **dash**, **splat**, and **shoot_paintball** are disallowed (**skip** still allowed). When greater than zero, those actions should be avoided; the engine will reject or no-op them similarly.
+Turns remaining where **move**, **dash**, **splat**, **shoot_paintball**, and **turning** are disallowed (**skip** still allowed). When greater than zero, those actions should be avoided; the engine will reject or no-op them similarly.
 
 ### `splat_cooldown: int`
 

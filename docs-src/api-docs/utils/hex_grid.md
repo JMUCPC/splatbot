@@ -60,7 +60,7 @@ class HexDirection(IntEnum):
     SE = 5
 ```
 
-Integer enum values match indices into `HEX_DIRECTIONS` and are accepted wherever a direction is passed as `int | HexDirection` (typically normalized with `% 6`).
+Integer enum values match indices into `HEX_DIRECTIONS` and are accepted wherever a direction is passed as `int | HexDirection` (for example `Actions.face_direction`, `hex_neighbor` — typically normalized with `% 6`).
 
 ---
 
