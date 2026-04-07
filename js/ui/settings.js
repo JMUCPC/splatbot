@@ -109,7 +109,7 @@ function migrateLegacySettingsKeys(overrides) {
 function getDefaultFlat() {
   return {
     GRID_RADIUS: 8,
-    MAX_TURNS: 200,
+    MAX_TURNS: 500,
     TICK_DELAY: 0.15,
     TIMEOUT: 1.0,
     TIMEOUT_INTERRUPT_GRACE: 0.35,

@@ -40,7 +40,7 @@ function normTurnSteps(steps) {
 }
 
 export class GameState {
-  constructor(grid, tilePids, bots, turn = 0, maxTurns = 200, radius = 8) {
+  constructor(grid, tilePids, bots, turn = 0, maxTurns = 500, radius = 8) {
     this.grid = grid; // Map<string, Hex>
     this.tilePids = tilePids; // Map<string, number>  (hex key -> player id, 0=unpainted)
     this.bots = bots; // Map<number, BotData>
