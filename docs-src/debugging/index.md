@@ -37,7 +37,7 @@ The **event log** is the panel in the Splatbot UI (you can expand it or open it 
 - **Errors** loading a bot, **Python exceptions** inside `decide`, or timeout escalation lines:
   - `... interrupt signaled` when the soft timeout fires.
   - `... worker terminated (state reset)` if the bot still does not stop after the grace window.
-- **Blocked** actions: stunned, wrong cooldown, move off the map, invalid dash distance, etc.
+- **Blocked** actions: stunned (including attempts to move, dash, splat, shoot, or **turn**), wrong cooldown, move off the map, invalid dash distance, etc.
 - **Collisions** when two bots end up on the same hex (that tile is cleared).
 
 Timeout behavior is two-tier when the page is cross-origin isolated (COOP/COEP headers): Splatbot signals a Python interrupt first, then hard-terminates only if needed. Without that environment support, it falls back to direct hard termination at timeout.

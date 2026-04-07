@@ -33,7 +33,7 @@ Your player id (`1` or `2` in a two-player match).
 
 ### `my_stun: int`
 
-Turns remaining during which **move**, **dash**, **splat**, and **shoot_paintball** are blocked for your bot (**skip** is still allowed). Same semantics as `game_state.bots[my_pid].stun`; exposed for convenience.
+Turns remaining during which **move**, **dash**, **splat**, **shoot_paintball**, and **turning** (`turn_left`, `turn_right`, `face_direction`, `turn_180`) are blocked for your bot (**skip** is still allowed). Same semantics as `game_state.bots[my_pid].stun`; exposed for convenience.
 
 ### `my_splat_cooldown: int`
 

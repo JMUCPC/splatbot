@@ -22,7 +22,9 @@ class Bot:
         if nbr not in game_state.grid:
             self._going_east = not self._going_east
             d = HexDirection.E if self._going_east else HexDirection.W
-        return Actions.move(d)
+        if me.facing != d:
+            return Actions.face_direction(d)
+        return Actions.move()
 ```
 
 **How it works**
@@ -30,10 +32,10 @@ class Bot:
 1. Remember a boolean `_going_east` on `self` so the choice survives after `decide` returns.
 2. Look up this bot’s position: `game_state.bots[game_state.my_pid].position`.
 3. Pick east or west from that boolean; compute the neighbor hex in that direction.
-4. If that neighbor is **not** on the map (`not in game_state.grid`), flip direction and recompute the move direction.
-5. Return `Actions.move(d)`.
+4. If that neighbor is **not** on the map (`not in game_state.grid`), flip direction and recompute the desired heading.
+5. **Face** that direction if needed, otherwise **move** forward.
 
-**Takeaways:** `hex_neighbor`, `game_state.grid`, and stored state on `self`.
+**Takeaways:** `hex_neighbor`, `game_state.grid`, facing + `move()`, and stored state on `self`.
 
 ## Splat when ready, otherwise move
 
@@ -50,14 +52,17 @@ class Bot:
             return Actions.skip()
         if game_state.my_splat_cooldown == 0:
             return Actions.splat()
-        return Actions.move(HexDirection.E)
+        me = game_state.bots[game_state.my_pid]
+        if me.facing != HexDirection.E:
+            return Actions.face_direction(HexDirection.E)
+        return Actions.move()
 ```
 
 **How it works**
 
-1. While stunned, the only safe choice is usually `skip` (you cannot splat or move depending on rules; here we skip whenever `my_stun > 0`).
+1. While stunned, the only safe choice is usually `skip` (you cannot splat, move, or turn).
 2. When splat is off cooldown, splat to paint neighbors.
-3. Otherwise default to moving east.
+3. Otherwise align to east if needed, then move forward.
 
 **Takeaways:** Order matters — check stun before spending cooldowns. Tune the `else` branch for your strategy.
 
@@ -78,18 +83,22 @@ class Bot:
             if nbr not in game_state.grid:
                 continue
             if game_state.tile_pids.get(nbr, 0) == 0:
-                return Actions.move(d)
-        return Actions.move(HexDirection.E)
+                if me.facing != d:
+                    return Actions.face_direction(d)
+                return Actions.move()
+        if me.facing != HexDirection.E:
+            return Actions.face_direction(HexDirection.E)
+        return Actions.move()
 ```
 
 **How it works**
 
 1. Loop the six directions in `HexDirection` order.
 2. Skip neighbors that are off the map.
-3. If a neighbor is unpainted (`0`), move there immediately.
-4. If none are unpainted, keep moving east so the bot still does something.
+3. If a neighbor is unpainted (`0`), **face** that way if needed, then **move** forward.
+4. If none are unpainted, **face** east if needed, then **move** forward.
 
-**Takeaways:** `tile_pids`, iterating directions, and a simple priority rule.
+**Takeaways:** `tile_pids`, iterating directions, facing before `move()`, and a simple priority rule.
 
 ---
 

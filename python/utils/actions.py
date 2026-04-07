@@ -59,11 +59,15 @@ class ShootPaintballAction:
 
 @dataclass(frozen=True)
 class TurnLeftAction:
+    """Increase direction index by ``steps`` (mod 6); e.g. E → NE when steps==1 (pivots left on default view)."""
+
     steps: int = 1
 
 
 @dataclass(frozen=True)
 class TurnRightAction:
+    """Decrease direction index by ``steps`` (mod 6); e.g. E → SE when steps==1 (pivots right on default view)."""
+
     steps: int = 1
 
 

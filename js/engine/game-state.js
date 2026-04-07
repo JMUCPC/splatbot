@@ -258,11 +258,11 @@ export class GameState {
       if (action.type === "turn_left") {
         const s = normTurnSteps(action.steps);
         if (s === 0) return;
-        bot.facing = ((bot.facing - s) % 6 + 6) % 6;
+        bot.facing = (bot.facing + s) % 6;
       } else if (action.type === "turn_right") {
         const s = normTurnSteps(action.steps);
         if (s === 0) return;
-        bot.facing = (bot.facing + s) % 6;
+        bot.facing = ((bot.facing - s) % 6 + 6) % 6;
       } else if (action.type === "face_direction") {
         bot.facing = normFacing(action.direction);
       } else {

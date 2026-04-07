@@ -57,17 +57,19 @@
         <span class="hljs-keyword">if</span> nbr <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
             <span class="hljs-variable language_">self</span>._going_east = <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._going_east
             d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._going_east <span class="hljs-keyword">else</span> HexDirection.W
-        <span class="hljs-keyword">return</span> Actions.move(d)
+        <span class="hljs-keyword">if</span> me.facing != d:
+            <span class="hljs-keyword">return</span> Actions.face_direction(d)
+        <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 <p><strong>How it works</strong></p>
 <ol>
 <li>Remember a boolean <code>_going_east</code> on <code>self</code> so the choice survives after <code>decide</code> returns.</li>
 <li>Look up this bot’s position: <code>game_state.bots[game_state.my_pid].position</code>.</li>
 <li>Pick east or west from that boolean; compute the neighbor hex in that direction.</li>
-<li>If that neighbor is <strong>not</strong> on the map (<code>not in game_state.grid</code>), flip direction and recompute the move direction.</li>
-<li>Return <code>Actions.move(d)</code>.</li>
+<li>If that neighbor is <strong>not</strong> on the map (<code>not in game_state.grid</code>), flip direction and recompute the desired heading.</li>
+<li><strong>Face</strong> that direction if needed, otherwise <strong>move</strong> forward.</li>
 </ol>
-<p><strong>Takeaways:</strong> <code>hex_neighbor</code>, <code>game_state.grid</code>, and stored state on <code>self</code>.</p>
+<p><strong>Takeaways:</strong> <code>hex_neighbor</code>, <code>game_state.grid</code>, facing + <code>move()</code>, and stored state on <code>self</code>.</p>
 <h2 id="splat-when-ready-otherwise-move" tabindex="-1">Splat when ready, otherwise move</h2>
 <p>Uses <a href="../glossary/index.html#stun">stun</a> and <a href="../glossary/index.html#cooldown">cooldown</a> checks from <code>game_state</code> before calling special actions.</p>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
@@ -80,13 +82,16 @@
             <span class="hljs-keyword">return</span> Actions.skip()
         <span class="hljs-keyword">if</span> game_state.my_splat_cooldown == <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.splat()
-        <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
+        me = game_state.bots[game_state.my_pid]
+        <span class="hljs-keyword">if</span> me.facing != HexDirection.E:
+            <span class="hljs-keyword">return</span> Actions.face_direction(HexDirection.E)
+        <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 <p><strong>How it works</strong></p>
 <ol>
-<li>While stunned, the only safe choice is usually <code>skip</code> (you cannot splat or move depending on rules; here we skip whenever <code>my_stun &gt; 0</code>).</li>
+<li>While stunned, the only safe choice is usually <code>skip</code> (you cannot splat, move, or turn).</li>
 <li>When splat is off cooldown, splat to paint neighbors.</li>
-<li>Otherwise default to moving east.</li>
+<li>Otherwise align to east if needed, then move forward.</li>
 </ol>
 <p><strong>Takeaways:</strong> Order matters — check stun before spending cooldowns. Tune the <code>else</code> branch for your strategy.</p>
 <h2 id="greedy-step-onto-an-unpainted-tile" tabindex="-1">Greedy: step onto an unpainted tile</h2>
@@ -103,17 +108,21 @@
             <span class="hljs-keyword">if</span> nbr <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
                 <span class="hljs-keyword">continue</span>
             <span class="hljs-keyword">if</span> game_state.tile_pids.get(nbr, <span class="hljs-number">0</span>) == <span class="hljs-number">0</span>:
-                <span class="hljs-keyword">return</span> Actions.move(d)
-        <span class="hljs-keyword">return</span> Actions.move(HexDirection.E)
+                <span class="hljs-keyword">if</span> me.facing != d:
+                    <span class="hljs-keyword">return</span> Actions.face_direction(d)
+                <span class="hljs-keyword">return</span> Actions.move()
+        <span class="hljs-keyword">if</span> me.facing != HexDirection.E:
+            <span class="hljs-keyword">return</span> Actions.face_direction(HexDirection.E)
+        <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 <p><strong>How it works</strong></p>
 <ol>
 <li>Loop the six directions in <code>HexDirection</code> order.</li>
 <li>Skip neighbors that are off the map.</li>
-<li>If a neighbor is unpainted (<code>0</code>), move there immediately.</li>
-<li>If none are unpainted, keep moving east so the bot still does something.</li>
+<li>If a neighbor is unpainted (<code>0</code>), <strong>face</strong> that way if needed, then <strong>move</strong> forward.</li>
+<li>If none are unpainted, <strong>face</strong> east if needed, then <strong>move</strong> forward.</li>
 </ol>
-<p><strong>Takeaways:</strong> <code>tile_pids</code>, iterating directions, and a simple priority rule.</p>
+<p><strong>Takeaways:</strong> <code>tile_pids</code>, iterating directions, facing before <code>move()</code>, and a simple priority rule.</p>
 <hr>
 <p><a href="../writing-bots/">Writing bots</a> · <a href="../glossary/">Glossary</a> · <a href="../index.html">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>
 

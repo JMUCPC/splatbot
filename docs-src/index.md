@@ -16,7 +16,7 @@ Example bots are provided, but it is easy to upload custom bots as well! Simply 
 ## Pages
 
 1. **[Writing bots](writing-bots/)** — What a bot is, a minimal template, and how to read `game_state`.
-2. **[Actions](actions/)** — What each move does (move, skip, splat, dash, paintball), with small interactive examples.
+2. **[Actions](actions/)** — What each action does (move, turning, skip, splat, dash, paintball), with small interactive examples.
 3. **[Utilities](utilities/)** — Provided functions to ease development of Splatbots.
 4. **[Examples](examples/)** — Longer example bots with step-by-step explanations.
 5. **[Debugging](debugging/)** — `print` output, the step button, and the event log.

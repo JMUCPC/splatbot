@@ -66,6 +66,22 @@ const DEMOS = {
     build: () => makeDemoState(3, [{ pid: 1, qr: [-2, 0], facing: HexDirection.E }]),
     action: { type: 'dash', distance: 4 },
   },
+  'turn-left': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_left', steps: 1 },
+  },
+  'turn-left-2': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_left', steps: 2 },
+  },
+  'face-direction': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'face_direction', direction: HexDirection.SW },
+  },
+  'turn-180': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_180' },
+  },
 };
 
 function mount(container) {

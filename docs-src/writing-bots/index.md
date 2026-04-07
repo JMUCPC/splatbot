@@ -24,13 +24,14 @@ Two custom imports are provided to players wanting to create their own splatbot:
 
 On every tick, the game will call the `decide` method of each bot in the game. Each call to `decide` must return **one** of:
 
-| Action                                                 | Description                                              |
-| ------------------------------------------------------ | -------------------------------------------------------- |
-| [move](../actions/index.md#move)                       | Step to a neighbor hex; paint that hex.                  |
-| [skip](../actions/index.md#skip)                       | Do nothing.                                              |
-| [splat](../actions/index.md#splat)                     | Paint all adjacent tiles.                                |
-| [dash](../actions/index.md#dash)                       | Move several hexes in a line; paint only where you land. |
-| [shoot_paintball](../actions/index.md#shoot-paintball) | Paint a straight line without moving.                    |
+| Action                                                 | Description                                                      |
+| ------------------------------------------------------ | ---------------------------------------------------------------- |
+| [move](../actions/index.md#move)                     | Step one hex **forward** (in current [facing](../glossary/index.md#botinfo)); paint that hex. |
+| [turn_left / turn_right / face_direction / turn_180](../actions/index.md#facing-and-turning) | Change facing only (one tick each).                            |
+| [skip](../actions/index.md#skip)                     | Do nothing.                                                      |
+| [splat](../actions/index.md#splat)                   | Paint all adjacent tiles.                                        |
+| [dash](../actions/index.md#dash)                     | Move 2–6 hexes **forward**; paint only where you land.         |
+| [shoot_paintball](../actions/index.md#shoot-paintball) | Paint a straight line **forward** without moving.                |
 
 Details and interactive demos are on the [Actions](../actions/index.md) page.
 
@@ -38,17 +39,20 @@ If the returned action is invalid for any reason, or if the `decide` method rais
 
 ### Simple Example
 
-This bot always tries to move **east** one hex (and paint the tile it lands on).
+This bot aligns to **east**, then **moves forward** on later ticks (see [facing](../actions/index.md#facing-and-turning)).
 
-```python title="East-only Bot"
+```python title="East-forward Bot"
 from utils.actions import Actions
 from utils.hex_grid import *
 
 
 class Bot:
     def decide(self, game_state):
-        """ No matter what the state of the game may be, I want to go east! """
-        return Actions.move(HexDirection.E) # always choose the action 'move east'
+        """ Face east, then step forward in the facing direction. """
+        me = game_state.bots[game_state.my_pid]
+        if me.facing != HexDirection.E:
+            return Actions.face_direction(HexDirection.E)
+        return Actions.move()
 ```
 
 ## Remembering Data
@@ -87,21 +91,20 @@ class Bot:
         self.going_east = True
 
     def decide(self, game_state):
-        # Which bot am I
         me = game_state.bots[game_state.my_pid]
-        # Keep going in the same direction
-        direction = HexDirection.E if self.going_east else HexDirection.W
-        # If continuing to move this way is out of bounds, turn around
-        move_to = hex_neighbor(me.position, direction)
-        if move_to not in game_state.grid:
+        d = HexDirection.E if self.going_east else HexDirection.W
+        nbr = hex_neighbor(me.position, d)
+        if nbr not in game_state.grid:
             self.going_east = not self.going_east
             d = HexDirection.E if self.going_east else HexDirection.W
-        # Move
-        return Actions.move(direction)
+        if me.facing != d:
+            return Actions.face_direction(d)
+        return Actions.move()
 ```
 
-- `game_state.bots[game_state.my_pid]` is [your bot’s info](../glossary/index.md#botinfo) (`position`, etc.).
+- `game_state.bots[game_state.my_pid]` is [your bot’s info](../glossary/index.md#botinfo) (`position`, `facing`, etc.).
 - `hex_neighbor(hex, direction)` is the hex you would step into; if it is not in `game_state.grid`, that move would leave the map, so we flip direction first.
+- We **face** the desired travel direction, then **move** forward on the next tick when already aligned.
 
 More walkthroughs (cooldowns, painting empty tiles) are on [Examples](../examples/index.md).
 
@@ -112,14 +115,14 @@ More walkthroughs (cooldowns, painting empty tiles) are on [Examples](../example
 | Field                   | Meaning                                                                                                                      |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `my_pid`                | Your [player id](../glossary/index.md#player-id) (`1` or `2`).                                                               |
-| `my_stun`               | Turns until you cannot move/dash/splat/shoot (`0` = not [stunned](../glossary/index.md#stun)). `Actions.skip()` still works. |
+| `my_stun`               | Turns until you cannot move/dash/splat/shoot/**turn** (`0` = not [stunned](../glossary/index.md#stun)). `Actions.skip()` still works. |
 | `my_splat_cooldown`     | Turns until [splat](../actions/index.md#splat) is allowed (`0` = available).                                                 |
-| `my_dash_cooldown`      | Turns until [dash](../actions/index.md#dash) is allowed (`0` = available).                                                   |
+| `my_dash_cooldown`      | Turns until [dash](../actions/index.md#dash) is allowed (`0` = available).                                                  |
 | `my_paintball_cooldown` | Turns until [paintball](../actions/index.md#shoot-paintball) is allowed (`0` = available).                                   |
 | `grid`                  | All hexes on the map (`Hex` values).                                                                                         |
 | `tile_pids`             | Who paints each hex: `0` = unpainted, `1` / `2` = players. See [tile owner](../glossary/index.md#tile-owner).                |
-| `bots`                  | Per-player [BotInfo](../glossary/index.md#botinfo) (`position`, `facing`, timers).                                           |
-| `turn`                  | Current [turn](../glossary/index.md#turn) index.                                                                             |
+| `bots`                  | Per-player [BotInfo](../glossary/index.md#botinfo) (`position`, `facing`, timers).                                            |
+| `turn`                  | Current [turn](../glossary/index.md#turn) index.                                                                              |
 | `max_turns`             | Match length.                                                                                                                |
 
 [← Docs home](index.md) · [Examples →](../examples/index.md) · [Debugging →](../debugging/index.md)

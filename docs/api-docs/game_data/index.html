@@ -61,7 +61,7 @@
 <h3 id="my_pid-int" tabindex="-1"><code>my_pid: int</code></h3>
 <p>Your player id (<code>1</code> or <code>2</code> in a two-player match).</p>
 <h3 id="my_stun-int" tabindex="-1"><code>my_stun: int</code></h3>
-<p>Turns remaining during which <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, and <strong>shoot_paintball</strong> are blocked for your bot (<strong>skip</strong> is still allowed). Same semantics as <code>game_state.bots[my_pid].stun</code>; exposed for convenience.</p>
+<p>Turns remaining during which <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, <strong>shoot_paintball</strong>, and <strong>turning</strong> (<code>turn_left</code>, <code>turn_right</code>, <code>face_direction</code>, <code>turn_180</code>) are blocked for your bot (<strong>skip</strong> is still allowed). Same semantics as <code>game_state.bots[my_pid].stun</code>; exposed for convenience.</p>
 <h3 id="my_splat_cooldown-int" tabindex="-1"><code>my_splat_cooldown: int</code></h3>
 <p>Turns until <strong>splat</strong> is allowed again for your bot (0 means ready). Mirrors <code>game_state.bots[my_pid].splat_cooldown</code>.</p>
 <h3 id="my_dash_cooldown-int" tabindex="-1"><code>my_dash_cooldown: int</code></h3>
