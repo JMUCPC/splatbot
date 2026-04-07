@@ -21,6 +21,20 @@ const PYODIDE_INDEX_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
 
 let pyodide = null;
 
+/** Turn Pyodide / Python failures into a single string for the UI (often includes traceback). */
+function formatPythonError(err) {
+  if (err == null) return 'Unknown error';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object' && typeof err.message === 'string' && err.message.length > 0) {
+    return err.message;
+  }
+  try {
+    return String(err);
+  } catch {
+    return 'Unknown error';
+  }
+}
+
 self.onmessage = async function (e) {
   const { type, data } = e.data;
 
@@ -97,7 +111,7 @@ _bot = Bot()
 
       self.postMessage({ type: 'ready' });
     } catch (err) {
-      self.postMessage({ type: 'init-error', error: String(err) });
+      self.postMessage({ type: 'init-error', error: formatPythonError(err) });
     }
     return;
   }
@@ -115,7 +129,7 @@ _bot = Bot()
 `);
       self.postMessage({ type: 'match-reset-done' });
     } catch (err) {
-      self.postMessage({ type: 'match-reset-error', error: String(err) });
+      self.postMessage({ type: 'match-reset-error', error: formatPythonError(err) });
     }
     return;
   }
@@ -170,7 +184,7 @@ else:
       self.postMessage({ type: 'result', action, elapsed });
     } catch (err) {
       const elapsed = (performance.now() - start) / 1000;
-      self.postMessage({ type: 'error', error: String(err), elapsed });
+      self.postMessage({ type: 'error', error: formatPythonError(err), elapsed });
     }
   }
 };

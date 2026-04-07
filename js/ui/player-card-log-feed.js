@@ -23,7 +23,7 @@ export function playerIdsFromLogMessage(msg) {
 }
 
 function looksLikeErrorOrBlock(msg) {
-  return /\b(error|failed|invalid|cannot|blocked|exceeded|skip)\b/i.test(msg);
+  return /\b(error|failed|invalid|cannot|blocked|exceeded|skip|rejected)\b/i.test(msg);
 }
 
 function pulseCard(card) {
@@ -41,6 +41,24 @@ export function initPlayerCardEventFeed() {
     1: document.getElementById('player-card-1'),
     2: document.getElementById('player-card-2'),
   };
+}
+
+/**
+ * Show text on one player's card feed (e.g. upload / sandbox errors for that side).
+ * @param {number} pid
+ * @param {string} msg
+ * @param {{ error?: boolean }} [opts]
+ */
+export function setPlayerCardFeedForPlayer(pid, msg, opts = {}) {
+  const feed = feeds[pid];
+  const card = cards[pid];
+  if (!feed || !card) return;
+  const isError = opts.error ?? looksLikeErrorOrBlock(msg);
+  const sameText = feed.textContent === msg;
+  const errorWas = card.classList.contains('player-card--feed-error');
+  feed.textContent = msg;
+  card.classList.toggle('player-card--feed-error', isError);
+  if (!sameText || errorWas !== isError) pulseCard(card);
 }
 
 /** Call for each new event log line (via onLogLine). */

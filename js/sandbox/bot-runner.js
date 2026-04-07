@@ -30,9 +30,20 @@ export class BotRunner {
 
   /** Replace bot source and respawn the worker (Pyodide reloads). */
   async setBotCode(botCode) {
+    const prev = this.botCode;
     this.botCode = botCode;
     this.resetTimingStats();
-    await this._spawnWorker();
+    try {
+      await this._spawnWorker();
+    } catch (err) {
+      this.botCode = prev;
+      try {
+        await this._spawnWorker();
+      } catch {
+        /* Leave not ready; reloading the previous script should not fail in normal use. */
+      }
+      throw err;
+    }
   }
 
   _spawnWorker() {
@@ -56,6 +67,11 @@ export class BotRunner {
         }
 
         if (type === 'init-error') {
+          if (this.worker) {
+            this.worker.terminate();
+            this.worker = null;
+          }
+          this.ready = false;
           reject(new Error(e.data.error || 'Worker failed to initialize'));
           return;
         }

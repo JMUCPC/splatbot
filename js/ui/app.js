@@ -13,6 +13,7 @@ import {
   initPlayerCardEventFeed,
   syncPlayerCardsFromLogLine,
   clearPlayerCardFeeds,
+  setPlayerCardFeedForPlayer,
 } from './player-card-log-feed.js';
 import {
   loadOverrides, saveOverrides, mergeWithDefaults, applyToConfig,
@@ -104,6 +105,43 @@ function setEventLogExpanded(expanded) {
   }
 }
 
+function logPythonLoadFailure(pid, err) {
+  const detail = err?.message ?? String(err);
+  const msg = `P${pid} — Python error\n${detail}`;
+  logEvent(msg);
+  setPlayerCardFeedForPlayer(pid, msg, { error: true });
+  setEventLogExpanded(true);
+}
+
+/** Must match worker expectations before `runPython` (see also `bot-worker.js`). */
+const BOT_CLASS_RE = /\bclass\s+Bot\b/;
+const BOT_INSTANCE_DECIDE_RE = /\bdef\s+decide\s*\(\s*self\b/;
+
+/** Pre-Pyodide checks: must match what the worker expects before `runPython`. */
+function describeBotScriptShapeIssues(source) {
+  const issues = [];
+  if (!BOT_CLASS_RE.test(source)) {
+    const m = source.match(/\bclass\s+(\w+)/);
+    if (m && m[1] !== 'Bot') {
+      issues.push(`Found class \`${m[1]}\`, but it must be named exactly \`Bot\` (case-sensitive).`);
+    } else {
+      issues.push('Must declare `class Bot:` — the main bot class cannot use another name.');
+    }
+  }
+  if (!BOT_INSTANCE_DECIDE_RE.test(source)) {
+    issues.push('Must define `def decide(self, game_state):` on `Bot` that returns an Action.');
+  }
+  if (issues.length === 0) return null;
+  return issues.join('\n');
+}
+
+function logUploadShapeFailure(pid, detail) {
+  const msg = `P${pid} — Upload rejected (script shape)\n${detail}`;
+  logEvent(msg);
+  setPlayerCardFeedForPlayer(pid, msg, { error: true });
+  setEventLogExpanded(true);
+}
+
 function openEventLogPopout() {
   if (eventLogPopoutWin && !eventLogPopoutWin.closed) {
     eventLogPopoutWin.focus();
@@ -168,14 +206,11 @@ function openEventLogPopout() {
   w.focus();
 }
 
-/** Heuristic: bot script should define class Bot with decide(self, ...) for Pyodide. */
-const BOT_CLASS_RE = /\bclass\s+Bot\b/;
-const BOT_INSTANCE_DECIDE_RE = /\bdef\s+decide\s*\(\s*self\b/;
 const DOCS_IMPORT_KEY = 'splatbot_import_bot_p1_v1';
 const DOCS_IMPORT_FLAG = 'importBotP1';
 
 function looksLikeUploadableBot(source) {
-  return BOT_CLASS_RE.test(source) && BOT_INSTANCE_DECIDE_RE.test(source);
+  return describeBotScriptShapeIssues(source) === null;
 }
 
 function hasDocsImportFlag() {
@@ -211,15 +246,23 @@ async function consumeDocsBotImportForPlayerOne() {
   try {
     const payload = JSON.parse(raw);
     const source = typeof payload?.source === 'string' ? payload.source : '';
-    if (!looksLikeUploadableBot(source)) {
-      logEvent('Docs bot import ignored: source must define class Bot with decide(self, game_state): ...');
+    const shapeIssues = describeBotScriptShapeIssues(source);
+    if (shapeIssues) {
+      const msg = `P1 — Docs import rejected (script shape)\n${shapeIssues}`;
+      logEvent(msg);
+      setPlayerCardFeedForPlayer(1, msg, { error: true });
+      setEventLogExpanded(true);
       return;
     }
     botSourceCache.set('upload:1', source);
     await applyBotForPlayer(1, 'upload:1', { isInitialLoad: false });
     logEvent('P1 loaded bot from docs example.');
   } catch (err) {
-    logEvent(`Docs bot import failed: ${err.message || err}`);
+    const detail = err?.message ?? String(err);
+    const msg = `Docs bot import — Python error\n${detail}`;
+    logEvent(msg);
+    setPlayerCardFeedForPlayer(1, msg, { error: true });
+    setEventLogExpanded(true);
   } finally {
     try {
       localStorage.removeItem(DOCS_IMPORT_KEY);
@@ -322,11 +365,13 @@ async function onBotFileChange(pid, input) {
     logEvent(`Failed to read file: ${err.message || err}`);
     return;
   }
-  if (!looksLikeUploadableBot(text)) {
+  const shapeIssues = describeBotScriptShapeIssues(text);
+  if (shapeIssues) {
     input.value = '';
-    logEvent('Uploaded file must define class Bot with decide(self, game_state): ...');
+    logUploadShapeFailure(pid, shapeIssues);
     return;
   }
+  const prevUpload = botSourceCache.get(botId);
   botSourceCache.set(botId, text);
   const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
   for (const s of locks) s.disabled = true;
@@ -334,7 +379,10 @@ async function onBotFileChange(pid, input) {
     await applyBotForPlayer(pid, botId, { isInitialLoad: false });
     logEvent(`P${pid} using uploaded bot: ${file.name}`);
   } catch (err) {
-    logEvent(`Failed to load uploaded bot: ${err.message || err}`);
+    if (prevUpload !== undefined) botSourceCache.set(botId, prevUpload);
+    else botSourceCache.delete(botId);
+    input.value = '';
+    logPythonLoadFailure(pid, err);
   } finally {
     for (const s of locks) s.disabled = false;
   }
@@ -353,7 +401,7 @@ async function onBotSelectChange(pid) {
     await applyBotForPlayer(pid, next, { isInitialLoad: false });
   } catch (err) {
     if (prev != null) sel.value = prev;
-    logEvent(`Failed to load bot: ${err.message || err}`);
+    logPythonLoadFailure(pid, err);
   } finally {
     for (const s of locks) s.disabled = false;
   }
