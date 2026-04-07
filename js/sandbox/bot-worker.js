@@ -3,8 +3,8 @@
  * Communicates with the main thread via postMessage.
  *
  * Messages IN:
- *   { type: 'init', data: { hexGridPy, actionsPy, botCode } }
- *   { type: 'decide', data: { gameState } }
+ *   { type: 'init', data: { hexGridPy, actionsPy, botCode, interruptBuffer? } }
+ *   { type: 'decide', data: { gameState, decisionId } }
  *   { type: 'resetMatch' } — re-run Bot() so instance state does not persist across matches
  *
  * Messages OUT:
@@ -12,8 +12,9 @@
  *   { type: 'init-error', error: string }
  *   { type: 'match-reset-done' }
  *   { type: 'match-reset-error', error: string }
+ *   { type: 'interrupt', elapsed, decisionId }
  *   { type: 'result', action: { type, direction? }, elapsed }
- *   { type: 'error', error: string, elapsed? }
+ *   { type: 'error', error: string, elapsed?, decisionId? }
  */
 
 /** Must match `importScripts` below — tells Pyodide where to fetch .wasm and packages (worker `location` is this script, not the CDN). */
@@ -42,6 +43,9 @@ self.onmessage = async function (e) {
     try {
       importScripts(`${PYODIDE_INDEX_URL}pyodide.js`);
       pyodide = await loadPyodide({ indexURL: PYODIDE_INDEX_URL });
+      if (data.interruptBuffer) {
+        pyodide.setInterruptBuffer(data.interruptBuffer);
+      }
 
       pyodide.FS.mkdirTree('/lib/utils');
       pyodide.FS.writeFile('/lib/utils/__init__.py', '');
@@ -135,8 +139,9 @@ _bot = Bot()
   }
 
   if (type === 'decide') {
+    const decisionId = data?.decisionId;
     if (!pyodide) {
-      self.postMessage({ type: 'error', error: 'Not initialized' });
+      self.postMessage({ type: 'error', error: 'Not initialized', decisionId });
       return;
     }
     const start = performance.now();
@@ -181,10 +186,15 @@ else:
             : rtype === 'shoot_paintball'
               ? { type: 'shoot_paintball', direction: rdir }
               : { type: 'skip' };
-      self.postMessage({ type: 'result', action, elapsed });
+      self.postMessage({ type: 'result', action, elapsed, decisionId });
     } catch (err) {
       const elapsed = (performance.now() - start) / 1000;
-      self.postMessage({ type: 'error', error: formatPythonError(err), elapsed });
+      const error = formatPythonError(err);
+      if (error.includes('KeyboardInterrupt')) {
+        self.postMessage({ type: 'interrupt', elapsed, decisionId });
+        return;
+      }
+      self.postMessage({ type: 'error', error, elapsed, decisionId });
     }
   }
 };

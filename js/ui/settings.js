@@ -15,6 +15,7 @@ export const SETTING_SPECS = [
   { key: 'MAX_TURNS', tab: 'match', label: 'Max turns', kind: 'int', min: 1, max: 10000, step: 1 },
   { key: 'TICK_DELAY', tab: 'match', label: 'Tick delay (s)', kind: 'float', min: 0.01, max: 5.0, step: 0.01 },
   { key: 'TIMEOUT', tab: 'match', label: 'Bot timeout (s)', kind: 'float', min: 0.6, max: 30.0, step: 0.1 },
+  { key: 'TIMEOUT_INTERRUPT_GRACE', tab: 'match', label: 'Timeout interrupt grace (s)', kind: 'float', min: 0.05, max: 5.0, step: 0.01 },
   {
     key: 'SPLAT_STUN_TURNS',
     tab: 'rules',
@@ -111,6 +112,7 @@ function getDefaultFlat() {
     MAX_TURNS: 200,
     TICK_DELAY: 0.15,
     TIMEOUT: 1.0,
+    TIMEOUT_INTERRUPT_GRACE: 0.35,
     SPLAT_STUN_TURNS: 3,
     SPLAT_COOLDOWN_TURNS: 10,
     DASH_COOLDOWN_TURNS: 7,
@@ -189,6 +191,7 @@ export function applyToConfig(flat) {
   config.MAX_TURNS = flat.MAX_TURNS;
   config.TICK_DELAY = flat.TICK_DELAY;
   config.TIMEOUT = flat.TIMEOUT;
+  config.TIMEOUT_INTERRUPT_GRACE = flat.TIMEOUT_INTERRUPT_GRACE;
   config.SPLAT_STUN_TURNS = flat.SPLAT_STUN_TURNS;
   config.SPLAT_COOLDOWN_TURNS = flat.SPLAT_COOLDOWN_TURNS;
   config.DASH_COOLDOWN_TURNS = flat.DASH_COOLDOWN_TURNS;

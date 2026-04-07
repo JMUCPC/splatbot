@@ -63,10 +63,16 @@
 <p>The <strong>event log</strong> is the panel in the Splatbot UI (you can expand it or open it in a pop-out if your browser allows). It shows messages from the game engine, for example:</p>
 <ul>
 <li>Match <strong>started</strong>, <strong>paused</strong>, <strong>reset</strong>, <strong>over</strong> (with tile counts).</li>
-<li><strong>Errors</strong> loading a bot, <strong>Python exceptions</strong> inside <code>decide</code>, or a bot <strong>hitting the time limit</strong> (the bot <strong>skips</strong> that turn).</li>
+<li><strong>Errors</strong> loading a bot, <strong>Python exceptions</strong> inside <code>decide</code>, or timeout escalation lines:
+<ul>
+<li><code>... interrupt signaled</code> when the soft timeout fires.</li>
+<li><code>... worker terminated (state reset)</code> if the bot still does not stop after the grace window.</li>
+</ul>
+</li>
 <li><strong>Blocked</strong> actions: stunned, wrong cooldown, move off the map, invalid dash distance, etc.</li>
 <li><strong>Collisions</strong> when two bots end up on the same hex (that tile is cleared).</li>
 </ul>
+<p>Timeout behavior is two-tier when the page is cross-origin isolated (COOP/COEP headers): Splatbot signals a Python interrupt first, then hard-terminates only if needed. Without that environment support, it falls back to direct hard termination at timeout.</p>
 <p><strong>Important:</strong> A successful <strong>move</strong> or <strong>skip</strong> often writes <strong>nothing</strong> to the log. No new line does <strong>not</strong> mean your bot failed — it may have moved quietly. Use <strong>Step</strong>, <strong>print</strong>, or watch the board to confirm behavior.</p>
 <p>See also <a href="../glossary/index.html#event-log">Glossary: event log</a> and <a href="../writing-bots/index.html">Writing bots</a>.</p>
 <p><a href="../">← Docs home</a> · <a href="../../index.html">← Back to the game</a></p>

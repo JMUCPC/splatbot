@@ -34,9 +34,13 @@ Use Step when you want to watch the board and the **event log** change in sync w
 The **event log** is the panel in the Splatbot UI (you can expand it or open it in a pop-out if your browser allows). It shows messages from the game engine, for example:
 
 - Match **started**, **paused**, **reset**, **over** (with tile counts).
-- **Errors** loading a bot, **Python exceptions** inside `decide`, or a bot **hitting the time limit** (the bot **skips** that turn).
+- **Errors** loading a bot, **Python exceptions** inside `decide`, or timeout escalation lines:
+  - `... interrupt signaled` when the soft timeout fires.
+  - `... worker terminated (state reset)` if the bot still does not stop after the grace window.
 - **Blocked** actions: stunned, wrong cooldown, move off the map, invalid dash distance, etc.
 - **Collisions** when two bots end up on the same hex (that tile is cleared).
+
+Timeout behavior is two-tier when the page is cross-origin isolated (COOP/COEP headers): Splatbot signals a Python interrupt first, then hard-terminates only if needed. Without that environment support, it falls back to direct hard termination at timeout.
 
 **Important:** A successful **move** or **skip** often writes **nothing** to the log. No new line does **not** mean your bot failed — it may have moved quietly. Use **Step**, **print**, or watch the board to confirm behavior.
 

@@ -16,6 +16,16 @@ Then open http://localhost:3000 (or whichever port your server uses).
 The first load downloads Pyodide (~10 MB, cached by the browser afterward) to run
 Python bot code client-side in Web Workers.
 
+The timeout system supports a two-tier path when `SharedArrayBuffer` is available:
+it first signals a soft interrupt, then only hard-terminates the worker if Python
+does not stop within the grace window. This requires cross-origin isolation
+headers (`Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy`).
+This repository includes an `_headers` file with:
+- `Cross-Origin-Opener-Policy: same-origin`
+- `Cross-Origin-Embedder-Policy: credentialless`
+
+Without those headers, the app falls back to hard termination at timeout.
+
 ## Documentation site
 
 The player-facing docs (how to write bots, actions, examples, debugging, glossary) live under **`docs-src/`** as Markdown. The static site under **`docs/`** is **generated** — for example `docs/writing-bots/index.html` comes from `docs-src/writing-bots.md`.

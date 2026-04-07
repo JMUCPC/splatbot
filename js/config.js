@@ -3,6 +3,7 @@ const config = {
   MAX_TURNS: 200,
   TICK_DELAY: 0.15,
   TIMEOUT: 1.0,
+  TIMEOUT_INTERRUPT_GRACE: 0.35,
   /** After splat: turns where move / dash / splat / shoot_paintball are blocked. */
   SPLAT_STUN_TURNS: 3,
   /** Minimum turns between splats. */
