@@ -4,7 +4,7 @@ const config = {
   TICK_DELAY: 0.15,
   TIMEOUT: 1.0,
   TIMEOUT_INTERRUPT_GRACE: 0.35,
-  /** After splat: turns where move / dash / splat / shoot_paintball are blocked. */
+  /** After splat: turns where move / dash / splat / shoot_paintball / turning are blocked. */
   SPLAT_STUN_TURNS: 3,
   /** Minimum turns between splats. */
   SPLAT_COOLDOWN_TURNS: 10,
@@ -14,7 +14,7 @@ const config = {
   DASH_STUN_TURNS: 0,
   /** Minimum turns between paintball shots. */
   SHOOT_PAINTBALL_COOLDOWN_TURNS: 20,
-  /** After shoot_paintball: turns where move / dash / splat / shoot_paintball are blocked. */
+  /** After shoot_paintball: turns where move / dash / splat / shoot_paintball / turning are blocked. */
   PAINTBALL_STUN_TURNS: 7,
   BOT_DISPLAY_TYPE: "triangles",
   PLAYER_TILE_COLORS: { 1: "#b84010", 2: "#0a7090" },

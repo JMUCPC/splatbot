@@ -18,13 +18,17 @@ __all__ = [
     "SplatAction",
     "DashAction",
     "ShootPaintballAction",
+    "TurnLeftAction",
+    "TurnRightAction",
+    "FaceDirectionAction",
+    "Turn180Action",
     "Actions",
 ]
 
 
 @dataclass(frozen=True)
 class MoveAction:
-    direction: HexDirection
+    pass
 
 
 @dataclass(frozen=True)
@@ -41,30 +45,57 @@ class SplatAction:
 
 @dataclass(frozen=True)
 class DashAction:
-    """Move 2-6 hexes in a direction, painting only the destination hex."""
+    """Move ``distance`` hexes (2–6) straight ahead (current facing), painting only the destination hex."""
 
-    direction: HexDirection
     distance: int
 
 
 @dataclass(frozen=True)
 class ShootPaintballAction:
-    """Paint a ray in ``direction`` until the map edge or another bot (you do not move)."""
+    """Paint a ray straight ahead until the map edge or another bot (you do not move)."""
 
+    pass
+
+
+@dataclass(frozen=True)
+class TurnLeftAction:
+    steps: int = 1
+
+
+@dataclass(frozen=True)
+class TurnRightAction:
+    steps: int = 1
+
+
+@dataclass(frozen=True)
+class FaceDirectionAction:
     direction: HexDirection
 
 
-Action = MoveAction | SkipAction | SplatAction | DashAction | ShootPaintballAction
+@dataclass(frozen=True)
+class Turn180Action:
+    pass
+
+
+Action = (
+    MoveAction
+    | SkipAction
+    | SplatAction
+    | DashAction
+    | ShootPaintballAction
+    | TurnLeftAction
+    | TurnRightAction
+    | FaceDirectionAction
+    | Turn180Action
+)
 
 
 class Actions:
     """Factories for :class:`Action` values (use from bot scripts / ``Bot.decide``)."""
 
     @staticmethod
-    def move(direction: int | HexDirection) -> MoveAction:
-        if isinstance(direction, int):
-            return MoveAction(HexDirection(direction % 6))
-        return MoveAction(direction)
+    def move() -> MoveAction:
+        return MoveAction()
 
     @staticmethod
     def skip() -> SkipAction:
@@ -75,13 +106,27 @@ class Actions:
         return SplatAction()
 
     @staticmethod
-    def dash(direction: int | HexDirection, distance: int) -> DashAction:
-        if isinstance(direction, int):
-            direction = HexDirection(direction % 6)
-        return DashAction(direction, int(distance))
+    def dash(distance: int) -> DashAction:
+        return DashAction(int(distance))
 
     @staticmethod
-    def shoot_paintball(direction: int | HexDirection) -> ShootPaintballAction:
+    def shoot_paintball() -> ShootPaintballAction:
+        return ShootPaintballAction()
+
+    @staticmethod
+    def turn_left(steps: int = 1) -> TurnLeftAction:
+        return TurnLeftAction(int(steps))
+
+    @staticmethod
+    def turn_right(steps: int = 1) -> TurnRightAction:
+        return TurnRightAction(int(steps))
+
+    @staticmethod
+    def face_direction(direction: int | HexDirection) -> FaceDirectionAction:
         if isinstance(direction, int):
             direction = HexDirection(direction % 6)
-        return ShootPaintballAction(direction)
+        return FaceDirectionAction(direction)
+
+    @staticmethod
+    def turn_180() -> Turn180Action:
+        return Turn180Action()

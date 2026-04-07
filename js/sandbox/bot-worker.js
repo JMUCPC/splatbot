@@ -13,7 +13,7 @@
  *   { type: 'match-reset-done' }
  *   { type: 'match-reset-error', error: string }
  *   { type: 'interrupt', elapsed, decisionId }
- *   { type: 'result', action: { type, direction? }, elapsed }
+ *   { type: 'result', action: { type, direction?, distance?, steps? }, elapsed }
  *   { type: 'error', error: string, elapsed?, decisionId? }
  */
 
@@ -58,7 +58,7 @@ self.onmessage = async function (e) {
       pyodide.runPython(`
 from types import MappingProxyType as _MPT
 from utils.hex_grid import Hex as _Hex, HexDirection as _HD
-from utils.actions import MoveAction as _MA, SkipAction as _SA, SplatAction as _SpA, DashAction as _DA, ShootPaintballAction as _SPB
+from utils.actions import MoveAction as _MA, SkipAction as _SA, SplatAction as _SpA, DashAction as _DA, ShootPaintballAction as _SPB, TurnLeftAction as _TLA, TurnRightAction as _TRA, FaceDirectionAction as _FDA, Turn180Action as _T18A
 import json as _json
 
 class _BotInfo:
@@ -152,22 +152,30 @@ _bot = Bot()
 _gs = _Snapshot(_json.loads(_raw_json))
 _action = _bot.decide(_gs)
 _rdist = -1
+_rdir = -1
+_rsteps = 1
 if isinstance(_action, _MA):
     _rtype = 'move'
-    _rdir = int(_action.direction)
 elif isinstance(_action, _SA):
     _rtype = 'skip'
-    _rdir = -1
 elif isinstance(_action, _SpA):
     _rtype = 'splat'
-    _rdir = -1
 elif isinstance(_action, _DA):
     _rtype = 'dash'
-    _rdir = int(_action.direction)
     _rdist = int(_action.distance)
 elif isinstance(_action, _SPB):
     _rtype = 'shoot_paintball'
+elif isinstance(_action, _TLA):
+    _rtype = 'turn_left'
+    _rsteps = int(_action.steps)
+elif isinstance(_action, _TRA):
+    _rtype = 'turn_right'
+    _rsteps = int(_action.steps)
+elif isinstance(_action, _FDA):
+    _rtype = 'face_direction'
     _rdir = int(_action.direction)
+elif isinstance(_action, _T18A):
+    _rtype = 'turn_180'
 else:
     raise TypeError(f"Bot.decide must return Action, got {type(_action).__name__}")
 `);
@@ -175,17 +183,26 @@ else:
       const rtype = pyodide.globals.get('_rtype');
       const rdir = pyodide.globals.get('_rdir');
       const rdist = pyodide.globals.get('_rdist');
+      const rsteps = pyodide.globals.get('_rsteps');
       const elapsed = (performance.now() - start) / 1000;
 
       const action = rtype === 'move'
-        ? { type: 'move', direction: rdir }
+        ? { type: 'move' }
         : rtype === 'dash'
-          ? { type: 'dash', direction: rdir, distance: rdist }
+          ? { type: 'dash', distance: rdist }
           : rtype === 'splat'
             ? { type: 'splat' }
             : rtype === 'shoot_paintball'
-              ? { type: 'shoot_paintball', direction: rdir }
-              : { type: 'skip' };
+              ? { type: 'shoot_paintball' }
+              : rtype === 'turn_left'
+                ? { type: 'turn_left', steps: rsteps }
+                : rtype === 'turn_right'
+                  ? { type: 'turn_right', steps: rsteps }
+                  : rtype === 'face_direction'
+                    ? { type: 'face_direction', direction: rdir }
+                    : rtype === 'turn_180'
+                      ? { type: 'turn_180' }
+                      : { type: 'skip' };
       self.postMessage({ type: 'result', action, elapsed, decisionId });
     } catch (err) {
       const elapsed = (performance.now() - start) / 1000;
