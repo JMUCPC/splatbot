@@ -45,6 +45,8 @@ const config = {
     util_prints: "util_prints.py",
     edit_game_state: "edit_game_state.py",
     print_game_state: "print_game_state.py",
+    timeout_and_count: "timeout_and_count.py",
+    error_and_count: "error_and_count.py",
   },
 };
 
