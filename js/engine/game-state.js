@@ -108,8 +108,12 @@ export class GameState {
    */
   flushPaintClaims() {
     for (const [key, pids] of this._paintClaims) {
-      if (pids.size > 1) this.tilePids.set(key, 0);
-      else this.tilePids.set(key, [...pids][0]);
+      if (pids.size > 1) {
+        this._paint(key, null);
+      } else if (pids.size === 1) {
+        const pid = [...pids][0];
+        this._paint(key, this.bots.get(pid) ?? null);
+      }
     }
     this._paintClaims.clear();
   }
