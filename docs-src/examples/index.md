@@ -39,7 +39,7 @@ class Bot:
 
 ## Splat when ready, otherwise move
 
-Uses [stun](../glossary/index.md#stun) and [cooldown](../glossary/index.md#cooldown) checks from `game_state.me` before calling special actions.
+Uses stun and cooldown checks from `game_state.me` before calling special actions.
 
 ```python
 from utils.actions import Actions
@@ -104,5 +104,3 @@ class Bot:
 **Takeaways:** `hex.controller`, iterating directions, facing before `move()`, and a simple priority rule.
 
 ---
-
-[Writing bots](../writing-bots/) · [Glossary](../glossary/) · [← Docs home](../index.md) · [← Back to the game](../../index.html)

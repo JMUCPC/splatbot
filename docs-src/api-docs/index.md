@@ -12,4 +12,4 @@ These pages describe the types and helpers available to bot scripts in the Splat
 The following are not `.py` files in the repo; they are constructed inside the Pyodide worker and passed into `decide` as `game_state`. They are read-only (assigning attributes raises).
 
 - [Game state (`game_state`)](game_data.md) — board, turn metadata, and references to your bot and opponents.
-- [Bot info (`game_state.me`, `game_state.opponent`)](bot_data.md) — per-player position, facing, and timers.
+- [Bot info (`game_state.me`, `game_state.opponent`)](bot_info.md) — per-player position, facing, and timers.

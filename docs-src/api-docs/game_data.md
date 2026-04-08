@@ -19,7 +19,7 @@ class GameStateSnapshot:
     max_turns: int
 ```
 
-`Hex` uses types from [`utils.hex_grid`](utils/hex_grid.md). `BotInfo` is described on [Bot info](bot_data.md).
+`Hex` uses types from [`utils.hex_grid`](utils/hex_grid.md). `BotInfo` is described on [Bot info](bot_info.md).
 
 ---
 
@@ -31,7 +31,7 @@ Your player id (`1` or `2` in a two-player match). Same value as `me.pid`.
 
 ### `me: BotInfo`
 
-A read-only [BotInfo](bot_data.md) for **your** bot — position, facing, stun, and all cooldowns. This is the primary way to check your own state. Stun counts turns where **move**, **dash**, **splat**, **shoot_paintball**, and **turning** are blocked (**skip** is still allowed).
+A read-only [BotInfo](bot_info.md) for **your** bot — position, facing, stun, and all cooldowns. This is the primary way to check your own state. Stun counts turns where **move**, **dash**, **splat**, **shoot_paintball**, and **turning** are blocked (**skip** is still allowed).
 
 ```python
 if game_state.me.stun > 0:

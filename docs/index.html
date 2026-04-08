@@ -25,14 +25,13 @@
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Splatbot documentation</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./actions/index.html">Actions</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/bot_data/index.html">Bot info API Reference</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/bot_info/index.html">Bot info API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./debugging/index.html">Debugging your bot</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./examples/index.html">Example bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./glossary/index.html">Glossary</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./hex-grid/index.html">TODO: write this page</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./writing-bots/index.html">Writing bots</a></div></li>
       </ul>
     </div>
@@ -40,7 +39,7 @@
     <main class="docs-main markdown-body">
 <h1 id="splatbot-documentation" tabindex="-1">Splatbot documentation</h1>
 <h2 id="what-is-splatbot" tabindex="-1">What is Splatbot?</h2>
-<p>Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame  by creating, well… <strong>splatbots!</strong> The game is divided up into a series of turns, also referred to as <em>ticks</em>. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform this tick. Then, the game will apply those actions to the bots.</p>
+<p>Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame  by creating, well… <strong>splatbots!</strong> The game is divided up into a series of turns, also referred to as <em>ticks</em>. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform. Then, the game will apply those actions to the bots.</p>
 <p>Example of a tick:</p>
 <ul>
 <li>The game prompts both splatbots to make a decision about what action to perform.</li>
@@ -49,17 +48,15 @@
 <li>The game applies both of these actions at the same time.</li>
 <li>The game continues on to the next tick.</li>
 </ul>
-<p>Example bots are provided, but it is easy to upload custom bots as well! Simply go to the home page, select the “Upload File” under whichever side the bot should play for. Then press the start button to begin the match!</p>
+<p>Example bots are provided, but it is easy to upload custom bots as well! Simply go to the home page, select the “Choose File” under whichever side the bot should play for. Then press the start button to begin the match!</p>
 <h2 id="pages" tabindex="-1">Pages</h2>
 <ol>
-<li><strong><a href="writing-bots/">Writing bots</a></strong> — What a bot is, a minimal template, and how to read <code>game_state</code>.</li>
-<li><strong><a href="actions/">Actions</a></strong> — What each action does (move, turning, skip, splat, dash, paintball), with small interactive examples.</li>
-<li><strong><a href="utilities/">Utilities</a></strong> — Provided functions to ease development of Splatbots.</li>
-<li><strong><a href="examples/">Examples</a></strong> — Longer example bots with step-by-step explanations.</li>
-<li><strong><a href="debugging/">Debugging</a></strong> — <code>print</code> output, the step button, and the event log.</li>
-<li><strong><a href="glossary/">Glossary</a></strong> — Short definitions of terms used across these docs.</li>
+<li><strong><a href="hex-grid/">Hex Grid</a></strong> — How the game represents the map and hexes</li>
+<li><strong><a href="actions/">Actions</a></strong> — What each action does, with interactive examples</li>
+<li><strong><a href="writing-bots/">Writing bots</a></strong> — An overview of everything that goes into creating a bot</li>
+<li><strong><a href="debugging/">Debugging</a></strong> — Tips and tools useful for debugging your bots</li>
+<li><strong><a href="examples/">Examples</a></strong> — Larger bot examples</li>
 </ol>
-<p>Stuck on vocabulary? Open the <a href="glossary/">glossary</a> or jump from linked terms on other pages.</p>
 <p><a href="../index.html">← Back to the game</a></p>
 
     </main>

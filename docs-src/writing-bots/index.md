@@ -14,24 +14,24 @@ class Bot:
         return Actions.skip() # Template, so do nothing.
 ```
 
-This may look complicated, but each part of this template is explained in more detail below. _[Actions](../actions/index.md)_ and _[Utilities](../utilities/index.md)_ are explained in greater detail on their own pages.
+This may look complicated, but each part of this template is explained in more detail below. _[Actions](../actions/index.md)_ are explained in greater detail on their own page.
 
 ## Imports
 
-Two custom imports are provided to players wanting to create their own splatbot: `utils.actions` and `utils.hex_grid`. The first contains the `Actions` class, which provides a template for the actions a bot may take. A detailed breakdown of how this works is provided [here](../actions/index.md). The second import provides useful utilities for working with a hexagonal grid. A similarly detailed breakdown for this can be found [here](../utilities/index.md).
+Two custom imports are provided to players wanting to create their own splatbot: `utils.actions` and `utils.hex_grid`. The first contains the `Actions` class, which provides a template for the actions a bot may take. A detailed breakdown of how this works is provided [here](../actions/index.md). The second import provides useful utilities for working with a hexagonal grid. A similarly detailed breakdown for this can be found [here](../hex-grid/).
 
 ## Deciding on an Action
 
 On every tick, the game will call the `decide` method of each bot in the game. Each call to `decide` must return **one** of:
 
-| Action                                                 | Description                                                      |
-| ------------------------------------------------------ | ---------------------------------------------------------------- |
-| [move](../actions/index.md#move)                     | Step one hex **forward** (in current [facing](../glossary/index.md#botinfo)); paint that hex. |
-| [turn_left / turn_right / face_direction / turn_180](../actions/index.md#facing-and-turning) | Change facing only (one tick each).                            |
-| [skip](../actions/index.md#skip)                     | Do nothing.                                                      |
-| [splat](../actions/index.md#splat)                   | Paint all adjacent tiles.                                        |
-| [dash](../actions/index.md#dash)                     | Move 2–6 hexes **forward**; paint only where you land.         |
-| [shoot_paintball](../actions/index.md#shoot-paintball) | Paint a straight line **forward** without moving.                |
+| Action                                                                                       | Description                                            |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [move](../actions/index.md#move)                                                             | Step one hex **forward** and paint that hex.           |
+| [turn_left / turn_right / face_direction / turn_180](../actions/index.md#facing-and-turning) | Change facing only (one tick each).                    |
+| [skip](../actions/index.md#skip)                                                             | Do nothing.                                            |
+| [splat](../actions/index.md#splat)                                                           | Paint all adjacent tiles.                              |
+| [dash](../actions/index.md#dash)                                                             | Move 2–6 hexes **forward**; paint only where you land. |
+| [shoot_paintball](../actions/index.md#shoot-paintball)                                       | Paint a straight line **forward** without moving.      |
 
 Details and interactive demos are on the [Actions](../actions/index.md) page.
 
@@ -41,17 +41,14 @@ If the returned action is invalid for any reason, or if the `decide` method rais
 
 This bot aligns to **east**, then **moves forward** on later ticks (see [facing](../actions/index.md#facing-and-turning)).
 
-```python title="East-forward Bot"
+```python title="Forward Bot"
 from utils.actions import Actions
 from utils.hex_grid import *
 
 
 class Bot:
     def decide(self, game_state):
-        """ Face east, then step forward in the facing direction. """
-        me = game_state.me
-        if me.facing != HexDirection.E:
-            return Actions.face_direction(HexDirection.E)
+        """ Always choose to walk forwards. """
         return Actions.move()
 ```
 
@@ -76,6 +73,37 @@ class Bot:
         print(self.count)  # print goes to the browser console: open with F12
         return Actions.skip()
 ```
+
+## Data Classes
+
+### Game State
+
+`game_state` is **read-only**. You interact with the match only by **returning** an action.
+
+| Field       | Meaning                                                                             |
+| ----------- | ----------------------------------------------------------------------------------- |
+| `pid`       | Your player id (`1` or `2`).                                                        |
+| `me`        | Your BotInfo — `position`, `facing`, `stun`, cooldowns.                             |
+| `opponents` | Other players' BotInfo, keyed by player id.                                         |
+| `opponent`  | The single opponent's BotInfo in 1v1, or `None`.                                    |
+| `grid`      | All hexes on the map (`Hex` values). Each has a `controller` (`BotInfo` or `None`). |
+| `turn`      | Current turn index.                                                                 |
+| `max_turns` | Match length.                                                                       |
+
+### BotInfo
+
+TODO: table of actual contents of BotInfo
+
+...
+
+`BotInfo` is found in many of the fields of `GameState`.
+
+| Expression                  | What it gives you                                 |
+| --------------------------- | ------------------------------------------------- |
+| `game_state.me`             | Your bot's `BotInfo`.                             |
+| `game_state.opponent`       | The single opponent in 1v1 (`None` otherwise).    |
+| `game_state.opponents[pid]` | A specific opponent by player id.                 |
+| `hex.controller`            | The `BotInfo` that controls this tile, or `None`. |
 
 ## Putting it all together
 
@@ -102,24 +130,8 @@ class Bot:
         return Actions.move()
 ```
 
-- `game_state.me` is [your bot's info](../glossary/index.md#botinfo) (`position`, `facing`, cooldowns, etc.).
+- `game_state.me` is your bot's info (`position`, `facing`, cooldowns, etc.).
 - `hex_neighbor(hex, direction)` is the hex you would step into; if it is not in `game_state.grid`, that move would leave the map, so we flip direction first.
 - We **face** the desired travel direction, then **move** forward on the next tick when already aligned.
 
 More walkthroughs (cooldowns, painting empty tiles) are on [Examples](../examples/index.md).
-
-## Game state quick reference
-
-[`game_state`](../glossary/index.md#game_state) is **read-only**. You interact with the match only by **returning** an action.
-
-| Field                   | Meaning                                                                                                                      |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `pid`                   | Your [player id](../glossary/index.md#player-id) (`1` or `2`).                                                               |
-| `me`                    | Your [BotInfo](../glossary/index.md#botinfo) — `position`, `facing`, `stun`, cooldowns.                                     |
-| `opponents`             | Other players' [BotInfo](../glossary/index.md#botinfo), keyed by player id.                                                  |
-| `opponent`              | The single opponent's [BotInfo](../glossary/index.md#botinfo) in 1v1, or `None`.                                            |
-| `grid`                  | All hexes on the map (`Hex` values). Each has a `controller` (`BotInfo` or `None`).                                          |
-| `turn`                  | Current [turn](../glossary/index.md#turn) index.                                                                             |
-| `max_turns`             | Match length.                                                                                                                |
-
-[← Docs home](index.md) · [Examples →](../examples/index.md) · [Debugging →](../debugging/index.md)

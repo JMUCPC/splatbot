@@ -59,12 +59,3 @@ Turns until **shoot_paintball** may be used again (`0` = ready).
 Two `BotInfo` instances are equal if they have the same `pid`. This means comparisons like `hex.controller == game_state.me` work as expected.
 
 ---
-
-## Accessing `BotInfo`
-
-| Expression | What it gives you |
-| --- | --- |
-| `game_state.me` | Your bot's `BotInfo`. |
-| `game_state.opponent` | The single opponent in 1v1 (`None` otherwise). |
-| `game_state.opponents[pid]` | A specific opponent by player id. |
-| `hex.controller` | The `BotInfo` that controls this tile, or `None`. |

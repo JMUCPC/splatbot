@@ -43,7 +43,3 @@ The **event log** is the panel in the Splatbot UI (you can expand it or open it 
 Timeout behavior is two-tier when the page is cross-origin isolated (COOP/COEP headers): Splatbot signals a Python interrupt first, then hard-terminates only if needed. Without that environment support, it falls back to direct hard termination at timeout.
 
 **Important:** A successful **move** or **skip** often writes **nothing** to the log. No new line does **not** mean your bot failed — it may have moved quietly. Use **Step**, **print**, or watch the board to confirm behavior.
-
-See also [Glossary: event log](../glossary/index.md#event-log) and [Writing bots](../writing-bots/index.md).
-
-[← Docs home](../) · [← Back to the game](../../index.html)

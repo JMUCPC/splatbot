@@ -2,35 +2,12 @@
 
 Each time your bot's `decide` runs, it must return **exactly one** action built with the **`Actions`** helpers below. Think of it as picking a single choice from a small menu: turn, step forward, stand still, splat, dash, or fire a paintball.
 
-- **Facing:** [Move](#move), [dash](#dash), and [shoot paintball](#shoot-paintball) all use your bot's current **facing** (see [`facing` in BotInfo](../glossary/index.md#botinfo)). Change facing with the [turning](#facing-and-turning) actions.
+- **Facing:** [Move](#move), [dash](#dash), and [shoot paintball](#shoot-paintball) all use your bot's current **facing**. Change facing with the [turning](#facing-and-turning) actions.
 - **Cooldowns:** After splat, dash, or paintball, counters on `game_state.me` must tick down before you can repeat that same action (see [Writing bots](../writing-bots/) for field names).
 - **Stun:** After some moves you may be unable to act for several turns except `skip` — check `game_state.me.stun`. While stunned you cannot **move**, **dash**, **splat**, **shoot paintball**, or **turn** (`skip` still works).
 - **Details:** The [Writing bots](../writing-bots/) page summarizes; this page explains each action in full, with demos.
 
 Interactive examples below use the same rules as the main game (mini grid, player 1 in orange). **Play** applies the action once; **Reset** restores the starting position.
-
-## Skip
-
-The skip action tells a splatbot to skip a turn.
-
-<div class="action-demo" data-action-demo="skip" role="region" aria-label="Skip action example">
-<div class="action-demo-grid" aria-hidden="true"></div>
-<div class="action-demo-buttons">
-<button type="button" class="action-demo-btn" data-demo-play>Play</button>
-<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-</div>
-<p class="action-demo-caption">Skip does not move or paint — the board stays the same.</p>
-</div>
-
-```python
-from utils.actions import Actions
-
-
-class Bot:
-    def decide(self, game_state):
-        """ This bot will not do anything. How lazy! """
-        return Actions.skip()
-```
 
 ## Move
 
@@ -63,7 +40,7 @@ class Bot:
 
 ## Facing and turning
 
-Your bot always has a `facing` value (`game_state.me.facing`), a [HexDirection](../utilities/index.md#hexdirection). Each turning action below costs **one tick**.
+Your bot always has a `facing` value (`game_state.me.facing`), a [HexDirection](../api-docs/utils/hex_grid.md#hexdirection). Each turning action below costs **one tick**.
 
 - **`Actions.turn_left(steps=1)`** — Add `steps` to the direction index (mod 6); e.g. with `steps=1`, **E → NE**. Matches pivoting the marker **left** on the default map view. Default `steps` is `1`. One tick; `steps` is reduced mod 6 (e.g. `6` = full rotation = no net turn).
 - **`Actions.turn_right(steps=1)`** — Subtract `steps` from the direction index (mod 6); e.g. with `steps=1`, **E → SE**. Matches pivoting the marker **right** on the default map view. Default `steps` is `1`.
@@ -110,6 +87,29 @@ Turning does **not** move the bot or paint tiles — only the **facing** changes
 <p class="action-demo-caption">Same start (facing east). <strong>Play</strong> applies <code>Actions.turn_180()</code> — face the opposite way on the hex grid (<strong>E → W</strong>) in one tick. No movement.</p>
 </div>
 
+## Skip
+
+The skip action tells a splatbot to skip a turn.
+
+<div class="action-demo" data-action-demo="skip" role="region" aria-label="Skip action example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Skip does not move or paint — the board stays the same.</p>
+</div>
+
+```python title="Lazy Bot"
+from utils.actions import Actions
+
+
+class Bot:
+    def decide(self, game_state):
+        """ This bot will not do anything. How lazy! """
+        return Actions.skip()
+```
+
 ## Splat
 
 `Actions.splat()` paints every **in-grid neighbor** of your current hex (not the tile you stand on).
@@ -128,7 +128,7 @@ After splat:
 <p class="action-demo-caption">All in-grid neighbors of the bot are painted; the bot's own tile is not.</p>
 </div>
 
-```python
+```python title="Splat Bot"
 from utils.actions import Actions
 from utils.hex_grid import HexDirection
 

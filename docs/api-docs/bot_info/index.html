@@ -31,8 +31,7 @@
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../debugging/index.html">Debugging your bot</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../examples/index.html">Example bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../glossary/index.html">Glossary</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../hex-grid/index.html">TODO: write this page</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../writing-bots/index.html">Writing bots</a></div></li>
       </ul>
     </div>
@@ -73,33 +72,6 @@
 <h2 id="equality" tabindex="-1">Equality</h2>
 <p>Two <code>BotInfo</code> instances are equal if they have the same <code>pid</code>. This means comparisons like <code>hex.controller == game_state.me</code> work as expected.</p>
 <hr>
-<h2 id="accessing-botinfo" tabindex="-1">Accessing <code>BotInfo</code></h2>
-<table>
-<thead>
-<tr>
-<th>Expression</th>
-<th>What it gives you</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>game_state.me</code></td>
-<td>Your bot’s <code>BotInfo</code>.</td>
-</tr>
-<tr>
-<td><code>game_state.opponent</code></td>
-<td>The single opponent in 1v1 (<code>None</code> otherwise).</td>
-</tr>
-<tr>
-<td><code>game_state.opponents[pid]</code></td>
-<td>A specific opponent by player id.</td>
-</tr>
-<tr>
-<td><code>hex.controller</code></td>
-<td>The <code>BotInfo</code> that controls this tile, or <code>None</code>.</td>
-</tr>
-</tbody>
-</table>
 
     </main>
   </div>

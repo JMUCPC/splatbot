@@ -25,14 +25,13 @@
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot documentation</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_data/index.html">Bot info API Reference</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging your bot</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../glossary/index.html">Glossary</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../utilities/index.html">Utilities</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">TODO: write this page</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./index.html">Writing bots</a></div></li>
       </ul>
     </div>
@@ -49,9 +48,9 @@
         <span class="hljs-string">&quot;&quot;&quot; This function will use the values provided in `game_state` to return what action it believes it should take.&quot;&quot;&quot;</span>
         <span class="hljs-keyword">return</span> Actions.skip() <span class="hljs-comment"># Template, so do nothing.</span>
 </code></pre>
-<p>This may look complicated, but each part of this template is explained in more detail below. <em><a href="../actions/index.html">Actions</a></em> and <em><a href="../utilities/index.html">Utilities</a></em> are explained in greater detail on their own pages.</p>
+<p>This may look complicated, but each part of this template is explained in more detail below. <em><a href="../actions/index.html">Actions</a></em> are explained in greater detail on their own page.</p>
 <h2 id="imports" tabindex="-1">Imports</h2>
-<p>Two custom imports are provided to players wanting to create their own splatbot: <code>utils.actions</code> and <code>utils.hex_grid</code>. The first contains the <code>Actions</code> class, which provides a template for the actions a bot may take. A detailed breakdown of how this works is provided <a href="../actions/index.html">here</a>. The second import provides useful utilities for working with a hexagonal grid. A similarly detailed breakdown for this can be found <a href="../utilities/index.html">here</a>.</p>
+<p>Two custom imports are provided to players wanting to create their own splatbot: <code>utils.actions</code> and <code>utils.hex_grid</code>. The first contains the <code>Actions</code> class, which provides a template for the actions a bot may take. A detailed breakdown of how this works is provided <a href="../actions/index.html">here</a>. The second import provides useful utilities for working with a hexagonal grid. A similarly detailed breakdown for this can be found <a href="../hex-grid/">here</a>.</p>
 <h2 id="deciding-on-an-action" tabindex="-1">Deciding on an Action</h2>
 <p>On every tick, the game will call the <code>decide</code> method of each bot in the game. Each call to <code>decide</code> must return <strong>one</strong> of:</p>
 <table>
@@ -64,7 +63,7 @@
 <tbody>
 <tr>
 <td><a href="../actions/index.html#move">move</a></td>
-<td>Step one hex <strong>forward</strong> (in current <a href="../glossary/index.html#botinfo">facing</a>); paint that hex.</td>
+<td>Step one hex <strong>forward</strong> and paint that hex.</td>
 </tr>
 <tr>
 <td><a href="../actions/index.html#facing-and-turning">turn_left / turn_right / face_direction / turn_180</a></td>
@@ -92,16 +91,13 @@
 <p>If the returned action is invalid for any reason, or if the <code>decide</code> method raises an Error/Exception or exceeds the time limit (configurable via settings), then the bot’s move will be skipped for the current turn.</p>
 <h3 id="simple-example" tabindex="-1">Simple Example</h3>
 <p>This bot aligns to <strong>east</strong>, then <strong>moves forward</strong> on later ticks (see <a href="../actions/index.html#facing-and-turning">facing</a>).</p>
-<pre><code data-docs-code-lang="python" data-docs-code-title="East-forward Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" data-docs-code-title="Forward Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> *
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-string">&quot;&quot;&quot; Face east, then step forward in the facing direction. &quot;&quot;&quot;</span>
-        me = game_state.me
-        <span class="hljs-keyword">if</span> me.facing != HexDirection.E:
-            <span class="hljs-keyword">return</span> Actions.face_direction(HexDirection.E)
+        <span class="hljs-string">&quot;&quot;&quot; Always choose to walk forwards. &quot;&quot;&quot;</span>
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 <h2 id="remembering-data" tabindex="-1">Remembering Data</h2>
@@ -120,6 +116,77 @@
         <span class="hljs-built_in">print</span>(<span class="hljs-variable language_">self</span>.count)  <span class="hljs-comment"># print goes to the browser console: open with F12</span>
         <span class="hljs-keyword">return</span> Actions.skip()
 </code></pre>
+<h2 id="data-classes" tabindex="-1">Data Classes</h2>
+<h3 id="game-state" tabindex="-1">Game State</h3>
+<p><code>game_state</code> is <strong>read-only</strong>. You interact with the match only by <strong>returning</strong> an action.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pid</code></td>
+<td>Your player id (<code>1</code> or <code>2</code>).</td>
+</tr>
+<tr>
+<td><code>me</code></td>
+<td>Your BotInfo — <code>position</code>, <code>facing</code>, <code>stun</code>, cooldowns.</td>
+</tr>
+<tr>
+<td><code>opponents</code></td>
+<td>Other players’ BotInfo, keyed by player id.</td>
+</tr>
+<tr>
+<td><code>opponent</code></td>
+<td>The single opponent’s BotInfo in 1v1, or <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>grid</code></td>
+<td>All hexes on the map (<code>Hex</code> values). Each has a <code>controller</code> (<code>BotInfo</code> or <code>None</code>).</td>
+</tr>
+<tr>
+<td><code>turn</code></td>
+<td>Current turn index.</td>
+</tr>
+<tr>
+<td><code>max_turns</code></td>
+<td>Match length.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="botinfo" tabindex="-1">BotInfo</h3>
+<p>TODO: table of actual contents of BotInfo</p>
+<p>…</p>
+<p><code>BotInfo</code> is found in many of the fields of <code>GameState</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>What it gives you</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>game_state.me</code></td>
+<td>Your bot’s <code>BotInfo</code>.</td>
+</tr>
+<tr>
+<td><code>game_state.opponent</code></td>
+<td>The single opponent in 1v1 (<code>None</code> otherwise).</td>
+</tr>
+<tr>
+<td><code>game_state.opponents[pid]</code></td>
+<td>A specific opponent by player id.</td>
+</tr>
+<tr>
+<td><code>hex.controller</code></td>
+<td>The <code>BotInfo</code> that controls this tile, or <code>None</code>.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="putting-it-all-together" tabindex="-1">Putting it all together</h2>
 <p>This bot moves east until the next east step would leave the grid, then flips and moves west until it hits the other edge, and repeats — making a “ping-pong” pattern.</p>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Ping-Pong Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
@@ -142,52 +209,11 @@
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 <ul>
-<li><code>game_state.me</code> is <a href="../glossary/index.html#botinfo">your bot’s info</a> (<code>position</code>, <code>facing</code>, cooldowns, etc.).</li>
+<li><code>game_state.me</code> is your bot’s info (<code>position</code>, <code>facing</code>, cooldowns, etc.).</li>
 <li><code>hex_neighbor(hex, direction)</code> is the hex you would step into; if it is not in <code>game_state.grid</code>, that move would leave the map, so we flip direction first.</li>
 <li>We <strong>face</strong> the desired travel direction, then <strong>move</strong> forward on the next tick when already aligned.</li>
 </ul>
 <p>More walkthroughs (cooldowns, painting empty tiles) are on <a href="../examples/index.html">Examples</a>.</p>
-<h2 id="game-state-quick-reference" tabindex="-1">Game state quick reference</h2>
-<p><a href="../glossary/index.html#game_state"><code>game_state</code></a> is <strong>read-only</strong>. You interact with the match only by <strong>returning</strong> an action.</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>pid</code></td>
-<td>Your <a href="../glossary/index.html#player-id">player id</a> (<code>1</code> or <code>2</code>).</td>
-</tr>
-<tr>
-<td><code>me</code></td>
-<td>Your <a href="../glossary/index.html#botinfo">BotInfo</a> — <code>position</code>, <code>facing</code>, <code>stun</code>, cooldowns.</td>
-</tr>
-<tr>
-<td><code>opponents</code></td>
-<td>Other players’ <a href="../glossary/index.html#botinfo">BotInfo</a>, keyed by player id.</td>
-</tr>
-<tr>
-<td><code>opponent</code></td>
-<td>The single opponent’s <a href="../glossary/index.html#botinfo">BotInfo</a> in 1v1, or <code>None</code>.</td>
-</tr>
-<tr>
-<td><code>grid</code></td>
-<td>All hexes on the map (<code>Hex</code> values). Each has a <code>controller</code> (<code>BotInfo</code> or <code>None</code>).</td>
-</tr>
-<tr>
-<td><code>turn</code></td>
-<td>Current <a href="../glossary/index.html#turn">turn</a> index.</td>
-</tr>
-<tr>
-<td><code>max_turns</code></td>
-<td>Match length.</td>
-</tr>
-</tbody>
-</table>
-<p><a href="./index.html">← Docs home</a> · <a href="../examples/index.html">Examples →</a> · <a href="../debugging/index.html">Debugging →</a></p>
 
     </main>
   </div>
