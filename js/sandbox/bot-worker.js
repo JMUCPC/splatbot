@@ -121,6 +121,14 @@ class _Snapshot:
         object.__setattr__(self, 'grid', tiles)
         object.__setattr__(self, 'turn', d['turn'])
         object.__setattr__(self, 'max_turns', d['max_turns'])
+    def get_grid_as_2D_list(self):
+        """Nested lists by axial r then q; result[i][j] matches sorted (r, q); no placeholders."""
+        by_r = {}
+        for h in self.grid:
+            by_r.setdefault(h.r, {})[h.q] = h
+        if not by_r:
+            return []
+        return [[m[q] for q in sorted(m)] for r, m in sorted(by_r.items())]
     def __setattr__(self, *a):
         raise AttributeError("GameStateSnapshot is read-only")
 `);

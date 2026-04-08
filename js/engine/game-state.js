@@ -73,6 +73,25 @@ export class GameState {
     return this.grid.size;
   }
 
+  /**
+   * Hexes as nested arrays: outer dimension is axial `r` (ascending), inner is `q` (ascending).
+   * `result[i][j]` is the hex at sorted `(r, q)`; only tiles in `grid` appear (no placeholders).
+   * @returns {Hex[][]}
+   */
+  getGridAs2DList() {
+    const byR = new Map();
+    for (const h of this.grid.values()) {
+      if (!byR.has(h.r)) byR.set(h.r, new Map());
+      byR.get(h.r).set(h.q, h);
+    }
+    if (byR.size === 0) return [];
+    const rows = [...byR.entries()].sort((a, b) => a[0] - b[0]);
+    return rows.map(([, m]) => {
+      const qs = [...m.keys()].sort((a, b) => a - b);
+      return qs.map((q) => m.get(q));
+    });
+  }
+
   coveragePct() {
     const sc = this.score();
     const total = Math.max(1, this.totalTiles());

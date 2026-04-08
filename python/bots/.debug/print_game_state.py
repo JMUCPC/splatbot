@@ -9,6 +9,7 @@ class Bot:
         print(f"opponents: {game_state.opponents}")
         print(f"opponent: {game_state.opponent}")
         print(f"grid: {game_state.grid}")
+        print(f"grid as 2D list: {game_state.get_grid_as_2D_list()}")
         print(f"max_turns: {game_state.max_turns}")
         print(f"turn: {game_state.turn}")
         return Actions.skip()
