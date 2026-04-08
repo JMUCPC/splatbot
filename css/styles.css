@@ -561,8 +561,7 @@ body {
   align-items: stretch;
 }
 
-.sb-file-choose-btn,
-.sb-file-clear-btn {
+.sb-file-choose-btn {
   margin: 0;
   cursor: pointer;
   display: inline-flex;
@@ -573,15 +572,8 @@ body {
   background: #243248;
   border-color: #455e82;
   color: #c8d6e8;
-}
-
-.sb-file-choose-btn {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 0;
-}
-
-.sb-file-clear-btn {
-  flex: 0 0 auto;
 }
 
 .sb-file-status {
