@@ -4,16 +4,35 @@ Uses pointy-top hexagon orientation; axial E/W align with screen right/left (+x 
 Reference: https://www.redblobgames.com/grids/hexagons/
 """
 from __future__ import annotations
-from dataclasses import dataclass
 from enum import IntEnum
 import math
 
 
-@dataclass(frozen=True)
 class Hex:
-    """Axial (q, r) hex coordinate. Immutable and hashable."""
-    q: int
-    r: int
+    """Axial (q, r) hex coordinate with optional tile-ownership controller.
+
+    Equality and hashing use *only* ``(q, r)`` so geometric lookups
+    (``hex_neighbor(...) in grid``) work regardless of controller state.
+    ``controller`` is ``BotInfo | None`` in the sandbox snapshot.
+    """
+
+    __slots__ = ("q", "r", "controller")
+
+    def __init__(self, q: int, r: int, controller: object | None = None) -> None:
+        object.__setattr__(self, "q", q)
+        object.__setattr__(self, "r", r)
+        object.__setattr__(self, "controller", controller)
+
+    def __setattr__(self, *a):
+        raise AttributeError("Hex is immutable")
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Hex):
+            return NotImplemented
+        return self.q == other.q and self.r == other.r
+
+    def __hash__(self) -> int:
+        return hash((self.q, self.r))
 
     def __add__(self, other: Hex) -> Hex:
         return Hex(self.q + other.q, self.r + other.r)
@@ -23,6 +42,18 @@ class Hex:
 
     def __repr__(self) -> str:
         return f"Hex({self.q}, {self.r})"
+
+    def is_controlled_by(self, bot_or_pid: object) -> bool:
+        """Return True when this tile is controlled by *bot_or_pid*.
+
+        Accepts a ``BotInfo`` instance (uses ``==``) or an ``int`` player-id
+        (compared to ``self.controller.pid``).
+        """
+        if self.controller is None:
+            return False
+        if isinstance(bot_or_pid, int):
+            return self.controller.pid == bot_or_pid
+        return self.controller == bot_or_pid
 
 
 class HexDirection(IntEnum):

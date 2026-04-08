@@ -48,8 +48,8 @@
 <h2 id="runtime-snapshot-types" tabindex="-1">Runtime snapshot types</h2>
 <p>The following are not <code>.py</code> files in the repo; they are constructed inside the Pyodide worker and passed into <code>decide</code> as <code>game_state</code>. They are read-only (assigning attributes raises).</p>
 <ul>
-<li><a href="./game_data/index.html">Game state (<code>game_state</code>)</a> — board, scores-by-tile, turn metadata, and your bot’s cooldowns.</li>
-<li><a href="./bot_data/index.html">Bot info (<code>game_state.bots[pid]</code>)</a> — per-player position, facing, and timers.</li>
+<li><a href="./game_data/index.html">Game state (<code>game_state</code>)</a> — board, turn metadata, and references to your bot and opponents.</li>
+<li><a href="./bot_data/index.html">Bot info (<code>game_state.me</code>, <code>game_state.opponent</code>)</a> — per-player position, facing, and timers.</li>
 </ul>
 
     </main>

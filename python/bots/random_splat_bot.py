@@ -9,12 +9,12 @@ class Bot:
         self._move_next = False
 
     def decide(self, game_state):
-        if game_state.my_stun > 0:
+        if game_state.me.stun > 0:
             return Actions.skip()
         if not self._move_next:
             self._move_next = True
             return Actions.face_direction(random.choice(list(HexDirection)))
         self._move_next = False
-        if random.random() < 0.28 and game_state.my_splat_cooldown == 0:
+        if random.random() < 0.28 and game_state.me.splat_cooldown == 0:
             return Actions.splat()
         return Actions.move()

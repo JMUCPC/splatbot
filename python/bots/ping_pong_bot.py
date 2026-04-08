@@ -9,7 +9,7 @@ class Bot:
         self._going_east = True
 
     def decide(self, game_state):
-        me = game_state.bots[game_state.my_pid]
+        me = game_state.me
         d = HexDirection.E if self._going_east else HexDirection.W
         nbr = hex_neighbor(me.position, d)
         if nbr not in game_state.grid:

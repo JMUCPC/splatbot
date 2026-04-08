@@ -17,7 +17,7 @@ The map is a **pointy-top** hex grid using **axial** coordinates (`q`, `r`) — 
 | `W` | screen left |
 | `NE`, `NW`, `SE`, `SW` | the four diagonals on the hex lattice |
 
-Use `HexDirection` with `Actions.face_direction(...)`, `hex_neighbor`, and when comparing to `game_state.bots[pid].facing`. You can also use integers `0`–`5` where an API accepts `int | HexDirection` (names are clearer).
+Use `HexDirection` with `Actions.face_direction(...)`, `hex_neighbor`, and when comparing to facing values from `game_state` (`game_state.me.facing`, `game_state.opponents[pid].facing`, or `game_state.opponent.facing` in 1v1). You can also use integers `0`–`5` where an API accepts `int | HexDirection` (names are clearer).
 
 **Motion:** `Actions.move()`, `Actions.dash(distance)`, and `Actions.shoot_paintball()` use your bot’s current **facing**, not a direction argument — turn first if you need a different heading.
 

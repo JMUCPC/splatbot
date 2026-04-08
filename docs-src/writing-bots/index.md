@@ -49,7 +49,7 @@ from utils.hex_grid import *
 class Bot:
     def decide(self, game_state):
         """ Face east, then step forward in the facing direction. """
-        me = game_state.bots[game_state.my_pid]
+        me = game_state.me
         if me.facing != HexDirection.E:
             return Actions.face_direction(HexDirection.E)
         return Actions.move()
@@ -57,7 +57,7 @@ class Bot:
 
 ## Remembering Data
 
-The game creates a singular instance of `Bot` when your script loads. If you need to remember a value between calls to the `decide` method (for example “which way was I going last tick?”), it can be stored as an instance variable on `self`.
+The game creates a singular instance of `Bot` when your script loads. If you need to remember a value between calls to the `decide` method (for example "which way was I going last tick?"), it can be stored as an instance variable on `self`.
 
 To set starting values of these instance variables, add a constructor to the `Bot` class: `def __init__(self):`. This is optional, and only necessary if you wish to make a bot that can remember things. However, advanced bot strategies may benefit by using memory in their decisions.
 
@@ -79,7 +79,7 @@ class Bot:
 
 ## Putting it all together
 
-This bot moves east until the next east step would leave the grid, then flips and moves west until it hits the other edge, and repeats — the “ping-pong” pattern.
+This bot moves east until the next east step would leave the grid, then flips and moves west until it hits the other edge, and repeats — making a "ping-pong" pattern.
 
 ```python title="Ping-Pong Bot"
 from utils.actions import Actions
@@ -91,7 +91,7 @@ class Bot:
         self.going_east = True
 
     def decide(self, game_state):
-        me = game_state.bots[game_state.my_pid]
+        me = game_state.me
         d = HexDirection.E if self.going_east else HexDirection.W
         nbr = hex_neighbor(me.position, d)
         if nbr not in game_state.grid:
@@ -102,7 +102,7 @@ class Bot:
         return Actions.move()
 ```
 
-- `game_state.bots[game_state.my_pid]` is [your bot’s info](../glossary/index.md#botinfo) (`position`, `facing`, etc.).
+- `game_state.me` is [your bot's info](../glossary/index.md#botinfo) (`position`, `facing`, cooldowns, etc.).
 - `hex_neighbor(hex, direction)` is the hex you would step into; if it is not in `game_state.grid`, that move would leave the map, so we flip direction first.
 - We **face** the desired travel direction, then **move** forward on the next tick when already aligned.
 
@@ -114,15 +114,12 @@ More walkthroughs (cooldowns, painting empty tiles) are on [Examples](../example
 
 | Field                   | Meaning                                                                                                                      |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `my_pid`                | Your [player id](../glossary/index.md#player-id) (`1` or `2`).                                                               |
-| `my_stun`               | Turns until you cannot move/dash/splat/shoot/**turn** (`0` = not [stunned](../glossary/index.md#stun)). `Actions.skip()` still works. |
-| `my_splat_cooldown`     | Turns until [splat](../actions/index.md#splat) is allowed (`0` = available).                                                 |
-| `my_dash_cooldown`      | Turns until [dash](../actions/index.md#dash) is allowed (`0` = available).                                                  |
-| `my_paintball_cooldown` | Turns until [paintball](../actions/index.md#shoot-paintball) is allowed (`0` = available).                                   |
-| `grid`                  | All hexes on the map (`Hex` values).                                                                                         |
-| `tile_pids`             | Who paints each hex: `0` = unpainted, `1` / `2` = players. See [tile owner](../glossary/index.md#tile-owner).                |
-| `bots`                  | Per-player [BotInfo](../glossary/index.md#botinfo) (`position`, `facing`, timers).                                            |
-| `turn`                  | Current [turn](../glossary/index.md#turn) index.                                                                              |
+| `pid`                   | Your [player id](../glossary/index.md#player-id) (`1` or `2`).                                                               |
+| `me`                    | Your [BotInfo](../glossary/index.md#botinfo) — `position`, `facing`, `stun`, cooldowns.                                     |
+| `opponents`             | Other players' [BotInfo](../glossary/index.md#botinfo), keyed by player id.                                                  |
+| `opponent`              | The single opponent's [BotInfo](../glossary/index.md#botinfo) in 1v1, or `None`.                                            |
+| `grid`                  | All hexes on the map (`Hex` values). Each has a `controller` (`BotInfo` or `None`).                                          |
+| `turn`                  | Current [turn](../glossary/index.md#turn) index.                                                                             |
 | `max_turns`             | Match length.                                                                                                                |
 
 [← Docs home](index.md) · [Examples →](../examples/index.md) · [Debugging →](../debugging/index.md)

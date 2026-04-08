@@ -1,6 +1,6 @@
 # Game state (`game_state`) API Reference
 
-`Bot.decide(self, game_state)` receives a **read-only snapshot** of the match. It is built in the Pyodide worker from JSON and is **not** a module you import; attribute assignment raises `AttributeError` (including on nested `bots` and `tile_pids` mappings).
+`Bot.decide(self, game_state)` receives a **read-only snapshot** of the match. It is built in the Pyodide worker from JSON and is **not** a module you import; attribute assignment raises `AttributeError`.
 
 Conceptually it matches the data described below. Names follow the Python attributes used in the worker (`snake_case` cooldown fields).
 
@@ -9,55 +9,59 @@ Conceptually it matches the data described below. Names follow the Python attrib
 ```python
 # Illustrative — actual class is injected by the sandbox; read-only.
 class GameStateSnapshot:
-    my_pid: int
-    my_stun: int
-    my_splat_cooldown: int
-    my_dash_cooldown: int
-    my_paintball_cooldown: int
+    pid: int
+    me: BotInfo
+    opponents: Mapping[int, BotInfo]
+    opponent: BotInfo | None
     grid: frozenset[Hex]
-    tile_pids: Mapping[Hex, int]
-    bots: Mapping[int, BotInfo]
     turn: int
     max_turns: int
 ```
 
-`Hex` and bot entries use types from [`utils.hex_grid`](utils/hex_grid.md) and [Bot info](bot_data.md).
+`Hex` uses types from [`utils.hex_grid`](utils/hex_grid.md). `BotInfo` is described on [Bot info](bot_data.md).
 
 ---
 
 ## Fields
 
-### `my_pid: int`
+### `pid: int`
 
-Your player id (`1` or `2` in a two-player match).
+Your player id (`1` or `2` in a two-player match). Same value as `me.pid`.
 
-### `my_stun: int`
+### `me: BotInfo`
 
-Turns remaining during which **move**, **dash**, **splat**, **shoot_paintball**, and **turning** (`turn_left`, `turn_right`, `face_direction`, `turn_180`) are blocked for your bot (**skip** is still allowed). Same semantics as `game_state.bots[my_pid].stun`; exposed for convenience.
+A read-only [BotInfo](bot_data.md) for **your** bot — position, facing, stun, and all cooldowns. This is the primary way to check your own state. Stun counts turns where **move**, **dash**, **splat**, **shoot_paintball**, and **turning** are blocked (**skip** is still allowed).
 
-### `my_splat_cooldown: int`
+```python
+if game_state.me.stun > 0:
+    return Actions.skip()
+```
 
-Turns until **splat** is allowed again for your bot (0 means ready). Mirrors `game_state.bots[my_pid].splat_cooldown`.
+### `opponents: Mapping[int, BotInfo]`
 
-### `my_dash_cooldown: int`
+All **other** players in the match, keyed by their player id. Read-only (`types.MappingProxyType`). In a two-player match this contains exactly one entry.
 
-Turns until **dash** is allowed again for your bot. Mirrors `game_state.bots[my_pid].dash_cooldown`.
+### `opponent: BotInfo | None`
 
-### `my_paintball_cooldown: int`
+Convenience shortcut: the **single** opponent's `BotInfo` when there is exactly one opponent (the standard 1v1 case). `None` if there are zero or more than one opponents.
 
-Turns until **shoot_paintball** is allowed again for your bot. Mirrors `game_state.bots[my_pid].paintball_cooldown`.
+```python
+opp = game_state.opponent
+if opp is not None:
+    dist = hex_distance(game_state.me.position, opp.position)
+```
 
 ### `grid: frozenset[Hex]`
 
-All hex cells that exist on the map (in-bounds tiles). Use this to test whether a coordinate is on the board.
+All hex cells on the map. Each `Hex` has a `controller` attribute (`BotInfo | None`) indicating who currently paints that tile (`None` = unpainted). Use `hex.controller` or `hex.is_controlled_by(...)` to check ownership.
 
-### `tile_pids: Mapping[Hex, int]`
+```python
+for hex in game_state.grid:
+    if hex.is_controlled_by(game_state.me):
+        ...  # this tile is mine
+```
 
-Paint ownership per hex: maps each `Hex` to a player id. **`0`** means **unpainted**; `1` and `2` mean painted by that player. The mapping is read-only (`types.MappingProxyType`).
-
-### `bots: Mapping[int, BotInfo]`
-
-Per-player state keyed by player id. Values are read-only bot info objects; see [Bot info](bot_data.md).
+Position checks like `hex_neighbor(pos, d) in game_state.grid` still work — `Hex` equality uses only `(q, r)`, not `controller`.
 
 ### `turn: int`
 
@@ -71,4 +75,4 @@ Maximum turns for the match (game ends when `turn` reaches this, per engine rule
 
 ## Construction note
 
-The worker parses JSON from the main thread, builds `Hex` / `HexDirection` values, wraps `tile_pids` and `bots` in read-only mappings, and passes the result to `decide`. You should treat `game_state` as an immutable view of the world for that call.
+The worker parses JSON from the main thread, builds `Hex` / `HexDirection` values with resolved `controller` references, and passes the result to `decide`. You should treat `game_state` as an immutable view of the world for that call.

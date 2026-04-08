@@ -39,48 +39,51 @@
   </aside>
     <main class="docs-main markdown-body">
 <h1 id="game-state-game_state-api-reference" tabindex="-1">Game state (<code>game_state</code>) API Reference</h1>
-<p><code>Bot.decide(self, game_state)</code> receives a <strong>read-only snapshot</strong> of the match. It is built in the Pyodide worker from JSON and is <strong>not</strong> a module you import; attribute assignment raises <code>AttributeError</code> (including on nested <code>bots</code> and <code>tile_pids</code> mappings).</p>
+<p><code>Bot.decide(self, game_state)</code> receives a <strong>read-only snapshot</strong> of the match. It is built in the Pyodide worker from JSON and is <strong>not</strong> a module you import; attribute assignment raises <code>AttributeError</code>.</p>
 <p>Conceptually it matches the data described below. Names follow the Python attributes used in the worker (<code>snake_case</code> cooldown fields).</p>
 <h2 id="type-overview" tabindex="-1">Type overview</h2>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-comment"># Illustrative — actual class is injected by the sandbox; read-only.</span>
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">GameStateSnapshot</span>:
-    my_pid: <span class="hljs-built_in">int</span>
-    my_stun: <span class="hljs-built_in">int</span>
-    my_splat_cooldown: <span class="hljs-built_in">int</span>
-    my_dash_cooldown: <span class="hljs-built_in">int</span>
-    my_paintball_cooldown: <span class="hljs-built_in">int</span>
+    pid: <span class="hljs-built_in">int</span>
+    me: BotInfo
+    opponents: Mapping[<span class="hljs-built_in">int</span>, BotInfo]
+    opponent: BotInfo | <span class="hljs-literal">None</span>
     grid: <span class="hljs-built_in">frozenset</span>[Hex]
-    tile_pids: Mapping[Hex, <span class="hljs-built_in">int</span>]
-    bots: Mapping[<span class="hljs-built_in">int</span>, BotInfo]
     turn: <span class="hljs-built_in">int</span>
     max_turns: <span class="hljs-built_in">int</span>
 </code></pre>
-<p><code>Hex</code> and bot entries use types from <a href="../utils/hex_grid/index.html"><code>utils.hex_grid</code></a> and <a href="../bot_data/index.html">Bot info</a>.</p>
+<p><code>Hex</code> uses types from <a href="../utils/hex_grid/index.html"><code>utils.hex_grid</code></a>. <code>BotInfo</code> is described on <a href="../bot_data/index.html">Bot info</a>.</p>
 <hr>
 <h2 id="fields" tabindex="-1">Fields</h2>
-<h3 id="my_pid-int" tabindex="-1"><code>my_pid: int</code></h3>
-<p>Your player id (<code>1</code> or <code>2</code> in a two-player match).</p>
-<h3 id="my_stun-int" tabindex="-1"><code>my_stun: int</code></h3>
-<p>Turns remaining during which <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, <strong>shoot_paintball</strong>, and <strong>turning</strong> (<code>turn_left</code>, <code>turn_right</code>, <code>face_direction</code>, <code>turn_180</code>) are blocked for your bot (<strong>skip</strong> is still allowed). Same semantics as <code>game_state.bots[my_pid].stun</code>; exposed for convenience.</p>
-<h3 id="my_splat_cooldown-int" tabindex="-1"><code>my_splat_cooldown: int</code></h3>
-<p>Turns until <strong>splat</strong> is allowed again for your bot (0 means ready). Mirrors <code>game_state.bots[my_pid].splat_cooldown</code>.</p>
-<h3 id="my_dash_cooldown-int" tabindex="-1"><code>my_dash_cooldown: int</code></h3>
-<p>Turns until <strong>dash</strong> is allowed again for your bot. Mirrors <code>game_state.bots[my_pid].dash_cooldown</code>.</p>
-<h3 id="my_paintball_cooldown-int" tabindex="-1"><code>my_paintball_cooldown: int</code></h3>
-<p>Turns until <strong>shoot_paintball</strong> is allowed again for your bot. Mirrors <code>game_state.bots[my_pid].paintball_cooldown</code>.</p>
+<h3 id="pid-int" tabindex="-1"><code>pid: int</code></h3>
+<p>Your player id (<code>1</code> or <code>2</code> in a two-player match). Same value as <code>me.pid</code>.</p>
+<h3 id="me-botinfo" tabindex="-1"><code>me: BotInfo</code></h3>
+<p>A read-only <a href="../bot_data/index.html">BotInfo</a> for <strong>your</strong> bot — position, facing, stun, and all cooldowns. This is the primary way to check your own state. Stun counts turns where <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, <strong>shoot_paintball</strong>, and <strong>turning</strong> are blocked (<strong>skip</strong> is still allowed).</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">if</span> game_state.me.stun &gt; <span class="hljs-number">0</span>:
+    <span class="hljs-keyword">return</span> Actions.skip()
+</code></pre>
+<h3 id="opponents-mappingint-botinfo" tabindex="-1"><code>opponents: Mapping[int, BotInfo]</code></h3>
+<p>All <strong>other</strong> players in the match, keyed by their player id. Read-only (<code>types.MappingProxyType</code>). In a two-player match this contains exactly one entry.</p>
+<h3 id="opponent-botinfo--none" tabindex="-1"><code>opponent: BotInfo | None</code></h3>
+<p>Convenience shortcut: the <strong>single</strong> opponent’s <code>BotInfo</code> when there is exactly one opponent (the standard 1v1 case). <code>None</code> if there are zero or more than one opponents.</p>
+<pre><code data-docs-code-lang="python" class="language-python">opp = game_state.opponent
+<span class="hljs-keyword">if</span> opp <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+    dist = hex_distance(game_state.me.position, opp.position)
+</code></pre>
 <h3 id="grid-frozensethex" tabindex="-1"><code>grid: frozenset[Hex]</code></h3>
-<p>All hex cells that exist on the map (in-bounds tiles). Use this to test whether a coordinate is on the board.</p>
-<h3 id="tile_pids-mappinghex-int" tabindex="-1"><code>tile_pids: Mapping[Hex, int]</code></h3>
-<p>Paint ownership per hex: maps each <code>Hex</code> to a player id. <strong><code>0</code></strong> means <strong>unpainted</strong>; <code>1</code> and <code>2</code> mean painted by that player. The mapping is read-only (<code>types.MappingProxyType</code>).</p>
-<h3 id="bots-mappingint-botinfo" tabindex="-1"><code>bots: Mapping[int, BotInfo]</code></h3>
-<p>Per-player state keyed by player id. Values are read-only bot info objects; see <a href="../bot_data/index.html">Bot info</a>.</p>
+<p>All hex cells on the map. Each <code>Hex</code> has a <code>controller</code> attribute (<code>BotInfo | None</code>) indicating who currently paints that tile (<code>None</code> = unpainted). Use <code>hex.controller</code> or <code>hex.is_controlled_by(...)</code> to check ownership.</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">for</span> <span class="hljs-built_in">hex</span> <span class="hljs-keyword">in</span> game_state.grid:
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">hex</span>.is_controlled_by(game_state.me):
+        ...  <span class="hljs-comment"># this tile is mine</span>
+</code></pre>
+<p>Position checks like <code>hex_neighbor(pos, d) in game_state.grid</code> still work — <code>Hex</code> equality uses only <code>(q, r)</code>, not <code>controller</code>.</p>
 <h3 id="turn-int" tabindex="-1"><code>turn: int</code></h3>
 <p>Current turn index provided by the engine (same field name as in the serialized snapshot).</p>
 <h3 id="max_turns-int" tabindex="-1"><code>max_turns: int</code></h3>
 <p>Maximum turns for the match (game ends when <code>turn</code> reaches this, per engine rules).</p>
 <hr>
 <h2 id="construction-note" tabindex="-1">Construction note</h2>
-<p>The worker parses JSON from the main thread, builds <code>Hex</code> / <code>HexDirection</code> values, wraps <code>tile_pids</code> and <code>bots</code> in read-only mappings, and passes the result to <code>decide</code>. You should treat <code>game_state</code> as an immutable view of the world for that call.</p>
+<p>The worker parses JSON from the main thread, builds <code>Hex</code> / <code>HexDirection</code> values with resolved <code>controller</code> references, and passes the result to <code>decide</code>. You should treat <code>game_state</code> as an immutable view of the world for that call.</p>
 
     </main>
   </div>

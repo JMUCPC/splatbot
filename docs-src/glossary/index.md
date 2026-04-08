@@ -12,7 +12,7 @@ The map uses **axial** `(q, r)` integer pairs for each hex (`Hex` in code). You 
 
 ## BotInfo
 
-Read-only view of one bot in `game_state.bots[pid]`: `position` (`Hex`), `facing`, and per-bot timers (`stun`, cooldown fields). Use `game_state.bots[game_state.my_pid]` for yourself.
+Read-only view of a bot: `position` (`Hex`), `facing`, and per-bot timers (`stun`, cooldown fields). Access your own via `game_state.me`, your opponent's via `game_state.opponent` (1v1), or look up by id with `game_state.opponents[pid]`.
 
 ## Browser console
 
@@ -20,7 +20,7 @@ The **developer tools** panel where `print()` from your bot can appear (Python r
 
 ## Cooldown
 
-After some actions (splat, dash, paintball), a **cooldown** counter must reach `0` before you can use that action again. Check `game_state.my_splat_cooldown`, `my_dash_cooldown`, `my_paintball_cooldown`. Defaults are configurable in **SETTINGS** in the game.
+After some actions (splat, dash, paintball), a **cooldown** counter must reach `0` before you can use that action again. Check `game_state.me.splat_cooldown`, `me.dash_cooldown`, `me.paintball_cooldown`. Defaults are configurable in **SETTINGS** in the game.
 
 ## Event log
 
@@ -28,15 +28,15 @@ The scrollable panel in the Splatbot UI listing match events, errors, and some b
 
 ## game_state
 
-A **read-only snapshot** passed into `decide(self, game_state)` each turn: your id, stun/cooldowns, the set of hexes, who owns each tile, all bots’ positions, and turn counters. You change the game only by **returning** an action.
+A **read-only snapshot** passed into `decide(self, game_state)` each turn: `me` (your bot), `opponents`, the hex `grid` with tile ownership, and turn counters. You change the game only by **returning** an action.
 
 ## Hex
 
-One cell on the map, identified by axial coordinates. See [Utilities](../utilities/).
+One cell on the map, identified by axial coordinates. Each `Hex` in `game_state.grid` carries a `controller` (`BotInfo | None`) showing who paints it. See [Utilities](../utilities/).
 
 ## Player id
 
-`1` or `2` — which side this script controls. Available as `game_state.my_pid` and as keys in `game_state.bots`.
+`1` or `2` — which side this script controls. Available as `game_state.pid` or `game_state.me.pid`.
 
 ## Pyodide
 
@@ -44,15 +44,15 @@ The in-browser Python runtime used to run your bot. Implementation detail; you w
 
 ## Stun
 
-After splat or paintball (and optionally dash), you may be **stunned** for several turns: you cannot move, dash, splat, shoot paintball, or turn until `game_state.my_stun` is `0`. You **can** still `Actions.skip()`.
+After splat or paintball (and optionally dash), you may be **stunned** for several turns: you cannot move, dash, splat, shoot paintball, or turn until `game_state.me.stun` is `0`. You **can** still `Actions.skip()`.
 
 ## Tick
 
-One **simulation step** in the UI: the turn counter advances, **both** players’ `decide` methods run (in order), then collisions resolve. Stepping the game one **tick** at a time is different from watching it run continuously. See [Debugging](../debugging/#step).
+One **simulation step** in the UI: the turn counter advances, **both** players' `decide` methods run (in order), then collisions resolve. Stepping the game one **tick** at a time is different from watching it run continuously. See [Debugging](../debugging/#step).
 
 ## Tile owner
 
-`game_state.tile_pids` maps each `Hex` to `0` (unpainted), `1`, or `2`. Use it to see who paints a tile.
+Each `Hex` in `game_state.grid` has a `controller` attribute: `None` means unpainted, otherwise it is the `BotInfo` that controls the tile. Use `hex.controller` or `hex.is_controlled_by(bot_or_pid)` to check.
 
 ## Turn
 
@@ -60,6 +60,6 @@ The current step of the match, exposed as `game_state.turn` (and `max_turns` for
 
 ## Web Worker
 
-A background thread where your Python runs so the page stays responsive. Your `print` output may show under the worker in the browser’s developer tools. See [Debugging](../debugging/#print-and-the-browser-console).
+A background thread where your Python runs so the page stays responsive. Your `print` output may show under the worker in the browser's developer tools. See [Debugging](../debugging/#print-and-the-browser-console).
 
 [← Docs home](../) · [← Back to the game](../../index.html)

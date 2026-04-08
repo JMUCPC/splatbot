@@ -69,7 +69,7 @@
 </tr>
 </tbody>
 </table>
-<p>Use <code>HexDirection</code> with <code>Actions.face_direction(...)</code>, <code>hex_neighbor</code>, and when comparing to <code>game_state.bots[pid].facing</code>. You can also use integers <code>0</code>–<code>5</code> where an API accepts <code>int | HexDirection</code> (names are clearer).</p>
+<p>Use <code>HexDirection</code> with <code>Actions.face_direction(...)</code>, <code>hex_neighbor</code>, and when comparing to facing values from <code>game_state</code> (<code>game_state.me.facing</code>, <code>game_state.opponents[pid].facing</code>, or <code>game_state.opponent.facing</code> in 1v1). You can also use integers <code>0</code>–<code>5</code> where an API accepts <code>int | HexDirection</code> (names are clearer).</p>
 <p><strong>Motion:</strong> <code>Actions.move()</code>, <code>Actions.dash(distance)</code>, and <code>Actions.shoot_paintball()</code> use your bot’s current <strong>facing</strong>, not a direction argument — turn first if you need a different heading.</p>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 

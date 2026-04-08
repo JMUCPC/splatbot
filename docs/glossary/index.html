@@ -45,27 +45,27 @@
 <h2 id="axial-coordinates" tabindex="-1">Axial coordinates</h2>
 <p>The map uses <strong>axial</strong> <code>(q, r)</code> integer pairs for each hex (<code>Hex</code> in code). You rarely need the math; use helpers like <code>hex_neighbor</code>. See <a href="../utilities/">Utilities</a>.</p>
 <h2 id="botinfo" tabindex="-1">BotInfo</h2>
-<p>Read-only view of one bot in <code>game_state.bots[pid]</code>: <code>position</code> (<code>Hex</code>), <code>facing</code>, and per-bot timers (<code>stun</code>, cooldown fields). Use <code>game_state.bots[game_state.my_pid]</code> for yourself.</p>
+<p>Read-only view of a bot: <code>position</code> (<code>Hex</code>), <code>facing</code>, and per-bot timers (<code>stun</code>, cooldown fields). Access your own via <code>game_state.me</code>, your opponent’s via <code>game_state.opponent</code> (1v1), or look up by id with <code>game_state.opponents[pid]</code>.</p>
 <h2 id="browser-console" tabindex="-1">Browser console</h2>
 <p>The <strong>developer tools</strong> panel where <code>print()</code> from your bot can appear (Python runs in a background worker). Not the same as the in-game <strong>event log</strong>. See <a href="../debugging/#print-and-the-browser-console">Debugging</a>.</p>
 <h2 id="cooldown" tabindex="-1">Cooldown</h2>
-<p>After some actions (splat, dash, paintball), a <strong>cooldown</strong> counter must reach <code>0</code> before you can use that action again. Check <code>game_state.my_splat_cooldown</code>, <code>my_dash_cooldown</code>, <code>my_paintball_cooldown</code>. Defaults are configurable in <strong>SETTINGS</strong> in the game.</p>
+<p>After some actions (splat, dash, paintball), a <strong>cooldown</strong> counter must reach <code>0</code> before you can use that action again. Check <code>game_state.me.splat_cooldown</code>, <code>me.dash_cooldown</code>, <code>me.paintball_cooldown</code>. Defaults are configurable in <strong>SETTINGS</strong> in the game.</p>
 <h2 id="event-log" tabindex="-1">Event log</h2>
 <p>The scrollable panel in the Splatbot UI listing match events, errors, and some blocked actions. It is <strong>not</strong> the same as the browser console. See <a href="../debugging/#event-log">Debugging</a>.</p>
 <h2 id="game_state" tabindex="-1">game_state</h2>
-<p>A <strong>read-only snapshot</strong> passed into <code>decide(self, game_state)</code> each turn: your id, stun/cooldowns, the set of hexes, who owns each tile, all bots’ positions, and turn counters. You change the game only by <strong>returning</strong> an action.</p>
+<p>A <strong>read-only snapshot</strong> passed into <code>decide(self, game_state)</code> each turn: <code>me</code> (your bot), <code>opponents</code>, the hex <code>grid</code> with tile ownership, and turn counters. You change the game only by <strong>returning</strong> an action.</p>
 <h2 id="hex" tabindex="-1">Hex</h2>
-<p>One cell on the map, identified by axial coordinates. See <a href="../utilities/">Utilities</a>.</p>
+<p>One cell on the map, identified by axial coordinates. Each <code>Hex</code> in <code>game_state.grid</code> carries a <code>controller</code> (<code>BotInfo | None</code>) showing who paints it. See <a href="../utilities/">Utilities</a>.</p>
 <h2 id="player-id" tabindex="-1">Player id</h2>
-<p><code>1</code> or <code>2</code> — which side this script controls. Available as <code>game_state.my_pid</code> and as keys in <code>game_state.bots</code>.</p>
+<p><code>1</code> or <code>2</code> — which side this script controls. Available as <code>game_state.pid</code> or <code>game_state.me.pid</code>.</p>
 <h2 id="pyodide" tabindex="-1">Pyodide</h2>
 <p>The in-browser Python runtime used to run your bot. Implementation detail; you write normal Python with the allowed imports.</p>
 <h2 id="stun" tabindex="-1">Stun</h2>
-<p>After splat or paintball (and optionally dash), you may be <strong>stunned</strong> for several turns: you cannot move, dash, splat, shoot paintball, or turn until <code>game_state.my_stun</code> is <code>0</code>. You <strong>can</strong> still <code>Actions.skip()</code>.</p>
+<p>After splat or paintball (and optionally dash), you may be <strong>stunned</strong> for several turns: you cannot move, dash, splat, shoot paintball, or turn until <code>game_state.me.stun</code> is <code>0</code>. You <strong>can</strong> still <code>Actions.skip()</code>.</p>
 <h2 id="tick" tabindex="-1">Tick</h2>
 <p>One <strong>simulation step</strong> in the UI: the turn counter advances, <strong>both</strong> players’ <code>decide</code> methods run (in order), then collisions resolve. Stepping the game one <strong>tick</strong> at a time is different from watching it run continuously. See <a href="../debugging/#step">Debugging</a>.</p>
 <h2 id="tile-owner" tabindex="-1">Tile owner</h2>
-<p><code>game_state.tile_pids</code> maps each <code>Hex</code> to <code>0</code> (unpainted), <code>1</code>, or <code>2</code>. Use it to see who paints a tile.</p>
+<p>Each <code>Hex</code> in <code>game_state.grid</code> has a <code>controller</code> attribute: <code>None</code> means unpainted, otherwise it is the <code>BotInfo</code> that controls the tile. Use <code>hex.controller</code> or <code>hex.is_controlled_by(bot_or_pid)</code> to check.</p>
 <h2 id="turn" tabindex="-1">Turn</h2>
 <p>The current step of the match, exposed as <code>game_state.turn</code> (and <code>max_turns</code> for length). Related to but not identical to a <strong>tick</strong>; see above.</p>
 <h2 id="web-worker" tabindex="-1">Web Worker</h2>

@@ -62,18 +62,15 @@ from utils.hex_grid import HexDirection
 
 class Bot:
     def decide(self, game_state):
-        # game_state.my_pid       — this bot's player id (1 or 2)
-        # game_state.grid         — frozenset of Hex tiles
-        # game_state.tile_pids    — dict[Hex, int] (0=unpainted, 1/2=player)
-        # game_state.bots         — dict[int, BotInfo] with .position, .facing, stun, cooldown fields
-        # game_state.my_stun      — turns until move/dash/splat/shoot/turn allowed (skip still ok)
-        # game_state.my_splat_cooldown — turns until splat is allowed again
-        # game_state.my_dash_cooldown — turns until dash is allowed again
-        # game_state.my_paintball_cooldown — turns until shoot_paintball is allowed again
+        # game_state.pid          — this bot's player id (1 or 2)
+        # game_state.me           — BotInfo for this bot (.position, .facing, .stun, cooldowns)
+        # game_state.opponent     — BotInfo for the other bot in 1v1 (None otherwise)
+        # game_state.opponents    — dict[int, BotInfo] of all other players
+        # game_state.grid         — frozenset of Hex tiles; each has .controller (BotInfo or None)
         # game_state.turn         — current turn number
         # game_state.max_turns    — total turns in the match
         # Also: Actions.skip(), Actions.splat(), turning helpers, Actions.dash(distance), Actions.shoot_paintball()
-        me = game_state.bots[game_state.my_pid]
+        me = game_state.me
         if me.facing != HexDirection.E:
             return Actions.face_direction(HexDirection.E)
         return Actions.move()

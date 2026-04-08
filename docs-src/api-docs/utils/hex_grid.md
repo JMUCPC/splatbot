@@ -16,25 +16,33 @@ Axial-coordinate utilities for the hex board. The engine uses **pointy-top** hex
 ## `Hex`
 
 ```python
-@dataclass(frozen=True)
 class Hex:
-    """Axial (q, r) hex coordinate. Immutable and hashable."""
+    """Axial (q, r) hex coordinate with optional tile-ownership controller."""
     q: int
     r: int
+    controller: BotInfo | None  # None = unpainted; set by the sandbox snapshot
 ```
 
 **Fields**
 
 - `q: int` — axial q component.
 - `r: int` — axial r component.
+- `controller: BotInfo | None` — the bot that controls (paints) this tile, or `None` if unpainted. Set automatically in `game_state.grid`; defaults to `None` for hexes created by arithmetic or helper functions.
+
+**Equality and hashing** use **only `(q, r)`** — `controller` is excluded. This means `hex_neighbor(pos, d) in game_state.grid` works regardless of controller state, and `Hex` is suitable for use in sets and as dict keys.
 
 **Methods**
 
-- `__add__(other: Hex) -> Hex` — component-wise sum; returns a new `Hex`.
-- `__sub__(other: Hex) -> Hex` — component-wise difference; returns a new `Hex`.
+- `__add__(other: Hex) -> Hex` — component-wise sum; returns a new `Hex` (controller is `None`).
+- `__sub__(other: Hex) -> Hex` — component-wise difference; returns a new `Hex` (controller is `None`).
 - `__repr__() -> str` — e.g. `Hex(0, -1)`.
+- `is_controlled_by(bot_or_pid: BotInfo | int) -> bool` — returns `True` when this tile is controlled by the given bot or player id. Returns `False` if `controller` is `None`. When given an `int`, compares to `controller.pid`. When given a `BotInfo`, uses `BotInfo.__eq__`.
 
-`Hex` is suitable for use in sets and as dict keys (frozen dataclass).
+```python
+for hex in game_state.grid:
+    if hex.is_controlled_by(game_state.me):
+        print(f"{hex} is mine!")
+```
 
 ---
 

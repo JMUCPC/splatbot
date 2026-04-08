@@ -51,24 +51,30 @@
 </ul>
 <hr>
 <h2 id="hex" tabindex="-1"><code>Hex</code></h2>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">Hex</span>:
-    <span class="hljs-string">&quot;&quot;&quot;Axial (q, r) hex coordinate. Immutable and hashable.&quot;&quot;&quot;</span>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Hex</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Axial (q, r) hex coordinate with optional tile-ownership controller.&quot;&quot;&quot;</span>
     q: <span class="hljs-built_in">int</span>
     r: <span class="hljs-built_in">int</span>
+    controller: BotInfo | <span class="hljs-literal">None</span>  <span class="hljs-comment"># None = unpainted; set by the sandbox snapshot</span>
 </code></pre>
 <p><strong>Fields</strong></p>
 <ul>
 <li><code>q: int</code> — axial q component.</li>
 <li><code>r: int</code> — axial r component.</li>
+<li><code>controller: BotInfo | None</code> — the bot that controls (paints) this tile, or <code>None</code> if unpainted. Set automatically in <code>game_state.grid</code>; defaults to <code>None</code> for hexes created by arithmetic or helper functions.</li>
 </ul>
+<p><strong>Equality and hashing</strong> use <strong>only <code>(q, r)</code></strong> — <code>controller</code> is excluded. This means <code>hex_neighbor(pos, d) in game_state.grid</code> works regardless of controller state, and <code>Hex</code> is suitable for use in sets and as dict keys.</p>
 <p><strong>Methods</strong></p>
 <ul>
-<li><code>__add__(other: Hex) -&gt; Hex</code> — component-wise sum; returns a new <code>Hex</code>.</li>
-<li><code>__sub__(other: Hex) -&gt; Hex</code> — component-wise difference; returns a new <code>Hex</code>.</li>
+<li><code>__add__(other: Hex) -&gt; Hex</code> — component-wise sum; returns a new <code>Hex</code> (controller is <code>None</code>).</li>
+<li><code>__sub__(other: Hex) -&gt; Hex</code> — component-wise difference; returns a new <code>Hex</code> (controller is <code>None</code>).</li>
 <li><code>__repr__() -&gt; str</code> — e.g. <code>Hex(0, -1)</code>.</li>
+<li><code>is_controlled_by(bot_or_pid: BotInfo | int) -&gt; bool</code> — returns <code>True</code> when this tile is controlled by the given bot or player id. Returns <code>False</code> if <code>controller</code> is <code>None</code>. When given an <code>int</code>, compares to <code>controller.pid</code>. When given a <code>BotInfo</code>, uses <code>BotInfo.__eq__</code>.</li>
 </ul>
-<p><code>Hex</code> is suitable for use in sets and as dict keys (frozen dataclass).</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">for</span> <span class="hljs-built_in">hex</span> <span class="hljs-keyword">in</span> game_state.grid:
+    <span class="hljs-keyword">if</span> <span class="hljs-built_in">hex</span>.is_controlled_by(game_state.me):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{<span class="hljs-built_in">hex</span>}</span> is mine!&quot;</span>)
+</code></pre>
 <hr>
 <h2 id="hexdirection" tabindex="-1"><code>HexDirection</code></h2>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">HexDirection</span>(<span class="hljs-title class_ inherited__">IntEnum</span>):

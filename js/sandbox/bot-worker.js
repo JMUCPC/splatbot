@@ -73,32 +73,52 @@ class _BotInfo:
         object.__setattr__(self, 'paintball_cooldown', int(paintball_cooldown))
     def __setattr__(self, *a):
         raise AttributeError("BotInfo is read-only")
+    def __eq__(self, other):
+        if not isinstance(other, _BotInfo):
+            return NotImplemented
+        return self.pid == other.pid
+    def __hash__(self):
+        return hash(self.pid)
     def __repr__(self):
         return f"BotInfo(pid={self.pid}, pos={self.position}, facing={self.facing})"
 
+def _parse_bot(bd):
+    return _BotInfo(
+        int(bd['pid']),
+        _Hex(*bd['position']),
+        _HD(bd['facing']),
+        int(bd.get('stun', 0)),
+        int(bd.get('splat_cooldown', 0)),
+        int(bd.get('dash_cooldown', 0)),
+        int(bd.get('paintball_cooldown', 0)),
+    )
+
 class _Snapshot:
-    __slots__ = ('my_pid', 'my_stun', 'my_splat_cooldown', 'my_dash_cooldown', 'my_paintball_cooldown', 'grid', 'tile_pids', 'bots', 'turn', 'max_turns')
+    __slots__ = ('pid', 'me', 'opponents', 'opponent', 'grid', 'turn', 'max_turns')
     def __init__(self, d):
-        object.__setattr__(self, 'my_pid', d['my_pid'])
-        object.__setattr__(self, 'my_stun', int(d.get('my_stun', 0)))
-        object.__setattr__(self, 'my_splat_cooldown', int(d.get('my_splat_cooldown', 0)))
-        object.__setattr__(self, 'my_dash_cooldown', int(d.get('my_dash_cooldown', 0)))
-        object.__setattr__(self, 'my_paintball_cooldown', int(d.get('my_paintball_cooldown', 0)))
-        object.__setattr__(self, 'grid', frozenset(_Hex(q, r) for q, r in d['grid']))
-        tp = {}
-        for k, v in d['tile_pids'].items():
-            q, r = k.split(',')
-            tp[_Hex(int(q), int(r))] = v
-        object.__setattr__(self, 'tile_pids', _MPT(tp))
-        bots = {}
-        for ps, bd in d['bots'].items():
-            p = int(ps)
-            st = int(bd.get('stun', 0))
-            sc = int(bd.get('splat_cooldown', 0))
-            dc = int(bd.get('dash_cooldown', 0))
-            pc = int(bd.get('paintball_cooldown', 0))
-            bots[p] = _BotInfo(p, _Hex(*bd['position']), _HD(bd['facing']), st, sc, dc, pc)
-        object.__setattr__(self, 'bots', _MPT(bots))
+        pid = d['pid']
+        object.__setattr__(self, 'pid', pid)
+
+        me = _parse_bot(d['me'])
+        object.__setattr__(self, 'me', me)
+
+        opps = {}
+        for ps, bd in d['opponents'].items():
+            opps[int(ps)] = _parse_bot(bd)
+        opps = _MPT(opps)
+        object.__setattr__(self, 'opponents', opps)
+        object.__setattr__(self, 'opponent', next(iter(opps.values())) if len(opps) == 1 else None)
+
+        # Build pid -> BotInfo lookup for grid tile controllers
+        _by_pid = {pid: me}
+        for p, bi in opps.items():
+            _by_pid[p] = bi
+
+        tiles = frozenset(
+            _Hex(t[0], t[1], controller=(_by_pid.get(t[2]) if t[2] else None))
+            for t in d['grid']
+        )
+        object.__setattr__(self, 'grid', tiles)
         object.__setattr__(self, 'turn', d['turn'])
         object.__setattr__(self, 'max_turns', d['max_turns'])
     def __setattr__(self, *a):

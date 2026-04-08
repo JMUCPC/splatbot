@@ -4,15 +4,22 @@
  */
 
 export class Hex {
-  constructor(q, r) {
+  constructor(q, r, controller = null) {
     this.q = q;
     this.r = r;
+    /** @type {import('../engine/game-state.js').BotData|null} */
+    this.controller = controller;
   }
   get key() { return `${this.q},${this.r}`; }
   add(other) { return new Hex(this.q + other.q, this.r + other.r); }
   sub(other) { return new Hex(this.q - other.q, this.r - other.r); }
   equals(other) { return this.q === other.q && this.r === other.r; }
   toString() { return `Hex(${this.q}, ${this.r})`; }
+  isControlledBy(botOrPid) {
+    if (this.controller == null) return false;
+    if (typeof botOrPid === 'number') return this.controller.pid === botOrPid;
+    return this.controller === botOrPid || (botOrPid != null && this.controller.pid === botOrPid.pid);
+  }
 }
 
 export const HexDirection = Object.freeze({

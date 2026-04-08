@@ -11,7 +11,7 @@ class Bot:
 
     def decide(self, game_state):
         time.sleep(0.5)
-        if game_state.my_stun > 0:
+        if game_state.me.stun > 0:
             return Actions.skip()
         if not self._move_next:
             self._move_next = True
