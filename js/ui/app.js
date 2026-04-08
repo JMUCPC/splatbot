@@ -19,6 +19,7 @@ import {
   loadOverrides, saveOverrides, mergeWithDefaults, applyToConfig,
   buildSettingsUI, validateOverrides, SETTING_SPECS,
 } from './settings.js';
+import { fireWinCelebration } from './confetti.js';
 import { BotRunner } from '../sandbox/bot-runner.js';
 import {
   buildBotCatalog,
@@ -71,8 +72,102 @@ let botControlsReady = false;
 
 const els = {};
 
+function makeInitialMatchStats() {
+  return {
+    1: {
+      tilesPainted: 0,
+      tilesMoved: 0,
+      skips: 0,
+      blockedActions: 0,
+      moves: 0,
+      dashes: 0,
+      splats: 0,
+      paintballs: 0,
+    },
+    2: {
+      tilesPainted: 0,
+      tilesMoved: 0,
+      skips: 0,
+      blockedActions: 0,
+      moves: 0,
+      dashes: 0,
+      splats: 0,
+      paintballs: 0,
+    },
+  };
+}
+
+let matchStats = makeInitialMatchStats();
+
 let eventLogPopoutWin = null;
 let eventLogPopoutDetach = null;
+
+function hideMatchEndModal() {
+  if (!els.matchEndModal) return;
+  els.matchEndModal.classList.remove('open');
+  els.matchEndModal.setAttribute('aria-hidden', 'true');
+}
+
+function showMatchEndModal() {
+  if (!els.matchEndModal || !els.matchEndMessage) return;
+  const w = state?.winner();
+  const sc = state?.score?.() ?? { 1: 0, 2: 0 };
+  const p1 = config.PLAYER_BOT_COLORS[1];
+  const p2 = config.PLAYER_BOT_COLORS[2];
+  if (w === 1 || w === 2) {
+    const winnerScore = sc[w];
+    const loser = w === 1 ? 2 : 1;
+    const loserScore = sc[loser];
+    const winnerColor = w === 1 ? p1 : p2;
+    const loserColor = loser === 1 ? p1 : p2;
+    els.matchEndMessage.innerHTML =
+      `Player ${w} wins! ` +
+      `<span style="color:${winnerColor}">${winnerScore}</span> - ` +
+      `<span style="color:${loserColor}">${loserScore}</span>`;
+    els.matchEndMessage.style.color = '#c6d6e6';
+  } else {
+    els.matchEndMessage.innerHTML =
+      `Draw! <span style="color:${p1}">${sc[1]}</span> - <span style="color:${p2}">${sc[2]}</span>`;
+    els.matchEndMessage.style.color = '#c6d6e6';
+  }
+
+  if (els.matchEndStats) {
+    const s1 = matchStats[1];
+    const s2 = matchStats[2];
+    const rows = [
+      ['Tiles painted', s1.tilesPainted, s2.tilesPainted],
+      ['Tiles moved', s1.tilesMoved, s2.tilesMoved],
+      ['Skips', s1.skips, s2.skips],
+      ['Move uses', s1.moves, s2.moves],
+      ['Dash uses', s1.dashes, s2.dashes],
+      ['Splat uses', s1.splats, s2.splats],
+      ['Paintball uses', s1.paintballs, s2.paintballs],
+      ['Blocked actions', s1.blockedActions, s2.blockedActions],
+    ];
+    els.matchEndStats.innerHTML = `
+      <table class="match-end-stats-table" aria-label="Player match stats">
+        <thead>
+          <tr>
+            <th>Stat</th>
+            <th style="color:${p1}">P1</th>
+            <th style="color:${p2}">P2</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(([name, a, b]) => `
+            <tr>
+              <td>${name}</td>
+              <td>${a}</td>
+              <td>${b}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+  els.matchEndModal.classList.add('open');
+  els.matchEndModal.setAttribute('aria-hidden', 'false');
+}
 
 function setRootCssVar(name, value) {
   document.documentElement.style.setProperty(name, value);
@@ -453,6 +548,8 @@ async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
     }
     await Promise.all([1, 2].map((p) => runners[p] && runners[p].resetBotInstance()));
     state = makeInitialState();
+    matchStats = makeInitialMatchStats();
+    hideMatchEndModal();
     push();
     logEvent(`P${pid} bot changed — match reset.`);
   }
@@ -574,6 +671,10 @@ export function initApp() {
   els.eventLog = document.getElementById('event-log');
   els.settingsModal = document.getElementById('settings-modal');
   els.settingsFields = document.getElementById('settings-fields');
+  els.matchEndModal = document.getElementById('match-end-modal');
+  els.matchEndMessage = document.getElementById('match-end-message');
+  els.matchEndStats = document.getElementById('match-end-stats');
+  els.matchEndClose = document.getElementById('btn-match-end-close');
   els.runToggle = document.getElementById('btn-run');
   els.botSelect1 = document.getElementById('bot-select-1');
   els.botSelect2 = document.getElementById('bot-select-2');
@@ -635,6 +736,7 @@ export function initApp() {
   }
 
   state = makeInitialState();
+  matchStats = makeInitialMatchStats();
 
   if (els.runToggle) els.runToggle.addEventListener('click', toggleRun);
   initStepControl();
@@ -646,6 +748,14 @@ export function initApp() {
   document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings);
   document.getElementById('btn-settings-apply').addEventListener('click', applySettings);
   els.speedSlider.addEventListener('input', (e) => setSpeed(Number(e.target.value)));
+  if (els.matchEndClose) {
+    els.matchEndClose.addEventListener('click', hideMatchEndModal);
+  }
+  if (els.matchEndModal) {
+    els.matchEndModal.addEventListener('click', (e) => {
+      if (e.target === els.matchEndModal) hideMatchEndModal();
+    });
+  }
 
   push();
   logEvent('Splatbot ready — press START to begin demo.');
@@ -766,11 +876,15 @@ function push() {
 
 function toggleRun() {
   if (running) pauseGame();
-  else startGame();
+  else void startGame();
 }
 
-function startGame() {
+async function startGame() {
   if (running) return;
+  if (state?.isOver) {
+    await resetGame();
+  }
+  hideMatchEndModal();
   running = true;
   lastTick = performance.now();
   push();
@@ -786,12 +900,14 @@ function pauseGame() {
 async function resetGame(options = {}) {
   const { clearEventLog = false } = options;
   running = false;
+  hideMatchEndModal();
   if (clearEventLog) clearLog();
   for (const pid of Object.keys(runners)) {
     runners[pid].resetTimingStats();
   }
   await Promise.all(Object.keys(runners).map((pid) => runners[pid].resetBotInstance()));
   state = makeInitialState();
+  matchStats = makeInitialMatchStats();
   push();
   logEvent('Match reset.');
 }
@@ -817,7 +933,19 @@ async function advanceSingleTick() {
     try {
       const snapshot = state.toSnapshot(pid);
       const action = await runner.decide(snapshot);
-      state.applyAction(pid, action, logEvent);
+      const report = state.applyAction(pid, action, logEvent);
+      const stats = matchStats[pid];
+      const actionType = String(action?.type || 'unknown');
+      if (actionType === 'skip') stats.skips += 1;
+      if (actionType === 'move') stats.moves += 1;
+      if (actionType === 'dash') stats.dashes += 1;
+      if (actionType === 'splat') stats.splats += 1;
+      if (actionType === 'shoot_paintball') stats.paintballs += 1;
+      if (report) {
+        stats.tilesMoved += Number(report.movedTiles || 0);
+        stats.tilesPainted += Number(report.paintedTiles || 0);
+        if (report.blocked) stats.blockedActions += 1;
+      }
     } catch (err) {
       logEvent(`Error in bot ${pid}: ${err}`);
     }
@@ -827,12 +955,18 @@ async function advanceSingleTick() {
   state.neutralizeCollidingTiles(logEvent);
   state.tickBotTimers();
 
+  if (state.isOver) {
+    running = false;
+  }
+
   push();
 
   if (state.isOver) {
-    running = false;
     const sc = state.score();
     logEvent(`Match over — P1: ${sc[1]} tiles  |  P2: ${sc[2]} tiles`);
+    const win = state.winner();
+    if (win === 1 || win === 2) fireWinCelebration(win);
+    showMatchEndModal();
   }
 }
 

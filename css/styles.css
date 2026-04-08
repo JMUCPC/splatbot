@@ -44,6 +44,10 @@ body {
   min-height: 44px;
   padding: 0 18px;
   border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background-color 0.15s;
   white-space: nowrap;
@@ -173,6 +177,12 @@ body {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.header-row .button-group > .sb-btn,
+.header-row .button-group .sb-step-wrap > .sb-btn {
+  padding-top: 2px;
+  padding-bottom: 0;
 }
 
 .sb-step-wrap {
@@ -793,6 +803,76 @@ body {
   max-width: 94vw;
   padding: 24px 22px;
   font-size: 1.12rem;
+}
+
+.match-end-card {
+  width: min(520px, 92vw);
+  padding: 24px 20px 18px;
+  text-align: center;
+}
+
+.match-end-title {
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #dde8f0;
+}
+
+.match-end-message {
+  margin-top: 10px;
+  margin-bottom: 12px;
+  font-size: clamp(1.05rem, 2.8vw, 1.3rem);
+  color: #c6d6e6;
+  letter-spacing: 0.04em;
+}
+
+.match-end-stats-wrap {
+  margin: 2px 0 16px;
+  border: 1px solid #21324a;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.match-end-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+}
+
+.match-end-stats-table th,
+.match-end-stats-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #1a2a40;
+  border-right: 1px solid #21324a;
+  text-align: left;
+}
+
+.match-end-stats-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.match-end-stats-table th:last-child,
+.match-end-stats-table td:last-child {
+  border-right: none;
+}
+
+.match-end-stats-table thead th {
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fb1c6;
+  font-weight: 600;
+  border-bottom: 1px solid #2a3f5d;
+}
+
+.match-end-stats-table th:first-child,
+.match-end-stats-table td:first-child {
+  color: #b4c5d8;
+}
+
+.match-end-actions {
+  display: flex;
+  justify-content: center;
 }
 .settings-fields {
   width: 100%;

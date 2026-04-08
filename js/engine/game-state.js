@@ -179,20 +179,31 @@ export class GameState {
 
   applyAction(pid, action, logFn) {
     const bot = this.bots.get(pid);
-    if (!bot) return;
+    if (!bot) return null;
+    const report = {
+      actionType: String(action?.type || "unknown"),
+      executed: false,
+      blocked: false,
+      movedTiles: 0,
+      paintedTiles: 0,
+    };
 
     if (action.type === "move") {
       if (bot.stun > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot move`,
           );
         }
-        return;
+        return report;
       }
       const dir = normFacing(bot.facing);
       const newPos = hexNeighbor(bot.position, dir);
       if (this.grid.has(newPos.key)) {
+        report.executed = true;
+        report.movedTiles = 1;
+        report.paintedTiles = 1;
         bot.position = newPos;
         bot.facing = dir;
         this._recordPaintIntent(newPos.key, pid);
@@ -201,46 +212,55 @@ export class GameState {
       }
     } else if (action.type === "dash") {
       if (!config.DASH_ALLOWED) {
+        report.blocked = true;
         if (logFn) logFn(`Bot ${pid} tried to dash but dash is disabled in match rules`);
-        return;
+        return report;
       }
       if (bot.stun > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot dash`,
           );
         }
-        return;
+        return report;
       }
       if (bot.dashCooldown > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} cannot dash for ${bot.dashCooldown} more turn(s) (one dash every ${config.DASH_COOLDOWN_TURNS} turns)`,
           );
         }
-        return;
+        return report;
       }
 
       const dist = Math.trunc(Number(action.distance));
       if (!Number.isFinite(dist) || dist < DASH_MIN_DISTANCE || dist > DASH_MAX_DISTANCE) {
+        report.blocked = true;
         if (logFn) {
           logFn(`Bot ${pid} tried to dash with invalid distance ${action.distance} (expected ${DASH_MIN_DISTANCE}-${DASH_MAX_DISTANCE})`);
         }
-        return;
+        return report;
       }
 
       const facDir = normFacing(bot.facing);
       const start = bot.position;
       let dest = start;
+      let moved = 0;
       for (let i = 0; i < dist; i++) {
         const next = hexNeighbor(dest, facDir);
         if (!this.grid.has(next.key)) break;
         dest = next;
+        moved += 1;
       }
 
+      report.executed = true;
+      report.movedTiles = moved;
       bot.dashCooldown = config.DASH_COOLDOWN_TURNS;
       bot.stun = Math.max(bot.stun, config.DASH_STUN_TURNS);
       if (!dest.equals(start)) {
+        report.paintedTiles = 1;
         bot.position = dest;
         bot.facing = facDir;
         // Dash paints only the destination hex (last hex reached, possibly short of requested distance).
@@ -248,54 +268,66 @@ export class GameState {
       }
     } else if (action.type === "splat") {
       if (!config.SPLAT_ALLOWED) {
+        report.blocked = true;
         if (logFn) logFn(`Bot ${pid} tried to splat but splat is disabled in match rules`);
-        return;
+        return report;
       }
       if (bot.stun > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot splat`,
           );
         }
-        return;
+        return report;
       }
       if (bot.splatCooldown > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} cannot splat for ${bot.splatCooldown} more turn(s) (one splat every ${config.SPLAT_COOLDOWN_TURNS} turns)`,
           );
         }
-        return;
+        return report;
       }
+      report.executed = true;
+      let painted = 0;
       for (let d = 0; d < 6; d++) {
         const n = hexNeighbor(bot.position, d);
         if (this.grid.has(n.key)) {
           this._recordPaintIntent(n.key, pid);
+          painted += 1;
         }
       }
+      report.paintedTiles = painted;
       bot.stun = config.SPLAT_STUN_TURNS;
       bot.splatCooldown = config.SPLAT_COOLDOWN_TURNS;
     } else if (action.type === "shoot_paintball") {
       if (!config.SHOOT_PAINTBALL_ALLOWED) {
+        report.blocked = true;
         if (logFn) logFn(`Bot ${pid} tried to shoot paintball but paintball is disabled in match rules`);
-        return;
+        return report;
       }
       if (bot.stun > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot shoot paintball`,
           );
         }
-        return;
+        return report;
       }
       if (bot.paintballCooldown > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} cannot shoot paintball for ${bot.paintballCooldown} more turn(s) (one shot every ${config.SHOOT_PAINTBALL_COOLDOWN_TURNS} turns)`,
           );
         }
-        return;
+        return report;
       }
+      report.executed = true;
+      let painted = 0;
       const dir = normFacing(bot.facing);
       let cur = bot.position;
       while (true) {
@@ -310,7 +342,9 @@ export class GameState {
         }
         if (blocked) break;
         this._recordPaintIntent(cur.key, pid);
+        painted += 1;
       }
+      report.paintedTiles = painted;
       bot.paintballCooldown = config.SHOOT_PAINTBALL_COOLDOWN_TURNS;
       bot.stun = config.PAINTBALL_STUN_TURNS;
     } else if (
@@ -320,20 +354,22 @@ export class GameState {
       action.type === "turn_180"
     ) {
       if (bot.stun > 0) {
+        report.blocked = true;
         if (logFn) {
           logFn(
             `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot turn`,
           );
         }
-        return;
+        return report;
       }
+      report.executed = true;
       if (action.type === "turn_left") {
         const s = normTurnSteps(action.steps);
-        if (s === 0) return;
+        if (s === 0) return report;
         bot.facing = (bot.facing + s) % 6;
       } else if (action.type === "turn_right") {
         const s = normTurnSteps(action.steps);
-        if (s === 0) return;
+        if (s === 0) return report;
         bot.facing = ((bot.facing - s) % 6 + 6) % 6;
       } else if (action.type === "face_direction") {
         bot.facing = normFacing(action.direction);
@@ -341,12 +377,14 @@ export class GameState {
         bot.facing = (bot.facing + 3) % 6;
       }
     } else if (action.type === "skip") {
-      // do nothing
+      report.executed = true;
     } else {
+      report.blocked = true;
       if (logFn) {
         logFn(`Bot ${pid} tried to perform unknown action: ${action}`);
       }
     }
+    return report;
   }
 
   /** Serialize to a plain object suitable for JSON / Web Worker transfer. */
