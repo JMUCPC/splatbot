@@ -5,6 +5,7 @@ Axial-coordinate utilities for the hex board. The engine uses **pointy-top** hex
 ## Module exports (public API)
 
 - `Hex`
+- `HexVector`
 - `HexDirection`
 - `HEX_DIRECTIONS`
 - `hex_neighbors`
@@ -33,8 +34,10 @@ class Hex:
 
 **Methods**
 
-- `__add__(other: Hex) -> Hex` — component-wise sum; returns a new `Hex` (controller is `None`).
-- `__sub__(other: Hex) -> Hex` — component-wise difference; returns a new `Hex` (controller is `None`).
+- `__add__(other: Hex | HexVector) -> Hex` — component-wise sum; supports adding either a position (`Hex`) or offset (`HexVector`); returns a new `Hex` (controller is `None`).
+- `__radd__(other: Hex | HexVector) -> Hex` — right-side addition hook for symmetric arithmetic usage.
+- `__sub__(other: Hex | HexVector) -> Hex` — component-wise difference against either a position (`Hex`) or offset (`HexVector`); returns a new `Hex` (controller is `None`).
+- `__rsub__(other: Hex | HexVector) -> Hex` — right-side subtraction hook.
 - `__repr__() -> str` — e.g. `Hex(0, -1)`.
 - `is_controlled_by(bot_or_pid: BotInfo | int) -> bool` — returns `True` when this tile is controlled by the given bot or player id. Returns `False` if `controller` is `None`. When given an `int`, compares to `controller.pid`. When given a `BotInfo`, uses `BotInfo.__eq__`.
 
@@ -43,6 +46,30 @@ for hex in game_state.grid:
     if hex.is_controlled_by(game_state.me):
         print(f"{hex} is mine!")
 ```
+
+---
+
+## `HexVector`
+
+```python
+class HexVector:
+    """Immutable axial vector offset (dq, dr)."""
+    q: int
+    r: int
+```
+
+Represents an axial displacement (not tile ownership state). Useful for direction/offset math and as entries in `HEX_DIRECTIONS`.
+
+**Methods**
+
+- `__add__(other: HexVector) -> HexVector` — vector addition.
+- `__sub__(other: HexVector) -> HexVector` — vector subtraction.
+- `__mul__(scalar: int) -> HexVector` — integer scalar multiply.
+- `__rmul__(scalar: int) -> HexVector` — supports `n * vector`.
+- `__repr__() -> str` — e.g. `HexVector(1, -1)`.
+- `from_direction_and_distance(direction: int | HexDirection, distance: int) -> HexVector` — class helper that returns the directional offset `distance` steps away, with direction normalized by `% 6`.
+
+Like `Hex`, `HexVector` is immutable and hashable by `(q, r)`.
 
 ---
 
@@ -67,13 +94,13 @@ Integer enum values match indices into `HEX_DIRECTIONS` and are accepted whereve
 ## `HEX_DIRECTIONS`
 
 ```python
-HEX_DIRECTIONS: list[Hex] = [
-    Hex(1, 0),   # 0 — E
-    Hex(1, -1),  # 1 — NE
-    Hex(0, -1),  # 2 — NW
-    Hex(-1, 0),  # 3 — W
-    Hex(-1, 1),  # 4 — SW
-    Hex(0, 1),   # 5 — SE
+HEX_DIRECTIONS: list[HexVector] = [
+    HexVector(1, 0),   # 0 — E
+    HexVector(1, -1),  # 1 — NE
+    HexVector(0, -1),  # 2 — NW
+    HexVector(-1, 0),  # 3 — W
+    HexVector(-1, 1),  # 4 — SW
+    HexVector(0, 1),   # 5 — SE
 ]
 ```
 
