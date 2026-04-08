@@ -14,6 +14,7 @@ class GameStateSnapshot:
     opponents: Mapping[int, BotInfo]
     opponent: BotInfo | None
     grid: frozenset[Hex]
+    def get_grid_as_2D_list(self) -> list[list[Hex]]: ...
     turn: int
     max_turns: int
 ```
@@ -62,6 +63,21 @@ for hex in game_state.grid:
 ```
 
 Position checks like `hex_neighbor(pos, d) in game_state.grid` still work — `Hex` equality uses only `(q, r)`, not `controller`.
+
+### `get_grid_as_2D_list() -> list[list[Hex]]`
+
+Returns the same tiles as `game_state.grid`, laid out as a nested list using axial coordinates:
+
+- Outer list is rows by `r` in ascending order.
+- Inner list is columns by `q` in ascending order for that row.
+- No filler/placeholder cells are added.
+
+```python
+rows = game_state.get_grid_as_2D_list()
+for row in rows:
+    for hex in row:
+        ...
+```
 
 ### `turn: int`
 
