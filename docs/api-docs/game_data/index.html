@@ -49,6 +49,7 @@
     opponents: Mapping[<span class="hljs-built_in">int</span>, BotInfo]
     opponent: BotInfo | <span class="hljs-literal">None</span>
     grid: <span class="hljs-built_in">frozenset</span>[Hex]
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_grid_as_2D_list</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">list</span>[<span class="hljs-built_in">list</span>[Hex]]: ...
     turn: <span class="hljs-built_in">int</span>
     max_turns: <span class="hljs-built_in">int</span>
 </code></pre>
@@ -77,6 +78,18 @@
         ...  <span class="hljs-comment"># this tile is mine</span>
 </code></pre>
 <p>Position checks like <code>hex_neighbor(pos, d) in game_state.grid</code> still work — <code>Hex</code> equality uses only <code>(q, r)</code>, not <code>controller</code>.</p>
+<h3 id="get_grid_as_2d_list---listlisthex" tabindex="-1"><code>get_grid_as_2D_list() -&gt; list[list[Hex]]</code></h3>
+<p>Returns the same tiles as <code>game_state.grid</code>, laid out as a nested list using axial coordinates:</p>
+<ul>
+<li>Outer list is rows by <code>r</code> in ascending order.</li>
+<li>Inner list is columns by <code>q</code> in ascending order for that row.</li>
+<li>No filler/placeholder cells are added.</li>
+</ul>
+<pre><code data-docs-code-lang="python" class="language-python">rows = game_state.get_grid_as_2D_list()
+<span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> rows:
+    <span class="hljs-keyword">for</span> <span class="hljs-built_in">hex</span> <span class="hljs-keyword">in</span> row:
+        ...
+</code></pre>
 <h3 id="turn-int" tabindex="-1"><code>turn: int</code></h3>
 <p>Current turn index provided by the engine (same field name as in the serialized snapshot).</p>
 <h3 id="max_turns-int" tabindex="-1"><code>max_turns: int</code></h3>
