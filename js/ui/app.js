@@ -99,6 +99,9 @@ function makeInitialMatchStats() {
 
 let matchStats = makeInitialMatchStats();
 
+/** Player ids (1 / 2) with a bot file read/load in progress — blocks START until finished. */
+const fileUploadBusyPids = new Set();
+
 let eventLogPopoutWin = null;
 let eventLogPopoutDetach = null;
 
@@ -447,6 +450,30 @@ function syncFileUploadRow(pid) {
   }
 }
 
+function setBotFileUploadLoading(pid, isLoading) {
+  if (isLoading) fileUploadBusyPids.add(pid);
+  else fileUploadBusyPids.delete(pid);
+  const wrap = els[`botFile${pid}`]?.closest?.('.sb-file-upload-wrap');
+  const statusEl = els[`botFileStatus${pid}`];
+  const chooseBtn = els[`botFileChoose${pid}`];
+  if (wrap) {
+    wrap.classList.toggle('sb-file-upload-wrap--loading', isLoading);
+    wrap.toggleAttribute('aria-busy', isLoading);
+  }
+  if (chooseBtn) chooseBtn.disabled = isLoading;
+  if (statusEl && isLoading) {
+    statusEl.innerHTML =
+      '<span class="sb-spinner" aria-hidden="true"></span><span>Loading bot…</span>';
+  }
+  syncRunToggleDisabled();
+}
+
+function syncRunToggleDisabled() {
+  if (!els.runToggle) return;
+  const fileBusy = fileUploadBusyPids.size > 0;
+  els.runToggle.disabled = fileBusy && !running;
+}
+
 async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
   const code = await fetchBotSource(botId);
   await runners[pid].setBotCode(code);
@@ -475,40 +502,44 @@ async function onBotFileChange(pid, input) {
     syncFileUploadRow(pid);
     return;
   }
-  const botId = `upload:${pid}`;
-  let text;
+
+  setBotFileUploadLoading(pid, true);
   try {
-    text = await file.text();
-  } catch (err) {
-    input.value = '';
-    logEvent(`Failed to read file: ${err.message || err}`);
-    syncFileUploadRow(pid);
-    return;
-  }
-  const shapeIssues = describeBotScriptShapeIssues(text);
-  if (shapeIssues) {
-    input.value = '';
-    logUploadShapeFailure(pid, shapeIssues);
-    syncFileUploadRow(pid);
-    return;
-  }
-  const prevUpload = botSourceCache.get(botId);
-  const prevLabel = uploadDisplayName[pid];
-  botSourceCache.set(botId, text);
-  uploadDisplayName[pid] = file.name;
-  const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
-  for (const s of locks) s.disabled = true;
-  try {
-    await applyBotForPlayer(pid, botId, { isInitialLoad: false });
-    logEvent(`P${pid} using uploaded bot: ${file.name}`);
-  } catch (err) {
-    if (prevUpload !== undefined) botSourceCache.set(botId, prevUpload);
-    else botSourceCache.delete(botId);
-    uploadDisplayName[pid] = prevLabel ?? null;
-    input.value = '';
-    logPythonLoadFailure(pid, err);
+    const botId = `upload:${pid}`;
+    let text;
+    try {
+      text = await file.text();
+    } catch (err) {
+      input.value = '';
+      logEvent(`Failed to read file: ${err.message || err}`);
+      return;
+    }
+    const shapeIssues = describeBotScriptShapeIssues(text);
+    if (shapeIssues) {
+      input.value = '';
+      logUploadShapeFailure(pid, shapeIssues);
+      return;
+    }
+    const prevUpload = botSourceCache.get(botId);
+    const prevLabel = uploadDisplayName[pid];
+    botSourceCache.set(botId, text);
+    uploadDisplayName[pid] = file.name;
+    const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
+    for (const s of locks) s.disabled = true;
+    try {
+      await applyBotForPlayer(pid, botId, { isInitialLoad: false });
+      logEvent(`P${pid} using uploaded bot: ${file.name}`);
+    } catch (err) {
+      if (prevUpload !== undefined) botSourceCache.set(botId, prevUpload);
+      else botSourceCache.delete(botId);
+      uploadDisplayName[pid] = prevLabel ?? null;
+      input.value = '';
+      logPythonLoadFailure(pid, err);
+    } finally {
+      for (const s of locks) s.disabled = false;
+    }
   } finally {
-    for (const s of locks) s.disabled = false;
+    setBotFileUploadLoading(pid, false);
     syncFileUploadRow(pid);
   }
 }
@@ -779,6 +810,7 @@ function push() {
     els.runToggle.textContent = running ? '\u23F8  PAUSE' : '\u25B6  START';
     els.runToggle.setAttribute('aria-pressed', running ? 'true' : 'false');
     els.runToggle.setAttribute('aria-label', running ? 'Pause match' : 'Start match');
+    syncRunToggleDisabled();
   }
 
   syncStepControls();
@@ -793,6 +825,7 @@ function toggleRun() {
 
 async function startGame() {
   if (running) return;
+  if (fileUploadBusyPids.size > 0) return;
   if (state?.isOver) {
     await resetGame();
   }
