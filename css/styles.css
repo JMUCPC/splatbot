@@ -754,6 +754,29 @@ body {
   word-break: break-word;
 }
 
+.sb-file-upload-wrap--loading .sb-file-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8a9db4;
+}
+
+.sb-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #334a6e;
+  border-top-color: #c8d6e8;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: sb-spin 0.65s linear infinite;
+}
+
+@keyframes sb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ── Slider ────────────────────────────────────────────────────────────── */
 
 .sb-slider {
