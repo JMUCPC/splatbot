@@ -101,6 +101,8 @@ const config = {
   /** After shoot_paintball: turns where move / dash / splat / shoot_paintball / turning are blocked. */
   PAINTBALL_STUN_TURNS: 7,
   BOT_DISPLAY_TYPE: "triangles",
+  /** When true, draw player id (1 / 2) on bot markers on the map. */
+  BOT_MARKER_SHOW_IDS: false,
   PLAYER_BASE_COLORS,
   PLAYER_TILE_COLORS: { 1: p1.tile, 2: p2.tile },
   PLAYER_STROKE_COLORS: { 1: p1.stroke, 2: p2.stroke },

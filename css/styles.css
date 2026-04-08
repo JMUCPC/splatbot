@@ -975,6 +975,10 @@ body {
   width: min(280px, 38%);
   flex-shrink: 0;
 }
+.settings-field-row--bool .settings-input--checkbox {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
 .settings-input {
   flex: 1;
   min-width: 0;

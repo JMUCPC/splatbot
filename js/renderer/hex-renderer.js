@@ -128,11 +128,13 @@ export function renderHexGrid(state, hexSize) {
       parts.push(`<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${rInner.toFixed(2)}" fill="rgba(0,0,0,0.3)"/>`);
     }
 
-    const fs = Math.max(12, Math.floor(hexSize * 0.46));
-    const botTextColor = config.PLAYER_BOT_TEXT_COLORS?.[bot.pid] || 'white';
-    parts.push(
-      `<text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" text-anchor="middle" dominant-baseline="central" fill="${botTextColor}" font-size="${fs}" font-weight="700" font-family="monospace" opacity="0.95">${bot.pid}</text>`,
-    );
+    if (config.BOT_MARKER_SHOW_IDS) {
+      const fs = Math.max(12, Math.floor(hexSize * 0.46));
+      const botTextColor = config.PLAYER_BOT_TEXT_COLORS?.[bot.pid] || 'white';
+      parts.push(
+        `<text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" text-anchor="middle" dominant-baseline="central" fill="${botTextColor}" font-size="${fs}" font-weight="700" font-family="monospace" opacity="0.95">${bot.pid}</text>`,
+      );
+    }
   }
 
   parts.push('</svg>');

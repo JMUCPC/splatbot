@@ -102,6 +102,7 @@ export const SETTING_SPECS = [
     kind: 'enum',
     choices: ['circles', 'triangles'],
   },
+  { key: 'BOT_MARKER_SHOW_IDS', tab: 'appearance', label: 'Show bot id on map', kind: 'bool' },
   { key: 'PLAYER_BASE_COLORS.1', tab: 'appearance', label: 'Player 1 color', kind: 'color' },
   { key: 'PLAYER_BASE_COLORS.2', tab: 'appearance', label: 'Player 2 color', kind: 'color' },
   { key: 'BACKGROUND_BASE_COLOR', tab: 'appearance', label: 'Background color', kind: 'color' },
@@ -230,6 +231,7 @@ function getDefaultFlat() {
     PAINTBALL_STUN_TURNS: 7,
     SHOOT_PAINTBALL_COOLDOWN_TURNS: 20,
     BOT_DISPLAY_TYPE: 'triangles',
+    BOT_MARKER_SHOW_IDS: false,
     'PLAYER_BASE_COLORS.1': '#ff6b2b',
     'PLAYER_BASE_COLORS.2': '#00d4ff',
     BACKGROUND_BASE_COLOR: '#161f30',
@@ -311,6 +313,7 @@ export function applyToConfig(flat) {
   config.PAINTBALL_STUN_TURNS = flat.PAINTBALL_STUN_TURNS;
   config.SHOOT_PAINTBALL_COOLDOWN_TURNS = flat.SHOOT_PAINTBALL_COOLDOWN_TURNS;
   config.BOT_DISPLAY_TYPE = flat.BOT_DISPLAY_TYPE;
+  config.BOT_MARKER_SHOW_IDS = flat.BOT_MARKER_SHOW_IDS;
   const p1 = derivePlayerPalette(flat['PLAYER_BASE_COLORS.1']);
   const p2 = derivePlayerPalette(flat['PLAYER_BASE_COLORS.2']);
   const bg = deriveBackgroundPalette(flat.BACKGROUND_BASE_COLOR);
@@ -364,6 +367,13 @@ function appendSettingRow(parent, spec, currentValues, defaultValues, controls) 
       if (currentValues[spec.key] === choice) opt.selected = true;
       input.appendChild(opt);
     }
+  } else if (spec.kind === 'bool') {
+    row.classList.add('settings-field-row--bool');
+    input = document.createElement('input');
+    input.type = 'checkbox';
+    input.className = 'settings-input settings-input--checkbox';
+    input.checked = Boolean(currentValues[spec.key]);
+    input.setAttribute('aria-label', spec.label ?? spec.key);
   } else if (spec.kind === 'color') {
     input = document.createElement('input');
     input.type = 'color';
