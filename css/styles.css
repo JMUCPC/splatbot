@@ -6,12 +6,13 @@ html {
 }
 
 :root {
+  /* Match js/config.js derivePlayerPalette + app applyPlayerThemeVars defaults (#ff6b2b / #00d4ff). */
   --player1-base: #ff6b2b;
-  --player1-bright: #ff8c50;
-  --player1-dark: #c24a28;
+  --player1-bright: #ff8651;
+  --player1-dark: #c25121;
   --player2-base: #00d4ff;
-  --player2-bright: #5cc8e0;
-  --player2-dark: #2a9ec0;
+  --player2-bright: #2edcff;
+  --player2-dark: #00a1c2;
 }
 
 body {
