@@ -22,7 +22,8 @@ export function playerIdsFromLogMessage(msg) {
   return [...set];
 }
 
-function looksLikeErrorOrBlock(msg) {
+/** Exported for event log styling — same heuristic as card feed “error” tint. */
+export function looksLikeErrorOrBlock(msg) {
   return /\b(error|failed|invalid|cannot|blocked|exceeded|skip|rejected)\b/i.test(msg);
 }
 

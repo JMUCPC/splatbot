@@ -1,7 +1,20 @@
+import {
+  playerIdsFromLogMessage,
+  looksLikeErrorOrBlock,
+} from './player-card-log-feed.js';
+
 const MAX_LINES = 100;
 let logEl = null;
 /** @type {Set<HTMLElement>} */
 const mirrors = new Set();
+/** @type {Array<{ id: number, msg: string, tags: Set<string>, classes: string[] }>} */
+const entries = [];
+let nextEntryId = 1;
+/** @type {Set<string>} */
+const activeFilters = new Set();
+/** @type {Set<string>} */
+const expandedGroupKeys = new Set();
+let controlsWired = false;
 
 /** @type {Set<(msg: string) => void>} */
 const lineListeners = new Set();
@@ -20,19 +33,237 @@ export function onLogClear(fn) {
   return () => clearListeners.delete(fn);
 }
 
-function appendLine(sink, msg) {
-  if (!sink) return;
+function tagsFromMessage(msg) {
+  const tags = new Set();
+  const pids = playerIdsFromLogMessage(msg);
+  const isMatchLifecycle = /\bmatch\s+(started|reset|over)\b/i.test(msg);
+  if (looksLikeErrorOrBlock(msg)) tags.add('error');
+  if (pids.includes(1)) tags.add('p1');
+  if (pids.includes(2)) tags.add('p2');
+  if (isMatchLifecycle || (!pids.includes(1) && !pids.includes(2))) tags.add('system');
+  return tags;
+}
+
+function classesFromTags(tags) {
+  const classes = [];
+  if (tags.has('error')) classes.push('event-log-line--error');
+  if (tags.has('p1')) classes.push('event-log-line--p1');
+  if (tags.has('p2')) classes.push('event-log-line--p2');
+  return classes;
+}
+
+function createLogLineElement(entry) {
   const line = document.createElement('div');
-  line.textContent = msg;
-  sink.appendChild(line);
-  while (sink.children.length > MAX_LINES) {
-    sink.removeChild(sink.firstChild);
+  line.className = 'event-log-line';
+  line.textContent = entry.msg;
+  for (const cls of entry.classes) {
+    line.classList.add(cls);
   }
-  sink.scrollTop = sink.scrollHeight;
+  return line;
+}
+
+function groupKeyFor(entry) {
+  const tags = [...entry.tags].sort().join(',');
+  return `${entry.msg}::${tags}`;
+}
+
+function buildGroups() {
+  const groups = [];
+  for (const entry of entries) {
+    const last = groups[groups.length - 1];
+    if (last && last.key === groupKeyFor(entry)) {
+      last.items.push(entry);
+      continue;
+    }
+    groups.push({
+      key: groupKeyFor(entry),
+      msg: entry.msg,
+      tags: entry.tags,
+      classes: entry.classes,
+      items: [entry],
+    });
+  }
+  return groups;
+}
+
+function matchesFilters(tags) {
+  if (activeFilters.size === 0) return true;
+  for (const f of activeFilters) {
+    if (!tags.has(f)) return false;
+  }
+  return true;
+}
+
+function renderSink(sink) {
+  if (!sink) return;
+  const shouldStickBottom = Math.abs(sink.scrollHeight - sink.scrollTop - sink.clientHeight) < 24;
+  sink.innerHTML = '';
+
+  const groups = buildGroups();
+  for (const g of groups) {
+    if (!matchesFilters(g.tags)) continue;
+    if (g.items.length === 1) {
+      sink.appendChild(createLogLineElement(g.items[0]));
+      continue;
+    }
+
+    const expanded = expandedGroupKeys.has(g.key);
+    const wrap = document.createElement('div');
+    wrap.className = 'event-log-group';
+
+    const header = document.createElement('button');
+    header.type = 'button';
+    header.className = 'event-log-group-toggle';
+    header.dataset.groupKey = g.key;
+    header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    header.textContent = expanded
+      ? `▾ ${g.items.length} similar messages (click to collapse)`
+      : `▸ ${g.items.length} similar messages (click to expand)`;
+    wrap.appendChild(header);
+
+    if (expanded) {
+      const items = document.createElement('div');
+      items.className = 'event-log-group-items';
+      for (const item of g.items) {
+        const row = createLogLineElement(item);
+        row.classList.add('event-log-group-item');
+        items.appendChild(row);
+      }
+      wrap.appendChild(items);
+    } else {
+      const preview = createLogLineElement({
+        msg: g.msg,
+        classes: g.classes,
+      });
+      preview.classList.add('event-log-group-preview');
+      wrap.appendChild(preview);
+    }
+    sink.appendChild(wrap);
+  }
+
+  if (shouldStickBottom) {
+    sink.scrollTop = sink.scrollHeight;
+  }
+}
+
+function updateFilterButtonUi() {
+  const toggle = document.getElementById('event-log-filter-toggle');
+  const defs = [
+    ['event-log-filter-error', 'error'],
+    ['event-log-filter-p1', 'p1'],
+    ['event-log-filter-p2', 'p2'],
+    ['event-log-filter-system', 'system'],
+  ];
+  let anyOn = false;
+  for (const [id, tag] of defs) {
+    const input = document.getElementById(id);
+    if (!(input instanceof HTMLInputElement)) continue;
+    const on = activeFilters.has(tag);
+    input.checked = on;
+    const option = input.closest('.event-log-filter-option');
+    if (option) option.setAttribute('aria-checked', on ? 'true' : 'false');
+    if (on) anyOn = true;
+  }
+  if (toggle) {
+    toggle.classList.toggle('event-log-filter-toggle--active', anyOn);
+  }
+}
+
+function renderAllSinks() {
+  renderSink(logEl);
+  for (const m of mirrors) {
+    renderSink(m);
+  }
+}
+
+function onSinkClick(e) {
+  const target = e.target;
+  if (!(target instanceof Element)) return;
+  const btn = target.closest('.event-log-group-toggle');
+  if (!btn) return;
+  const key = btn.getAttribute('data-group-key');
+  if (!key) return;
+  if (expandedGroupKeys.has(key)) expandedGroupKeys.delete(key);
+  else expandedGroupKeys.add(key);
+  renderAllSinks();
+}
+
+function closeFilterMenu() {
+  const menu = document.getElementById('event-log-filter-menu');
+  const toggle = document.getElementById('event-log-filter-toggle');
+  if (menu) menu.setAttribute('hidden', '');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+}
+
+function openFilterMenu() {
+  const menu = document.getElementById('event-log-filter-menu');
+  const toggle = document.getElementById('event-log-filter-toggle');
+  if (menu) menu.removeAttribute('hidden');
+  if (toggle) toggle.setAttribute('aria-expanded', 'true');
+}
+
+function toggleFilterMenu() {
+  const menu = document.getElementById('event-log-filter-menu');
+  if (!menu) return;
+  if (menu.hasAttribute('hidden')) openFilterMenu();
+  else closeFilterMenu();
+}
+
+function wireControlsOnce() {
+  if (controlsWired) return;
+  controlsWired = true;
+  const wrap = document.querySelector('.event-log-filter-wrap');
+  const menuToggle = document.getElementById('event-log-filter-toggle');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFilterMenu();
+    });
+  }
+  const defs = [
+    ['event-log-filter-error', 'error'],
+    ['event-log-filter-p1', 'p1'],
+    ['event-log-filter-p2', 'p2'],
+    ['event-log-filter-system', 'system'],
+  ];
+  for (const [id, tag] of defs) {
+    const input = document.getElementById(id);
+    if (!(input instanceof HTMLInputElement)) continue;
+    input.addEventListener('change', () => {
+      if (input.checked) activeFilters.add(tag);
+      else activeFilters.delete(tag);
+      updateFilterButtonUi();
+      renderAllSinks();
+    });
+  }
+  const clearBtn = document.getElementById('event-log-filter-clear');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      activeFilters.clear();
+      updateFilterButtonUi();
+      renderAllSinks();
+      closeFilterMenu();
+    });
+  }
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!(target instanceof Node)) return;
+    if (wrap && !wrap.contains(target)) closeFilterMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeFilterMenu();
+  });
 }
 
 export function initEventConsole(element) {
   logEl = element;
+  if (logEl) {
+    logEl.addEventListener('click', onSinkClick);
+  }
+  wireControlsOnce();
+  updateFilterButtonUi();
+  renderAllSinks();
 }
 
 /**
@@ -40,12 +271,8 @@ export function initEventConsole(element) {
  * @param {HTMLElement} mirrorEl
  */
 export function syncMirrorFromMain(mirrorEl) {
-  if (!mirrorEl || !logEl) return;
-  mirrorEl.innerHTML = '';
-  for (const child of logEl.children) {
-    mirrorEl.appendChild(child.cloneNode(true));
-  }
-  mirrorEl.scrollTop = mirrorEl.scrollHeight;
+  if (!mirrorEl) return;
+  renderSink(mirrorEl);
 }
 
 /**
@@ -56,15 +283,25 @@ export function syncMirrorFromMain(mirrorEl) {
 export function attachEventLogMirror(mirrorEl) {
   if (!mirrorEl) return () => {};
   mirrors.add(mirrorEl);
+  mirrorEl.addEventListener('click', onSinkClick);
   syncMirrorFromMain(mirrorEl);
-  return () => mirrors.delete(mirrorEl);
+  return () => {
+    mirrorEl.removeEventListener('click', onSinkClick);
+    mirrors.delete(mirrorEl);
+  };
 }
 
 export function logEvent(msg) {
-  appendLine(logEl, msg);
-  for (const m of mirrors) {
-    appendLine(m, msg);
-  }
+  const tags = tagsFromMessage(msg);
+  const classes = classesFromTags(tags);
+  entries.push({
+    id: nextEntryId++,
+    msg,
+    tags,
+    classes,
+  });
+  while (entries.length > MAX_LINES) entries.shift();
+  renderAllSinks();
   for (const fn of lineListeners) {
     try {
       fn(msg);
@@ -75,10 +312,9 @@ export function logEvent(msg) {
 }
 
 export function clearLog() {
-  if (logEl) logEl.innerHTML = '';
-  for (const m of mirrors) {
-    m.innerHTML = '';
-  }
+  entries.length = 0;
+  expandedGroupKeys.clear();
+  renderAllSinks();
   for (const fn of clearListeners) {
     try {
       fn();

@@ -362,6 +362,12 @@ body {
 .player-card .sb-select {
   margin-top: 0;
 }
+
+/* When main Event Log panel is expanded, hide per-player mini log section. */
+.app-container.event-log-expanded .player-card-log-block {
+  display: none;
+}
+
 .hex-column {
   flex: 1 1 0;
   min-width: 0;
@@ -428,6 +434,53 @@ body {
   gap: 8px;
   flex-shrink: 0;
 }
+.event-log-filter-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.event-log-filter-toggle.event-log-filter-toggle--active {
+  border-color: #4f6b90;
+  background: #263b56;
+  color: #d7e5f6;
+}
+.event-log-filter-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 190px;
+  background: #0c1524;
+  border: 1px solid #324661;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+.event-log-filter-menu[hidden] {
+  display: none !important;
+}
+.event-log-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  color: #a7b7cc;
+  cursor: pointer;
+  user-select: none;
+}
+.event-log-filter-option input[type='checkbox'] {
+  accent-color: #4f6b90;
+}
+.event-log-filter-clear {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+}
 
 .sb-btn--compact {
   min-height: 36px;
@@ -467,6 +520,76 @@ body {
 .event-log > div {
   white-space: pre-wrap;
   word-break: break-word;
+}
+.event-log-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.event-log-group-toggle {
+  appearance: none;
+  border: 1px solid #2d425e;
+  background: #0f1a2b;
+  color: #7f96af;
+  border-radius: 4px;
+  font: inherit;
+  line-height: 1.3;
+  text-align: left;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.event-log-group-toggle:hover {
+  border-color: #436086;
+  color: #b8cade;
+}
+.event-log-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: -2px 0 0 14px;
+  padding: 8px 10px 8px 12px;
+  border-left: 2px solid #2d425e;
+  border-radius: 0 0 4px 4px;
+  background: rgba(15, 26, 43, 0.45);
+}
+.event-log-group-item {
+  padding-left: 2px;
+}
+.event-log-group-item + .event-log-group-item {
+  border-top: 1px dashed rgba(87, 112, 141, 0.25);
+  padding-top: 3px;
+}
+.event-log-group-preview {
+  opacity: 0.95;
+}
+
+/* Error lines only: same accent idea as player-card feeds (see #player-card-* .player-card-feed). */
+.event-log-line--error.event-log-line--p1:not(.event-log-line--p2) {
+  color: #e8a090;
+  border-left: 2px solid #c24a28;
+  padding-left: 8px;
+  margin-left: -2px;
+}
+
+.event-log-line--error.event-log-line--p2:not(.event-log-line--p1) {
+  color: #9dd8f0;
+  border-left: 2px solid #2a9ec0;
+  padding-left: 8px;
+  margin-left: -2px;
+}
+
+.event-log-line--error.event-log-line--p1.event-log-line--p2 {
+  color: #c8d4e0;
+  padding-left: 8px;
+  margin-left: -2px;
+  border-left: 3px solid #6a7a8a;
+}
+
+.event-log-line--error:not(.event-log-line--p1):not(.event-log-line--p2) {
+  color: #c8b898;
+  border-left: 2px solid #6a6048;
+  padding-left: 8px;
+  margin-left: -2px;
 }
 
 @supports not (height: 21dvh) {
