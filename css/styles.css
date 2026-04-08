@@ -5,6 +5,15 @@ html {
   font-size: 20px;
 }
 
+:root {
+  --player1-base: #ff6b2b;
+  --player1-bright: #ff8c50;
+  --player1-dark: #c24a28;
+  --player2-base: #00d4ff;
+  --player2-bright: #5cc8e0;
+  --player2-dark: #2a9ec0;
+}
+
 body {
   background-color: #080c14;
   color: #8899aa;
@@ -284,6 +293,32 @@ body {
   line-height: 1;
 }
 
+#player-card-1 .player-card-title {
+  color: var(--player1-dark);
+}
+
+#player-card-2 .player-card-title {
+  color: var(--player2-dark);
+}
+
+#score-1 {
+  color: var(--player1-base);
+}
+
+#score-2 {
+  color: var(--player2-base);
+}
+
+#pct-1,
+#decision-time-1 {
+  color: var(--player1-bright);
+}
+
+#pct-2,
+#decision-time-2 {
+  color: var(--player2-bright);
+}
+
 .player-card .sb-divider {
   margin: 0.15rem 0;
 }
@@ -331,15 +366,15 @@ body {
 }
 
 #player-card-1.player-card--feed-error .player-card-feed:not(:empty) {
-  color: #e8a090;
-  border-left: 2px solid #c24a28;
+  color: var(--player1-bright);
+  border-left: 2px solid var(--player1-dark);
   padding-left: 8px;
   margin-left: -2px;
 }
 
 #player-card-2.player-card--feed-error .player-card-feed:not(:empty) {
-  color: #9dd8f0;
-  border-left: 2px solid #2a9ec0;
+  color: var(--player2-bright);
+  border-left: 2px solid var(--player2-dark);
   padding-left: 8px;
   margin-left: -2px;
 }
@@ -565,15 +600,15 @@ body {
 
 /* Error lines only: same accent idea as player-card feeds (see #player-card-* .player-card-feed). */
 .event-log-line--error.event-log-line--p1:not(.event-log-line--p2) {
-  color: #e8a090;
-  border-left: 2px solid #c24a28;
+  color: var(--player1-bright);
+  border-left: 2px solid var(--player1-dark);
   padding-left: 8px;
   margin-left: -2px;
 }
 
 .event-log-line--error.event-log-line--p2:not(.event-log-line--p1) {
-  color: #9dd8f0;
-  border-left: 2px solid #2a9ec0;
+  color: var(--player2-bright);
+  border-left: 2px solid var(--player2-dark);
   padding-left: 8px;
   margin-left: -2px;
 }
@@ -879,6 +914,11 @@ body {
 .settings-input--color {
   height: 44px;
   cursor: pointer;
+}
+.settings-reset-btn {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 12px;
 }
 .settings-actions {
   display: flex;

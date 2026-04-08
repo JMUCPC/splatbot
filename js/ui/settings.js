@@ -102,15 +102,9 @@ export const SETTING_SPECS = [
     kind: 'enum',
     choices: ['circles', 'triangles'],
   },
-  { key: 'PLAYER_TILE_COLORS.1', tab: 'appearance', label: 'Player 1 tile', kind: 'color' },
-  { key: 'PLAYER_TILE_COLORS.2', tab: 'appearance', label: 'Player 2 tile', kind: 'color' },
-  { key: 'PLAYER_BOT_COLORS.1', tab: 'appearance', label: 'Player 1 bot', kind: 'color' },
-  { key: 'PLAYER_BOT_COLORS.2', tab: 'appearance', label: 'Player 2 bot', kind: 'color' },
-  { key: 'PLAYER_BRIGHT_COLORS.1', tab: 'appearance', label: 'Player 1 highlight', kind: 'color' },
-  { key: 'PLAYER_BRIGHT_COLORS.2', tab: 'appearance', label: 'Player 2 highlight', kind: 'color' },
-  { key: 'TILE_NONE_COLOR', tab: 'appearance', label: 'Empty tile', kind: 'color' },
-  { key: 'TILE_STROKE_COLOR', tab: 'appearance', label: 'Hex stroke', kind: 'color' },
-  { key: 'CANVAS_BG', tab: 'appearance', label: 'Canvas background', kind: 'color' },
+  { key: 'PLAYER_BASE_COLORS.1', tab: 'appearance', label: 'Player 1 color', kind: 'color' },
+  { key: 'PLAYER_BASE_COLORS.2', tab: 'appearance', label: 'Player 2 color', kind: 'color' },
+  { key: 'BACKGROUND_BASE_COLOR', tab: 'appearance', label: 'Background color', kind: 'color' },
 ];
 
 const SPEC_BY_KEY = Object.fromEntries(SETTING_SPECS.map(s => [s.key, s]));
@@ -128,7 +122,95 @@ function migrateLegacySettingsKeys(overrides) {
   for (const [oldKey, newKey] of pairs) {
     if (oldKey in o && !(newKey in o)) o[newKey] = o[oldKey];
   }
+  // Old appearance settings used 3 separate colors per player; use bot color as
+  // canonical base shade, then fall back to highlight, then tile.
+  const appearancePairs = [
+    ['PLAYER_BOT_COLORS.1', 'PLAYER_BASE_COLORS.1'],
+    ['PLAYER_BOT_COLORS.2', 'PLAYER_BASE_COLORS.2'],
+    ['PLAYER_BRIGHT_COLORS.1', 'PLAYER_BASE_COLORS.1'],
+    ['PLAYER_BRIGHT_COLORS.2', 'PLAYER_BASE_COLORS.2'],
+    ['PLAYER_TILE_COLORS.1', 'PLAYER_BASE_COLORS.1'],
+    ['PLAYER_TILE_COLORS.2', 'PLAYER_BASE_COLORS.2'],
+    ['TILE_NONE_COLOR', 'BACKGROUND_BASE_COLOR'],
+    ['TILE_STROKE_COLOR', 'BACKGROUND_BASE_COLOR'],
+    ['CANVAS_BG', 'BACKGROUND_BASE_COLOR'],
+  ];
+  for (const [oldKey, newKey] of appearancePairs) {
+    if (oldKey in o && !(newKey in o)) o[newKey] = o[oldKey];
+  }
   return o;
+}
+
+function clampByte(n) {
+  return Math.max(0, Math.min(255, Math.round(n)));
+}
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return {
+    r: (n >> 16) & 255,
+    g: (n >> 8) & 255,
+    b: n & 255,
+  };
+}
+
+function rgbToHex({ r, g, b }) {
+  return `#${clampByte(r).toString(16).padStart(2, '0')}${clampByte(g).toString(16).padStart(2, '0')}${clampByte(b).toString(16).padStart(2, '0')}`;
+}
+
+function mixHex(a, b, t) {
+  const c1 = hexToRgb(a);
+  const c2 = hexToRgb(b);
+  const m = Math.max(0, Math.min(1, t));
+  return rgbToHex({
+    r: c1.r + (c2.r - c1.r) * m,
+    g: c1.g + (c2.g - c1.g) * m,
+    b: c1.b + (c2.b - c1.b) * m,
+  });
+}
+
+function srgbToLinear(v) {
+  const x = v / 255;
+  if (x <= 0.04045) return x / 12.92;
+  return ((x + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+}
+
+function contrastRatio(a, b) {
+  const l1 = relativeLuminance(a);
+  const l2 = relativeLuminance(b);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function readableTextOn(bgHex) {
+  const dark = '#0b111e';
+  const light = '#f3f8ff';
+  return contrastRatio(bgHex, dark) >= contrastRatio(bgHex, light) ? dark : light;
+}
+
+function derivePlayerPalette(baseHex) {
+  return {
+    tile: mixHex(baseHex, '#000000', 0.28),
+    stroke: mixHex(baseHex, '#000000', 0.45),
+    dark: mixHex(baseHex, '#000000', 0.24),
+    bot: baseHex,
+    bright: mixHex(baseHex, '#ffffff', 0.18),
+    botText: readableTextOn(baseHex),
+  };
+}
+
+function deriveBackgroundPalette(baseHex) {
+  return {
+    tileNone: baseHex,
+    tileStroke: mixHex(baseHex, '#000000', 0.45),
+    canvasBg: mixHex(baseHex, '#000000', 0.58),
+  };
 }
 
 function getDefaultFlat() {
@@ -148,15 +230,9 @@ function getDefaultFlat() {
     PAINTBALL_STUN_TURNS: 7,
     SHOOT_PAINTBALL_COOLDOWN_TURNS: 20,
     BOT_DISPLAY_TYPE: 'triangles',
-    'PLAYER_TILE_COLORS.1': '#b84010',
-    'PLAYER_TILE_COLORS.2': '#0a7090',
-    'PLAYER_BOT_COLORS.1': '#ff6b2b',
-    'PLAYER_BOT_COLORS.2': '#00d4ff',
-    'PLAYER_BRIGHT_COLORS.1': '#ff8c50',
-    'PLAYER_BRIGHT_COLORS.2': '#22e0ff',
-    TILE_NONE_COLOR: '#161f30',
-    TILE_STROKE_COLOR: '#090f1d',
-    CANVAS_BG: '#070d1a',
+    'PLAYER_BASE_COLORS.1': '#ff6b2b',
+    'PLAYER_BASE_COLORS.2': '#00d4ff',
+    BACKGROUND_BASE_COLOR: '#161f30',
   };
 }
 
@@ -235,12 +311,20 @@ export function applyToConfig(flat) {
   config.PAINTBALL_STUN_TURNS = flat.PAINTBALL_STUN_TURNS;
   config.SHOOT_PAINTBALL_COOLDOWN_TURNS = flat.SHOOT_PAINTBALL_COOLDOWN_TURNS;
   config.BOT_DISPLAY_TYPE = flat.BOT_DISPLAY_TYPE;
-  config.PLAYER_TILE_COLORS = { 1: flat['PLAYER_TILE_COLORS.1'], 2: flat['PLAYER_TILE_COLORS.2'] };
-  config.PLAYER_BOT_COLORS = { 1: flat['PLAYER_BOT_COLORS.1'], 2: flat['PLAYER_BOT_COLORS.2'] };
-  config.PLAYER_BRIGHT_COLORS = { 1: flat['PLAYER_BRIGHT_COLORS.1'], 2: flat['PLAYER_BRIGHT_COLORS.2'] };
-  config.TILE_NONE_COLOR = flat.TILE_NONE_COLOR;
-  config.TILE_STROKE_COLOR = flat.TILE_STROKE_COLOR;
-  config.CANVAS_BG = flat.CANVAS_BG;
+  const p1 = derivePlayerPalette(flat['PLAYER_BASE_COLORS.1']);
+  const p2 = derivePlayerPalette(flat['PLAYER_BASE_COLORS.2']);
+  const bg = deriveBackgroundPalette(flat.BACKGROUND_BASE_COLOR);
+  config.PLAYER_BASE_COLORS = { 1: flat['PLAYER_BASE_COLORS.1'], 2: flat['PLAYER_BASE_COLORS.2'] };
+  config.PLAYER_TILE_COLORS = { 1: p1.tile, 2: p2.tile };
+  config.PLAYER_STROKE_COLORS = { 1: p1.stroke, 2: p2.stroke };
+  config.PLAYER_DARK_COLORS = { 1: p1.dark, 2: p2.dark };
+  config.PLAYER_BOT_COLORS = { 1: p1.bot, 2: p2.bot };
+  config.PLAYER_BRIGHT_COLORS = { 1: p1.bright, 2: p2.bright };
+  config.PLAYER_BOT_TEXT_COLORS = { 1: p1.botText, 2: p2.botText };
+  config.BACKGROUND_BASE_COLOR = flat.BACKGROUND_BASE_COLOR;
+  config.TILE_NONE_COLOR = bg.tileNone;
+  config.TILE_STROKE_COLOR = bg.tileStroke;
+  config.CANVAS_BG = bg.canvasBg;
 }
 
 export function validateOverrides(raw) {
@@ -260,7 +344,7 @@ export function validateOverrides(raw) {
   return { clean, errors };
 }
 
-function appendSettingRow(parent, spec, currentValues, controls) {
+function appendSettingRow(parent, spec, currentValues, defaultValues, controls) {
   const row = document.createElement('div');
   row.className = 'settings-field-row';
 
@@ -297,6 +381,27 @@ function appendSettingRow(parent, spec, currentValues, controls) {
 
   controls[spec.key] = input;
   row.appendChild(input);
+  if (spec.kind === 'color') {
+    const resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
+    resetBtn.className = 'sb-btn sb-btn--compact settings-reset-btn';
+    resetBtn.textContent = 'Reset';
+    resetBtn.setAttribute('aria-label', `Reset ${spec.label ?? spec.key} to default`);
+    const defaultColor = (defaultValues[spec.key] || '#000000').toLowerCase();
+    function syncResetVisibility() {
+      const matchesDefault = String(input.value || '').toLowerCase() === defaultColor;
+      resetBtn.hidden = matchesDefault;
+      resetBtn.disabled = matchesDefault;
+    }
+    resetBtn.addEventListener('click', () => {
+      input.value = defaultColor;
+      syncResetVisibility();
+    });
+    input.addEventListener('input', syncResetVisibility);
+    input.addEventListener('change', syncResetVisibility);
+    syncResetVisibility();
+    row.appendChild(resetBtn);
+  }
   parent.appendChild(row);
 }
 
@@ -388,6 +493,7 @@ function appendRulesMatrix(panel, currentValues, controls) {
 export function buildSettingsUI(container, currentValues) {
   container.innerHTML = '';
   const controls = {};
+  const defaultValues = getDefaultFlat();
 
   const tabRow = document.createElement('div');
   tabRow.className = 'settings-tab-row';
@@ -451,7 +557,7 @@ export function buildSettingsUI(container, currentValues) {
 
   for (const spec of SETTING_SPECS) {
     const panel = panelsById[spec.tab];
-    if (panel && spec.tab !== 'rules') appendSettingRow(panel, spec, currentValues, controls);
+    if (panel && spec.tab !== 'rules') appendSettingRow(panel, spec, currentValues, defaultValues, controls);
   }
   const syncRulesMatrix = appendRulesMatrix(panelsById.rules, currentValues, controls);
 

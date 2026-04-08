@@ -74,6 +74,92 @@ const els = {};
 let eventLogPopoutWin = null;
 let eventLogPopoutDetach = null;
 
+function setRootCssVar(name, value) {
+  document.documentElement.style.setProperty(name, value);
+}
+
+function clampByte(n) {
+  return Math.max(0, Math.min(255, Math.round(n)));
+}
+
+function hexToRgb(hex) {
+  const n = parseInt(String(hex).slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function rgbToHex({ r, g, b }) {
+  return `#${clampByte(r).toString(16).padStart(2, '0')}${clampByte(g).toString(16).padStart(2, '0')}${clampByte(b).toString(16).padStart(2, '0')}`;
+}
+
+function mixHex(a, b, t) {
+  const c1 = hexToRgb(a);
+  const c2 = hexToRgb(b);
+  const m = Math.max(0, Math.min(1, t));
+  return rgbToHex({
+    r: c1.r + (c2.r - c1.r) * m,
+    g: c1.g + (c2.g - c1.g) * m,
+    b: c1.b + (c2.b - c1.b) * m,
+  });
+}
+
+function srgbToLinear(v) {
+  const x = v / 255;
+  if (x <= 0.04045) return x / 12.92;
+  return ((x + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+}
+
+function contrastRatio(a, b) {
+  const l1 = relativeLuminance(a);
+  const l2 = relativeLuminance(b);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function ensureContrast(color, bg, minRatio = 3.2) {
+  const againstWhite = contrastRatio('#ffffff', bg);
+  const againstBlack = contrastRatio('#000000', bg);
+  const target = againstWhite >= againstBlack ? '#ffffff' : '#000000';
+  let out = color;
+  let i = 0;
+  while (contrastRatio(out, bg) < minRatio && i < 9) {
+    out = mixHex(out, target, 0.22);
+    i += 1;
+  }
+  return out;
+}
+
+function applyPlayerThemeVars() {
+  const cardBg = '#0e1525';
+  const p1Dark = ensureContrast(config.PLAYER_DARK_COLORS[1], cardBg, 3.0);
+  const p1Base = ensureContrast(config.PLAYER_BOT_COLORS[1], cardBg, 3.4);
+  const p1Bright = ensureContrast(config.PLAYER_BRIGHT_COLORS[1], cardBg, 4.0);
+  const p2Dark = ensureContrast(config.PLAYER_DARK_COLORS[2], cardBg, 3.0);
+  const p2Base = ensureContrast(config.PLAYER_BOT_COLORS[2], cardBg, 3.4);
+  const p2Bright = ensureContrast(config.PLAYER_BRIGHT_COLORS[2], cardBg, 4.0);
+  const vars = [
+    ['--player1-base', p1Base],
+    ['--player1-bright', p1Bright],
+    ['--player1-dark', p1Dark],
+    ['--player2-base', p2Base],
+    ['--player2-bright', p2Bright],
+    ['--player2-dark', p2Dark],
+  ];
+  for (const [name, value] of vars) {
+    setRootCssVar(name, value);
+  }
+  if (eventLogPopoutWin && !eventLogPopoutWin.closed) {
+    for (const [name, value] of vars) {
+      eventLogPopoutWin.document.documentElement.style.setProperty(name, value);
+    }
+  }
+}
+
 function setEventLogExpanded(expanded) {
   const app = document.getElementById('app');
   const panel = document.getElementById('event-log-panel');
@@ -192,6 +278,7 @@ function openEventLogPopout() {
   w.document.close();
 
   const inner = w.document.getElementById('event-log-pop');
+  applyPlayerThemeVars();
   if (eventLogPopoutDetach) {
     eventLogPopoutDetach();
     eventLogPopoutDetach = null;
@@ -539,6 +626,7 @@ export function initApp() {
   const overrides = loadOverrides();
   const effective = mergeWithDefaults(overrides);
   applyToConfig(effective);
+  applyPlayerThemeVars();
   tickDelay = config.TICK_DELAY;
   if (els.speedSlider) {
     els.speedSlider.min = String(SPEED_SLIDER_MIN);
@@ -978,6 +1066,7 @@ function applySettings() {
   }
   saveOverrides(clean);
   applyToConfig(mergeWithDefaults(clean));
+  applyPlayerThemeVars();
   tickDelay = config.TICK_DELAY;
   if (els.speedSlider) {
     els.speedSlider.value = String(sliderValueFromTickDelay(tickDelay));

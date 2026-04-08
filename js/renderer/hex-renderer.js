@@ -32,7 +32,11 @@ export function renderHexGrid(state, hexSize) {
     1: config.PLAYER_TILE_COLORS[1],
     2: config.PLAYER_TILE_COLORS[2],
   };
-  const tileStroke = { 0: config.TILE_STROKE_COLOR, 1: '#8b2e06', 2: '#065066' };
+  const tileStroke = {
+    0: config.TILE_STROKE_COLOR,
+    1: config.PLAYER_STROKE_COLORS[1],
+    2: config.PLAYER_STROKE_COLORS[2],
+  };
   const botFill = config.PLAYER_BOT_COLORS;
   const botBright = config.PLAYER_BRIGHT_COLORS;
   /* Tight viewBox → map scales larger in the panel; keep ≥ ~1.2× for bot markers at rim hexes. */
@@ -125,8 +129,9 @@ export function renderHexGrid(state, hexSize) {
     }
 
     const fs = Math.max(12, Math.floor(hexSize * 0.46));
+    const botTextColor = config.PLAYER_BOT_TEXT_COLORS?.[bot.pid] || 'white';
     parts.push(
-      `<text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="${fs}" font-weight="700" font-family="monospace" opacity="0.9">${bot.pid}</text>`,
+      `<text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" text-anchor="middle" dominant-baseline="central" fill="${botTextColor}" font-size="${fs}" font-weight="700" font-family="monospace" opacity="0.95">${bot.pid}</text>`,
     );
   }
 
