@@ -34,11 +34,17 @@ class Hex:
     def __hash__(self) -> int:
         return hash((self.q, self.r))
 
-    def __add__(self, other: Hex) -> Hex:
+    def __add__(self, other: Hex | HexVector) -> Hex:
         return Hex(self.q + other.q, self.r + other.r)
 
-    def __sub__(self, other: Hex) -> Hex:
+    def __radd__(self, other: Hex | HexVector) -> Hex:
+        return self.__add__(other)
+
+    def __sub__(self, other: Hex | HexVector) -> Hex:
         return Hex(self.q - other.q, self.r - other.r)
+
+    def __rsub__(self, other: Hex | HexVector) -> Hex:
+        return self.__sub__(other)
 
     def __repr__(self) -> str:
         return f"Hex({self.q}, {self.r})"
@@ -55,6 +61,47 @@ class Hex:
             return self.controller.pid == bot_or_pid
         return self.controller == bot_or_pid
 
+class HexVector:
+    """Immutable axial vector offset (dq, dr)."""
+
+    __slots__ = ("q", "r")
+
+    def __init__(self, q: int, r: int) -> None:
+        object.__setattr__(self, "q", q)
+        object.__setattr__(self, "r", r)
+
+    def __setattr__(self, *a):
+        raise AttributeError("HexVector is immutable")
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, HexVector):
+            return NotImplemented
+        return self.q == other.q and self.r == other.r
+
+    def __hash__(self) -> int:
+        return hash((self.q, self.r))
+
+    def __add__(self, other: HexVector) -> HexVector:
+        return HexVector(self.q + other.q, self.r + other.r)
+
+    def __sub__(self, other: HexVector) -> HexVector:
+        return HexVector(self.q - other.q, self.r - other.r)
+
+    def __mul__(self, scalar: int) -> HexVector:
+        return HexVector(self.q * scalar, self.r * scalar)
+
+    def __rmul__(self, scalar: int) -> HexVector:
+        return self.__mul__(scalar)
+
+    def __repr__(self) -> str:
+        return f"HexVector({self.q}, {self.r})"
+
+    @classmethod
+    def from_direction_and_distance(
+        cls, direction: int | HexDirection, distance: int
+    ) -> HexVector:
+        step = HEX_DIRECTIONS[int(direction) % 6]
+        return cls(step.q * distance, step.r * distance)
 
 class HexDirection(IntEnum):
     """Axial neighbor directions; 0 = +q (E). Screen: E → right, W → left."""
@@ -68,13 +115,13 @@ class HexDirection(IntEnum):
 
 
 # Axial step per :class:`HexDirection` value
-HEX_DIRECTIONS: list[Hex] = [
-    Hex(1, 0),   # 0 — E
-    Hex(1, -1),  # 1 — NE
-    Hex(0, -1),  # 2 — NW
-    Hex(-1, 0),  # 3 — W
-    Hex(-1, 1),  # 4 — SW
-    Hex(0, 1),   # 5 — SE
+HEX_DIRECTIONS: list[HexVector] = [
+    HexVector(1, 0),   # 0 — E
+    HexVector(1, -1),  # 1 — NE
+    HexVector(0, -1),  # 2 — NW
+    HexVector(-1, 0),  # 3 — W
+    HexVector(-1, 1),  # 4 — SW
+    HexVector(0, 1),   # 5 — SE
 ]
 
 

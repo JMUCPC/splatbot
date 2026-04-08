@@ -43,6 +43,7 @@
 <h2 id="module-exports-public-api" tabindex="-1">Module exports (public API)</h2>
 <ul>
 <li><code>Hex</code></li>
+<li><code>HexVector</code></li>
 <li><code>HexDirection</code></li>
 <li><code>HEX_DIRECTIONS</code></li>
 <li><code>hex_neighbors</code></li>
@@ -66,8 +67,10 @@
 <p><strong>Equality and hashing</strong> use <strong>only <code>(q, r)</code></strong> — <code>controller</code> is excluded. This means <code>hex_neighbor(pos, d) in game_state.grid</code> works regardless of controller state, and <code>Hex</code> is suitable for use in sets and as dict keys.</p>
 <p><strong>Methods</strong></p>
 <ul>
-<li><code>__add__(other: Hex) -&gt; Hex</code> — component-wise sum; returns a new <code>Hex</code> (controller is <code>None</code>).</li>
-<li><code>__sub__(other: Hex) -&gt; Hex</code> — component-wise difference; returns a new <code>Hex</code> (controller is <code>None</code>).</li>
+<li><code>__add__(other: Hex | HexVector) -&gt; Hex</code> — component-wise sum; supports adding either a position (<code>Hex</code>) or offset (<code>HexVector</code>); returns a new <code>Hex</code> (controller is <code>None</code>).</li>
+<li><code>__radd__(other: Hex | HexVector) -&gt; Hex</code> — right-side addition hook for symmetric arithmetic usage.</li>
+<li><code>__sub__(other: Hex | HexVector) -&gt; Hex</code> — component-wise difference against either a position (<code>Hex</code>) or offset (<code>HexVector</code>); returns a new <code>Hex</code> (controller is <code>None</code>).</li>
+<li><code>__rsub__(other: Hex | HexVector) -&gt; Hex</code> — right-side subtraction hook.</li>
 <li><code>__repr__() -&gt; str</code> — e.g. <code>Hex(0, -1)</code>.</li>
 <li><code>is_controlled_by(bot_or_pid: BotInfo | int) -&gt; bool</code> — returns <code>True</code> when this tile is controlled by the given bot or player id. Returns <code>False</code> if <code>controller</code> is <code>None</code>. When given an <code>int</code>, compares to <code>controller.pid</code>. When given a <code>BotInfo</code>, uses <code>BotInfo.__eq__</code>.</li>
 </ul>
@@ -75,6 +78,24 @@
     <span class="hljs-keyword">if</span> <span class="hljs-built_in">hex</span>.is_controlled_by(game_state.me):
         <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{<span class="hljs-built_in">hex</span>}</span> is mine!&quot;</span>)
 </code></pre>
+<hr>
+<h2 id="hexvector" tabindex="-1"><code>HexVector</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">HexVector</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Immutable axial vector offset (dq, dr).&quot;&quot;&quot;</span>
+    q: <span class="hljs-built_in">int</span>
+    r: <span class="hljs-built_in">int</span>
+</code></pre>
+<p>Represents an axial displacement (not tile ownership state). Useful for direction/offset math and as entries in <code>HEX_DIRECTIONS</code>.</p>
+<p><strong>Methods</strong></p>
+<ul>
+<li><code>__add__(other: HexVector) -&gt; HexVector</code> — vector addition.</li>
+<li><code>__sub__(other: HexVector) -&gt; HexVector</code> — vector subtraction.</li>
+<li><code>__mul__(scalar: int) -&gt; HexVector</code> — integer scalar multiply.</li>
+<li><code>__rmul__(scalar: int) -&gt; HexVector</code> — supports <code>n * vector</code>.</li>
+<li><code>__repr__() -&gt; str</code> — e.g. <code>HexVector(1, -1)</code>.</li>
+<li><code>from_direction_and_distance(direction: int | HexDirection, distance: int) -&gt; HexVector</code> — class helper that returns the directional offset <code>distance</code> steps away, with direction normalized by <code>% 6</code>.</li>
+</ul>
+<p>Like <code>Hex</code>, <code>HexVector</code> is immutable and hashable by <code>(q, r)</code>.</p>
 <hr>
 <h2 id="hexdirection" tabindex="-1"><code>HexDirection</code></h2>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">HexDirection</span>(<span class="hljs-title class_ inherited__">IntEnum</span>):
@@ -90,13 +111,13 @@
 <p>Integer enum values match indices into <code>HEX_DIRECTIONS</code> and are accepted wherever a direction is passed as <code>int | HexDirection</code> (for example <code>Actions.face_direction</code>, <code>hex_neighbor</code> — typically normalized with <code>% 6</code>).</p>
 <hr>
 <h2 id="hex_directions" tabindex="-1"><code>HEX_DIRECTIONS</code></h2>
-<pre><code data-docs-code-lang="python" class="language-python">HEX_DIRECTIONS: <span class="hljs-built_in">list</span>[Hex] = [
-    Hex(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),   <span class="hljs-comment"># 0 — E</span>
-    Hex(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>),  <span class="hljs-comment"># 1 — NE</span>
-    Hex(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>),  <span class="hljs-comment"># 2 — NW</span>
-    Hex(-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),  <span class="hljs-comment"># 3 — W</span>
-    Hex(-<span class="hljs-number">1</span>, <span class="hljs-number">1</span>),  <span class="hljs-comment"># 4 — SW</span>
-    Hex(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>),   <span class="hljs-comment"># 5 — SE</span>
+<pre><code data-docs-code-lang="python" class="language-python">HEX_DIRECTIONS: <span class="hljs-built_in">list</span>[HexVector] = [
+    HexVector(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),   <span class="hljs-comment"># 0 — E</span>
+    HexVector(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>),  <span class="hljs-comment"># 1 — NE</span>
+    HexVector(<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>),  <span class="hljs-comment"># 2 — NW</span>
+    HexVector(-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>),  <span class="hljs-comment"># 3 — W</span>
+    HexVector(-<span class="hljs-number">1</span>, <span class="hljs-number">1</span>),  <span class="hljs-comment"># 4 — SW</span>
+    HexVector(<span class="hljs-number">0</span>, <span class="hljs-number">1</span>),   <span class="hljs-comment"># 5 — SE</span>
 ]
 </code></pre>
 <p>Axial step vector for each <code>HexDirection</code> value (same order as the enum).</p>
