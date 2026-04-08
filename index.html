@@ -116,6 +116,31 @@
     <div id="event-log-panel" class="sb-card event-log-card" hidden>
       <div class="event-log-toolbar">
         <div class="sb-label-xs">EVENT LOG</div>
+        <div class="event-log-filter-wrap">
+          <button
+            type="button"
+            id="event-log-filter-toggle"
+            class="sb-btn sb-btn--compact event-log-filter-toggle"
+            aria-haspopup="menu"
+            aria-controls="event-log-filter-menu"
+            aria-expanded="false"
+          >FILTER</button>
+          <div id="event-log-filter-menu" class="event-log-filter-menu" role="menu" hidden aria-label="Event log filters">
+            <label class="event-log-filter-option" role="menuitemcheckbox" aria-checked="false">
+              <input type="checkbox" id="event-log-filter-error"> ERRORS
+            </label>
+            <label class="event-log-filter-option" role="menuitemcheckbox" aria-checked="false">
+              <input type="checkbox" id="event-log-filter-p1"> P1
+            </label>
+            <label class="event-log-filter-option" role="menuitemcheckbox" aria-checked="false">
+              <input type="checkbox" id="event-log-filter-p2"> P2
+            </label>
+            <label class="event-log-filter-option" role="menuitemcheckbox" aria-checked="false">
+              <input type="checkbox" id="event-log-filter-system"> SYSTEM
+            </label>
+            <button type="button" id="event-log-filter-clear" class="sb-btn sb-btn--compact event-log-filter-clear">RESET</button>
+          </div>
+        </div>
         <div class="event-log-toolbar-actions">
           <button type="button" id="btn-event-log-hide" class="sb-btn sb-btn--compact" aria-controls="event-log-panel" aria-label="Hide event log">HIDE LOG</button>
           <button type="button" id="btn-event-log-popout" class="sb-btn sb-btn--compact">POP OUT</button>
