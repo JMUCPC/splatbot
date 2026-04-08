@@ -142,6 +142,10 @@ export class GameState {
         logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
       }
     } else if (action.type === "dash") {
+      if (!config.DASH_ALLOWED) {
+        if (logFn) logFn(`Bot ${pid} tried to dash but dash is disabled in match rules`);
+        return;
+      }
       if (bot.stun > 0) {
         if (logFn) {
           logFn(
@@ -184,6 +188,10 @@ export class GameState {
         this._paint(dest.key, bot);
       }
     } else if (action.type === "splat") {
+      if (!config.SPLAT_ALLOWED) {
+        if (logFn) logFn(`Bot ${pid} tried to splat but splat is disabled in match rules`);
+        return;
+      }
       if (bot.stun > 0) {
         if (logFn) {
           logFn(
@@ -209,6 +217,10 @@ export class GameState {
       bot.stun = config.SPLAT_STUN_TURNS;
       bot.splatCooldown = config.SPLAT_COOLDOWN_TURNS;
     } else if (action.type === "shoot_paintball") {
+      if (!config.SHOOT_PAINTBALL_ALLOWED) {
+        if (logFn) logFn(`Bot ${pid} tried to shoot paintball but paintball is disabled in match rules`);
+        return;
+      }
       if (bot.stun > 0) {
         if (logFn) {
           logFn(

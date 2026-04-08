@@ -692,6 +692,48 @@ body {
 .settings-tab-panel {
   width: 100%;
 }
+.settings-rules-matrix {
+  width: 100%;
+  margin-bottom: 4px;
+}
+.settings-rules-matrix-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 1.1fr) 72px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: 10px;
+}
+.settings-rules-matrix-row--header {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #1a2a40;
+}
+.settings-rules-matrix-row--header .settings-rules-matrix-cell {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6a7a92;
+}
+.settings-rules-matrix-cell--name {
+  color: #c8d4e0;
+  font-size: 1.02rem;
+}
+.settings-rules-matrix-cell--center {
+  display: flex;
+  justify-content: center;
+}
+.settings-input--checkbox {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: #4a7ab0;
+  cursor: pointer;
+}
+.settings-input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .settings-field-row {
   display: flex;
   align-items: center;

@@ -10,12 +10,37 @@ export const SETTINGS_TABS = [
   { id: 'appearance', label: 'Appearance' },
 ];
 
+/** Rows for the Rules tab matrix (special abilities). Order matches UI. */
+export const RULE_ABILITY_ROWS = [
+  {
+    label: 'Splat',
+    allowKey: 'SPLAT_ALLOWED',
+    stunKey: 'SPLAT_STUN_TURNS',
+    cooldownKey: 'SPLAT_COOLDOWN_TURNS',
+  },
+  {
+    label: 'Dash',
+    allowKey: 'DASH_ALLOWED',
+    stunKey: 'DASH_STUN_TURNS',
+    cooldownKey: 'DASH_COOLDOWN_TURNS',
+  },
+  {
+    label: 'Paintball',
+    allowKey: 'SHOOT_PAINTBALL_ALLOWED',
+    stunKey: 'PAINTBALL_STUN_TURNS',
+    cooldownKey: 'SHOOT_PAINTBALL_COOLDOWN_TURNS',
+  },
+];
+
 export const SETTING_SPECS = [
   { key: 'GRID_RADIUS', tab: 'match', label: 'Grid radius', kind: 'int', min: 2, max: 20, step: 1 },
   { key: 'MAX_TURNS', tab: 'match', label: 'Max turns', kind: 'int', min: 1, max: 10000, step: 1 },
   { key: 'TICK_DELAY', tab: 'match', label: 'Tick delay (s)', kind: 'float', min: 0.01, max: 5.0, step: 0.01 },
   { key: 'TIMEOUT', tab: 'match', label: 'Bot timeout (s)', kind: 'float', min: 0.6, max: 30.0, step: 0.1 },
   { key: 'TIMEOUT_INTERRUPT_GRACE', tab: 'match', label: 'Timeout interrupt grace (s)', kind: 'float', min: 0.05, max: 5.0, step: 0.01 },
+  { key: 'SPLAT_ALLOWED', tab: 'rules', label: 'Splat allowed', kind: 'bool' },
+  { key: 'DASH_ALLOWED', tab: 'rules', label: 'Dash allowed', kind: 'bool' },
+  { key: 'SHOOT_PAINTBALL_ALLOWED', tab: 'rules', label: 'Paintball allowed', kind: 'bool' },
   {
     key: 'SPLAT_STUN_TURNS',
     tab: 'rules',
@@ -113,6 +138,9 @@ function getDefaultFlat() {
     TICK_DELAY: 0.15,
     TIMEOUT: 1.0,
     TIMEOUT_INTERRUPT_GRACE: 0.35,
+    SPLAT_ALLOWED: true,
+    DASH_ALLOWED: true,
+    SHOOT_PAINTBALL_ALLOWED: true,
     SPLAT_STUN_TURNS: 3,
     SPLAT_COOLDOWN_TURNS: 10,
     DASH_COOLDOWN_TURNS: 7,
@@ -157,6 +185,11 @@ function coerceSetting(spec, rawValue) {
     if (!COLOR_RE.test(v)) throw new Error(`${spec.key} must be a hex color like #AABBCC`);
     return v.toLowerCase();
   }
+  if (spec.kind === 'bool') {
+    if (rawValue === true || rawValue === 'true' || rawValue === 1 || rawValue === '1') return true;
+    if (rawValue === false || rawValue === 'false' || rawValue === 0 || rawValue === '0') return false;
+    throw new Error(`${spec.key} must be true or false`);
+  }
   throw new Error(`Unknown setting type: ${spec.kind}`);
 }
 
@@ -192,6 +225,9 @@ export function applyToConfig(flat) {
   config.TICK_DELAY = flat.TICK_DELAY;
   config.TIMEOUT = flat.TIMEOUT;
   config.TIMEOUT_INTERRUPT_GRACE = flat.TIMEOUT_INTERRUPT_GRACE;
+  config.SPLAT_ALLOWED = flat.SPLAT_ALLOWED;
+  config.DASH_ALLOWED = flat.DASH_ALLOWED;
+  config.SHOOT_PAINTBALL_ALLOWED = flat.SHOOT_PAINTBALL_ALLOWED;
   config.SPLAT_STUN_TURNS = flat.SPLAT_STUN_TURNS;
   config.SPLAT_COOLDOWN_TURNS = flat.SPLAT_COOLDOWN_TURNS;
   config.DASH_COOLDOWN_TURNS = flat.DASH_COOLDOWN_TURNS;
@@ -264,6 +300,90 @@ function appendSettingRow(parent, spec, currentValues, controls) {
   parent.appendChild(row);
 }
 
+function appendRulesMatrix(panel, currentValues, controls) {
+  const syncDisabledFns = [];
+  const wrap = document.createElement('div');
+  wrap.className = 'settings-rules-matrix';
+
+  const header = document.createElement('div');
+  header.className = 'settings-rules-matrix-row settings-rules-matrix-row--header';
+  for (const text of ['Ability', 'Allow', 'Stun', 'Cooldown']) {
+    const cell = document.createElement('div');
+    cell.className = 'settings-rules-matrix-cell';
+    if (text === 'Ability') cell.classList.add('settings-rules-matrix-cell--name');
+    cell.textContent = text;
+    header.appendChild(cell);
+  }
+  wrap.appendChild(header);
+
+  for (const row of RULE_ABILITY_ROWS) {
+    const r = document.createElement('div');
+    r.className = 'settings-rules-matrix-row';
+
+    const nameCell = document.createElement('div');
+    nameCell.className = 'settings-rules-matrix-cell settings-rules-matrix-cell--name';
+    nameCell.textContent = row.label;
+    r.appendChild(nameCell);
+
+    const allowCb = document.createElement('input');
+    allowCb.type = 'checkbox';
+    allowCb.className = 'settings-input settings-input--checkbox';
+    allowCb.checked = currentValues[row.allowKey] !== false;
+    allowCb.setAttribute('aria-label', `Allow ${row.label}`);
+    controls[row.allowKey] = allowCb;
+    const allowCell = document.createElement('div');
+    allowCell.className = 'settings-rules-matrix-cell settings-rules-matrix-cell--center';
+    allowCell.appendChild(allowCb);
+    r.appendChild(allowCell);
+
+    const stunSpec = SPEC_BY_KEY[row.stunKey];
+    const stunInput = document.createElement('input');
+    stunInput.type = 'number';
+    stunInput.className = 'settings-input settings-input--number';
+    stunInput.value = currentValues[row.stunKey];
+    stunInput.setAttribute('aria-label', `${row.label} stun (turns)`);
+    if (stunSpec.min != null) stunInput.min = stunSpec.min;
+    if (stunSpec.max != null) stunInput.max = stunSpec.max;
+    if (stunSpec.step != null) stunInput.step = stunSpec.step;
+    controls[row.stunKey] = stunInput;
+    const stunCell = document.createElement('div');
+    stunCell.className = 'settings-rules-matrix-cell';
+    stunCell.appendChild(stunInput);
+    r.appendChild(stunCell);
+
+    const cdSpec = SPEC_BY_KEY[row.cooldownKey];
+    const cdInput = document.createElement('input');
+    cdInput.type = 'number';
+    cdInput.className = 'settings-input settings-input--number';
+    cdInput.value = currentValues[row.cooldownKey];
+    cdInput.setAttribute('aria-label', `${row.label} cooldown (turns)`);
+    if (cdSpec.min != null) cdInput.min = cdSpec.min;
+    if (cdSpec.max != null) cdInput.max = cdSpec.max;
+    if (cdSpec.step != null) cdInput.step = cdSpec.step;
+    controls[row.cooldownKey] = cdInput;
+    const cdCell = document.createElement('div');
+    cdCell.className = 'settings-rules-matrix-cell';
+    cdCell.appendChild(cdInput);
+    r.appendChild(cdCell);
+
+    function syncDisabled() {
+      const on = allowCb.checked;
+      stunInput.disabled = !on;
+      cdInput.disabled = !on;
+    }
+    allowCb.addEventListener('change', syncDisabled);
+    syncDisabled();
+    syncDisabledFns.push(syncDisabled);
+
+    wrap.appendChild(r);
+  }
+
+  panel.appendChild(wrap);
+  return () => {
+    for (const fn of syncDisabledFns) fn();
+  };
+}
+
 /** Build settings form inside `container`. Returns {getValues, setValues}. */
 export function buildSettingsUI(container, currentValues) {
   container.innerHTML = '';
@@ -331,8 +451,9 @@ export function buildSettingsUI(container, currentValues) {
 
   for (const spec of SETTING_SPECS) {
     const panel = panelsById[spec.tab];
-    if (panel) appendSettingRow(panel, spec, currentValues, controls);
+    if (panel && spec.tab !== 'rules') appendSettingRow(panel, spec, currentValues, controls);
   }
+  const syncRulesMatrix = appendRulesMatrix(panelsById.rules, currentValues, controls);
 
   for (const t of SETTINGS_TABS) {
     panelsById[t.id].hidden = t.id !== firstTabId;
@@ -350,14 +471,20 @@ export function buildSettingsUI(container, currentValues) {
     getValues() {
       const vals = {};
       for (const spec of SETTING_SPECS) {
-        vals[spec.key] = controls[spec.key].value;
+        const c = controls[spec.key];
+        if (spec.kind === 'bool') vals[spec.key] = c.checked;
+        else vals[spec.key] = c.value;
       }
       return vals;
     },
     setValues(vals) {
       for (const spec of SETTING_SPECS) {
-        if (spec.key in vals) controls[spec.key].value = vals[spec.key];
+        if (!(spec.key in vals)) continue;
+        const c = controls[spec.key];
+        if (spec.kind === 'bool') c.checked = Boolean(vals[spec.key]);
+        else c.value = vals[spec.key];
       }
+      syncRulesMatrix();
     },
   };
 }

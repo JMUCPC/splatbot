@@ -4,6 +4,12 @@ const config = {
   TICK_DELAY: 0.15,
   TIMEOUT: 1.0,
   TIMEOUT_INTERRUPT_GRACE: 0.35,
+  /** When false, splat actions are rejected for all bots. */
+  SPLAT_ALLOWED: true,
+  /** When false, dash actions are rejected for all bots. */
+  DASH_ALLOWED: true,
+  /** When false, shoot_paintball actions are rejected for all bots. */
+  SHOOT_PAINTBALL_ALLOWED: true,
   /** After splat: turns where move / dash / splat / shoot_paintball / turning are blocked. */
   SPLAT_STUN_TURNS: 3,
   /** Minimum turns between splats. */
