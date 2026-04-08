@@ -46,6 +46,8 @@ export class GameState {
     this.turn = turn;
     this.maxTurns = maxTurns;
     this.radius = radius;
+    /** @type {Map<string, Set<number>>} Hex keys touched by paint/move this tick → which pids tried to color them. */
+    this._paintClaims = new Map();
   }
 
   /** Set the controller (owner) of the tile at `key` to the given BotData (or null). */
@@ -92,6 +94,43 @@ export class GameState {
     this.turn++;
   }
 
+  /**
+   * Start of each simulation tick: clear pending paint claims before applyAction runs.
+   */
+  resetPaintClaims() {
+    this._paintClaims.clear();
+  }
+
+  /**
+   * After all bots have applied actions this tick: each hex claimed by more than one
+   * player becomes unpainted (0); a single claimant gets the tile. Runs before
+   * neutralizeCollidingTiles so move/dash/splat/paintball ties are not last-writer-wins.
+   */
+  flushPaintClaims() {
+    for (const [key, pids] of this._paintClaims) {
+      if (pids.size > 1) {
+        this._paint(key, null);
+      } else if (pids.size === 1) {
+        const pid = [...pids][0];
+        this._paint(key, this.bots.get(pid) ?? null);
+      }
+    }
+    this._paintClaims.clear();
+  }
+
+  _recordPaintIntent(hexKey, pid) {
+    let s = this._paintClaims.get(hexKey);
+    if (!s) {
+      s = new Set();
+      this._paintClaims.set(hexKey, s);
+    }
+    s.add(pid);
+  }
+
+  /**
+   * After both bots have moved in a turn: any hex with more than one bot is
+   * reset to unpainted (no race for which player "owns" the tile).
+   */
   /** Call once per game tick after both bots have acted. */
   tickBotTimers() {
     for (const bot of this.bots.values()) {
@@ -137,7 +176,7 @@ export class GameState {
       if (this.grid.has(newPos.key)) {
         bot.position = newPos;
         bot.facing = dir;
-        this._paint(newPos.key, bot);
+        this._recordPaintIntent(newPos.key, pid);
       } else if (logFn) {
         logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
       }
@@ -185,7 +224,8 @@ export class GameState {
       if (!dest.equals(start)) {
         bot.position = dest;
         bot.facing = facDir;
-        this._paint(dest.key, bot);
+        // Dash paints only the destination hex (last hex reached, possibly short of requested distance).
+        this._recordPaintIntent(dest.key, pid);
       }
     } else if (action.type === "splat") {
       if (!config.SPLAT_ALLOWED) {
@@ -211,7 +251,7 @@ export class GameState {
       for (let d = 0; d < 6; d++) {
         const n = hexNeighbor(bot.position, d);
         if (this.grid.has(n.key)) {
-          this._paint(n.key, bot);
+          this._recordPaintIntent(n.key, pid);
         }
       }
       bot.stun = config.SPLAT_STUN_TURNS;
@@ -250,7 +290,7 @@ export class GameState {
           }
         }
         if (blocked) break;
-        this._paint(cur.key, bot);
+        this._recordPaintIntent(cur.key, pid);
       }
       bot.paintballCooldown = config.SHOOT_PAINTBALL_COOLDOWN_TURNS;
       bot.stun = config.PAINTBALL_STUN_TURNS;

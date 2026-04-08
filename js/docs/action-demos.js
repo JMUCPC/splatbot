@@ -104,7 +104,9 @@ function mount(container) {
 
   function play() {
     if (played) return;
+    state.resetPaintClaims();
     state.applyAction(1, spec.action, () => {});
+    state.flushPaintClaims();
     played = true;
     playBtn.disabled = true;
     paint();
