@@ -340,16 +340,14 @@ async function fetchBotSource(botId) {
 
 function syncFileUploadRow(pid) {
   const input = els[`botFile${pid}`];
-  const clearBtn = els[`botFileClear${pid}`];
   const statusEl = els[`botFileStatus${pid}`];
   const botId = `upload:${pid}`;
   const hasCache = botSourceCache.has(botId);
   const hasPickedFile = Boolean(input?.files?.length);
-  if (clearBtn) clearBtn.disabled = !hasCache && !hasPickedFile;
   if (statusEl) {
     if (uploadDisplayName[pid]) statusEl.textContent = uploadDisplayName[pid];
     else if (hasPickedFile && input?.files?.[0]) statusEl.textContent = input.files[0].name;
-    else if (hasCache) statusEl.textContent = 'Uploaded — in memory (pick "Uploaded file" in list or Clear)';
+    else if (hasCache) statusEl.textContent = 'Uploaded — in memory (pick "Uploaded file" in list, or CHOOSE FILE to replace)';
     else statusEl.textContent = 'No file chosen';
   }
 }
@@ -418,7 +416,12 @@ async function onBotFileChange(pid, input) {
   }
 }
 
-async function clearUploadedBot(pid) {
+/**
+ * Clears cached upload for this player, resets the native file input, and reverts
+ * to the catalog default bot if they were actively using the upload slot.
+ * Used before opening the file picker so the same file can be chosen again.
+ */
+async function prepareBotFilePicker(pid) {
   if (!botControlsReady) return;
   const botId = `upload:${pid}`;
   const input = els[`botFile${pid}`];
@@ -436,11 +439,15 @@ async function clearUploadedBot(pid) {
     } else {
       syncFileUploadRow(pid);
     }
-    logEvent(`P${pid} cleared uploaded bot file.`);
   } finally {
     for (const s of locks) s.disabled = false;
     syncFileUploadRow(pid);
   }
+}
+
+async function openBotFilePicker(pid) {
+  await prepareBotFilePicker(pid);
+  els[`botFile${pid}`]?.click();
 }
 
 async function onBotSelectChange(pid) {
@@ -485,8 +492,8 @@ export function initApp() {
   els.botSelect2 = document.getElementById('bot-select-2');
   els.botFile1 = document.getElementById('bot-file-1');
   els.botFile2 = document.getElementById('bot-file-2');
-  els.botFileClear1 = document.getElementById('bot-file-clear-1');
-  els.botFileClear2 = document.getElementById('bot-file-clear-2');
+  els.botFileChoose1 = document.getElementById('bot-file-choose-1');
+  els.botFileChoose2 = document.getElementById('bot-file-choose-2');
   els.botFileStatus1 = document.getElementById('bot-file-status-1');
   els.botFileStatus2 = document.getElementById('bot-file-status-2');
 
@@ -497,8 +504,8 @@ export function initApp() {
   if (els.botSelect2) els.botSelect2.addEventListener('change', () => onBotSelectChange(2));
   if (els.botFile1) els.botFile1.addEventListener('change', () => onBotFileChange(1, els.botFile1));
   if (els.botFile2) els.botFile2.addEventListener('change', () => onBotFileChange(2, els.botFile2));
-  if (els.botFileClear1) els.botFileClear1.addEventListener('click', () => { void clearUploadedBot(1); });
-  if (els.botFileClear2) els.botFileClear2.addEventListener('click', () => { void clearUploadedBot(2); });
+  if (els.botFileChoose1) els.botFileChoose1.addEventListener('click', () => { void openBotFilePicker(1); });
+  if (els.botFileChoose2) els.botFileChoose2.addEventListener('click', () => { void openBotFilePicker(2); });
   syncFileUploadRow(1);
   syncFileUploadRow(2);
 
