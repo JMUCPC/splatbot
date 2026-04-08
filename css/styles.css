@@ -35,6 +35,10 @@ body {
   min-height: 44px;
   padding: 0 18px;
   border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background-color 0.15s;
   white-space: nowrap;
@@ -164,6 +168,12 @@ body {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.header-row .button-group > .sb-btn,
+.header-row .button-group .sb-step-wrap > .sb-btn {
+  padding-top: 2px;
+  padding-bottom: 0;
 }
 
 .sb-step-wrap {
