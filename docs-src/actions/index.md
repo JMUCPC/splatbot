@@ -131,7 +131,7 @@ Special actions are more powerful than basic actions. However, these actions hav
 
 `Actions.splat()` paints every neighbor of a bot's current hex.
 
-Default values:
+Default settings:
 
 - Stun: 3 turns
 - Cooldown: 10 turns
@@ -169,7 +169,7 @@ _The `game_state` variable will be explained more in [Writing Bots](../writing-b
 
 `Actions.shoot_paintball()` will fire a paintball in the direction a bot is currently facing. Thanks to _advanced bot technology™_, paintballs travel instantaneously. A paintball will travel until it collides with either another bot or the edge of the map.
 
-Default values:
+Default settings:
 
 - Stun: 7 turns
 - Cooldown: 20 turns
@@ -215,7 +215,7 @@ class Bot:
 
 `Actions.dash(distance)` moves a bot **2–6** hexes straight ahead, and only paints the destination hex.
 
-Default values:
+Default settings:
 
 - Stun: 0 turns
 - Cooldown: 7 turns

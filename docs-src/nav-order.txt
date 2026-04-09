@@ -4,11 +4,11 @@
 
 *Articles*
 index.md
-hex-grid/index.md
 actions/index.md
 writing-bots/index.md
-debugging/index.md
 examples/index.md
+hex-grid/index.md
+debugging/index.md
 
 *API Docs*
 api-docs/index.md

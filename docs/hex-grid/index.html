@@ -22,11 +22,11 @@
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-title">Articles</li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot Documentation</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging Bots</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
@@ -45,7 +45,7 @@
 <!-- TODO: interactive example -->
 <h3 id="cubic" tabindex="-1">Cubic</h3>
 <p>One approach for creating a hexagonal coordinate system would be to draw an imaginary line through the grid of hexagons in the three directions (Northeast/Southwest, East/West, and Southeast/Northwest) that a line could pass through the grid. This is known as the <strong>“Cubic coordinate system”</strong>. <em>See the widget below for an interactive example.</em></p>
-<p>These three axes aren’t quite the same as the <code>x</code>,<code>y</code>,<code>z</code> seen in a regular 3D space, so they will need new names. By convention, they are called <code>q</code>,<code>r</code>,<code>s</code>. Moving East increases <code>q</code> (and West decreases it), while moving Southeast increases <code>r</code> (and Northwest decreases it). The third coordinate, <code>s</code>, always equals <code>−q − r</code>.</p>
+<p>These three axes aren’t quite the same as the <code>x</code>,<code>y</code>,<code>z</code> seen in a regular 3D space, so they will need new names. By convention, they are called <code>q</code>,<code>r</code>,<code>s</code>. The <code>q</code> coordinate will track how far Southeast-Northwest a hexagon is, and so on for <code>r</code> (East-West) and <code>s</code> (Northeast-Southwest).</p>
 <h3 id="axial" tabindex="-1">Axial</h3>
 <p>The cubic coordinate system for hexagons has an interesting property: <code>q+r+s=0</code> an identity that holds true for every single hexagonal tile. A single hexagonal tile’s position can be full expressed using only 2 of the three cubic axes. This is known as the <strong>“Axial Coordinate System”</strong>. By convention, <code>q</code> and <code>r</code> are used. Just by knowing those two values, a tile’s <code>s</code> coordinate can be found using the same identity (<code>q+r+s=0</code>, or <code>s=-q-r</code>). The axial coordinate system is the one used by Splatbot.</p>
 <h3 id="example" tabindex="-1">Example</h3>
@@ -174,7 +174,7 @@ step = HexVector(<span class="hljs-number">1</span>, -<span class="hljs-number">
 three_steps = step * <span class="hljs-number">3</span>      <span class="hljs-comment"># HexVector(3, -3)</span>
 </code></pre>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../index.html">&larr; Back: Splatbot Documentation</a><a class="docs-pager-link docs-pager-link--next" href="../actions/index.html">Next: Actions &rarr;</a></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../examples/index.html">&larr; Back: Example Bots</a><a class="docs-pager-link docs-pager-link--next" href="../debugging/index.html">Next: Advanced Debugging &rarr;</a></nav>
     </main>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>

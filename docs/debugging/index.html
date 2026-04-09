@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Debugging Bots · Splatbot</title>
+  <title>Advanced Debugging · Splatbot</title>
   <link rel="icon" href="../../images/splat.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
@@ -22,11 +22,11 @@
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-title">Articles</li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot Documentation</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Debugging Bots</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
@@ -36,7 +36,7 @@
     </div>
   </aside>
     <main class="docs-main markdown-body">
-<h1 id="debugging-bots" tabindex="-1">Debugging Bots</h1>
+<h1 id="advanced-debugging" tabindex="-1">Advanced Debugging</h1>
 <p>Three tools help you see what is going on: <strong><code>print()</code></strong> (browser <strong>console</strong>), <strong>Step</strong> (advance the match slowly), and the <strong>event log</strong> (in the game UI). They answer different questions.</p>
 <h2 id="print-and-the-browser-console" tabindex="-1">Print and the browser console</h2>
 <p>Your bot runs in <strong>Python</strong> inside a <strong>Web Worker</strong> (via Pyodide). <code>print(&quot;hello&quot;)</code> inside <code>decide</code> does <strong>not</strong> appear in the in-game <strong>event log</strong> — it goes to the browser’s <strong>developer console</strong>, where messages from the worker may be grouped under that worker.</p>
@@ -73,7 +73,7 @@
 <p>Timeout behavior is two-tier when the page is cross-origin isolated (COOP/COEP headers): Splatbot signals a Python interrupt first, then hard-terminates only if needed. Without that environment support, it falls back to direct hard termination at timeout.</p>
 <p><strong>Important:</strong> A successful <strong>move</strong> or <strong>skip</strong> often writes <strong>nothing</strong> to the log. No new line does <strong>not</strong> mean your bot failed — it may have moved quietly. Use <strong>Step</strong>, <strong>print</strong>, or watch the board to confirm behavior.</p>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../writing-bots/index.html">&larr; Back: Writing Bots</a><a class="docs-pager-link docs-pager-link--next" href="../examples/index.html">Next: Example Bots &rarr;</a></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../hex-grid/index.html">&larr; Back: Hexagonal Grids</a><a class="docs-pager-link docs-pager-link--next" href="../api-docs/index.html">Next: Python API Reference &rarr;</a></nav>
     </main>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>

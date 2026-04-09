@@ -16,8 +16,8 @@ Example bots are provided, but it is easy to upload custom bots as well! Simply 
 
 ## Pages
 
-1. **[Hex Grid](hex-grid/)** — How the game represents the map and hexes
-2. **[Actions](actions/)** — What each action does, with interactive examples
-3. **[Writing bots](writing-bots/)** — An overview of everything that goes into creating a bot
-4. **[Debugging](debugging/)** — Tips and tools useful for debugging your bots
-5. **[Examples](examples/)** — Larger bot examples
+1. **[Actions](actions/)** — What each action does, with interactive examples
+2. **[Writing bots](writing-bots/)** — An overview of everything that goes into creating a bot
+3. **[Examples](examples/)** — Larger bot examples
+4. **[Hex Grid](hex-grid/)** — How the game represents the map and hexes
+5. **[Debugging](debugging/)** — Tips and tools useful for debugging your bots

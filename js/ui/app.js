@@ -57,6 +57,8 @@ let settingsForm = null;
 
 let hexGridPy = '';
 let actionsPy = '';
+let starterCodePy = '';
+const STARTER_ZIP_NAME = 'splatbot_starter_code.zip';
 
 /** @type {Map<string, string>} */
 const botSourceCache = new Map();
@@ -71,6 +73,134 @@ const uploadDisplayName = { 1: null, 2: null };
 let botControlsReady = false;
 
 const els = {};
+
+function buildCrc32Table() {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i += 1) {
+    let c = i;
+    for (let j = 0; j < 8; j += 1) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[i] = c >>> 0;
+  }
+  return table;
+}
+
+const CRC32_TABLE = buildCrc32Table();
+
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i += 1) {
+    c = CRC32_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function writeU16LE(dst, offset, value) {
+  dst[offset] = value & 0xff;
+  dst[offset + 1] = (value >>> 8) & 0xff;
+}
+
+function writeU32LE(dst, offset, value) {
+  dst[offset] = value & 0xff;
+  dst[offset + 1] = (value >>> 8) & 0xff;
+  dst[offset + 2] = (value >>> 16) & 0xff;
+  dst[offset + 3] = (value >>> 24) & 0xff;
+}
+
+function makeStoredZip(files) {
+  const enc = new TextEncoder();
+  const localChunks = [];
+  const centralChunks = [];
+  let offset = 0;
+  let centralSize = 0;
+
+  for (const file of files) {
+    const nameBytes = enc.encode(file.path);
+    const contentBytes = enc.encode(file.content);
+    const crc = crc32(contentBytes);
+    const compressedSize = contentBytes.length;
+    const uncompressedSize = contentBytes.length;
+
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    writeU32LE(localHeader, 0, 0x04034b50);
+    writeU16LE(localHeader, 4, 20);
+    writeU16LE(localHeader, 6, 0);
+    writeU16LE(localHeader, 8, 0);
+    writeU16LE(localHeader, 10, 0);
+    writeU16LE(localHeader, 12, 0);
+    writeU32LE(localHeader, 14, crc);
+    writeU32LE(localHeader, 18, compressedSize);
+    writeU32LE(localHeader, 22, uncompressedSize);
+    writeU16LE(localHeader, 26, nameBytes.length);
+    writeU16LE(localHeader, 28, 0);
+    localHeader.set(nameBytes, 30);
+
+    const localOffset = offset;
+    localChunks.push(localHeader, contentBytes);
+    offset += localHeader.length + contentBytes.length;
+
+    const centralHeader = new Uint8Array(46 + nameBytes.length);
+    writeU32LE(centralHeader, 0, 0x02014b50);
+    writeU16LE(centralHeader, 4, 20);
+    writeU16LE(centralHeader, 6, 20);
+    writeU16LE(centralHeader, 8, 0);
+    writeU16LE(centralHeader, 10, 0);
+    writeU16LE(centralHeader, 12, 0);
+    writeU16LE(centralHeader, 14, 0);
+    writeU32LE(centralHeader, 16, crc);
+    writeU32LE(centralHeader, 20, compressedSize);
+    writeU32LE(centralHeader, 24, uncompressedSize);
+    writeU16LE(centralHeader, 28, nameBytes.length);
+    writeU16LE(centralHeader, 30, 0);
+    writeU16LE(centralHeader, 32, 0);
+    writeU16LE(centralHeader, 34, 0);
+    writeU16LE(centralHeader, 36, 0);
+    writeU32LE(centralHeader, 38, 0);
+    writeU32LE(centralHeader, 42, localOffset);
+    centralHeader.set(nameBytes, 46);
+    centralChunks.push(centralHeader);
+    centralSize += centralHeader.length;
+  }
+
+  const centralOffset = offset;
+  const end = new Uint8Array(22);
+  writeU32LE(end, 0, 0x06054b50);
+  writeU16LE(end, 4, 0);
+  writeU16LE(end, 6, 0);
+  writeU16LE(end, 8, files.length);
+  writeU16LE(end, 10, files.length);
+  writeU32LE(end, 12, centralSize);
+  writeU32LE(end, 16, centralOffset);
+  writeU16LE(end, 20, 0);
+
+  return new Blob([...localChunks, ...centralChunks, end], { type: 'application/zip' });
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function downloadStarterCodeZip() {
+  if (!actionsPy || !hexGridPy || !starterCodePy) {
+    logEvent('Starter code download unavailable until Python modules finish loading.');
+    return;
+  }
+  const zip = makeStoredZip([
+    { path: 'utils/actions.py', content: actionsPy },
+    { path: 'utils/hex_grid.py', content: hexGridPy },
+    { path: 'starter_code.py', content: starterCodePy },
+  ]);
+  downloadBlob(zip, STARTER_ZIP_NAME);
+  logEvent(`Downloaded ${STARTER_ZIP_NAME}.`);
+}
 
 function makeInitialMatchStats() {
   return {
@@ -729,6 +859,7 @@ export function initApp() {
   els.botFileChoose2 = document.getElementById('bot-file-choose-2');
   els.botFileStatus1 = document.getElementById('bot-file-status-1');
   els.botFileStatus2 = document.getElementById('bot-file-status-2');
+  els.downloadStarterCode = document.getElementById('btn-download-starter-code');
 
   populateBotSelects();
   if (els.botSelect1) els.botSelect1.disabled = true;
@@ -739,6 +870,9 @@ export function initApp() {
   if (els.botFile2) els.botFile2.addEventListener('change', () => onBotFileChange(2, els.botFile2));
   if (els.botFileChoose1) els.botFileChoose1.addEventListener('click', () => { void openBotFilePicker(1); });
   if (els.botFileChoose2) els.botFileChoose2.addEventListener('click', () => { void openBotFilePicker(2); });
+  if (els.downloadStarterCode) {
+    els.downloadStarterCode.addEventListener('click', downloadStarterCodeZip);
+  }
   syncFileUploadRow(1);
   syncFileUploadRow(2);
 
@@ -824,12 +958,14 @@ export function updateLoadingStatus(text) {
 export async function preloadWorkers() {
   botControlsReady = false;
   updateLoadingStatus('Fetching Python modules...');
-  const [hg, ac] = await Promise.all([
+  const [hg, ac, starter] = await Promise.all([
     fetch('python/utils/hex_grid.py').then((r) => r.text()),
     fetch('python/utils/actions.py').then((r) => r.text()),
+    fetch('python/starter_code.py').then((r) => r.text()),
   ]);
   hexGridPy = hg;
   actionsPy = ac;
+  starterCodePy = starter;
 
   updateLoadingStatus('Starting Python sandbox (first load may take a moment)...');
   for (const pid of [1, 2]) {
@@ -853,6 +989,7 @@ export async function preloadWorkers() {
   if (els.botSelect2) els.botSelect2.disabled = noBots;
 
   botControlsReady = true;
+  if (els.downloadStarterCode) els.downloadStarterCode.disabled = false;
   syncFileUploadRow(1);
   syncFileUploadRow(2);
   syncStepControls();

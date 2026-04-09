@@ -22,11 +22,11 @@
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-title">Articles</li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot Documentation</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Actions</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging Bots</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
@@ -133,7 +133,7 @@
 <p><strong>Cooldown:</strong> A number of turns before a bot can repeat the action “cooling down”</p>
 <h3 id="splat" tabindex="-1">Splat</h3>
 <p><code>Actions.splat()</code> paints every neighbor of a bot’s current hex.</p>
-<p>Default values:</p>
+<p>Default settings:</p>
 <ul>
 <li>Stun: 3 turns</li>
 <li>Cooldown: 10 turns</li>
@@ -165,7 +165,7 @@
 <p><em>The <code>game_state</code> variable will be explained more in <a href="../writing-bots/#game-state">Writing Bots</a>.</em></p>
 <h3 id="shoot-paintball" tabindex="-1">Shoot paintball</h3>
 <p><code>Actions.shoot_paintball()</code> will fire a paintball in the direction a bot is currently facing. Thanks to <em>advanced bot technology™</em>, paintballs travel instantaneously. A paintball will travel until it collides with either another bot or the edge of the map.</p>
-<p>Default values:</p>
+<p>Default settings:</p>
 <ul>
 <li>Stun: 7 turns</li>
 <li>Cooldown: 20 turns</li>
@@ -205,7 +205,7 @@
 </code></pre>
 <h3 id="dash" tabindex="-1">Dash</h3>
 <p><code>Actions.dash(distance)</code> moves a bot <strong>2–6</strong> hexes straight ahead, and only paints the destination hex.</p>
-<p>Default values:</p>
+<p>Default settings:</p>
 <ul>
 <li>Stun: 0 turns</li>
 <li>Cooldown: 7 turns</li>
@@ -236,7 +236,7 @@
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../hex-grid/index.html">&larr; Back: Hexagonal Grids</a><a class="docs-pager-link docs-pager-link--next" href="../writing-bots/index.html">Next: Writing Bots &rarr;</a></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../index.html">&larr; Back: Splatbot Documentation</a><a class="docs-pager-link docs-pager-link--next" href="../writing-bots/index.html">Next: Writing Bots &rarr;</a></nav>
     </main>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>
