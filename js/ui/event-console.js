@@ -3,11 +3,12 @@ import {
   looksLikeErrorOrBlock,
 } from './player-card-log-feed.js';
 
+/** Max stored log rows; consecutive same-type lines coalesce into one row with repeatCount. */
 const MAX_LINES = 100;
 let logEl = null;
 /** @type {Set<HTMLElement>} */
 const mirrors = new Set();
-/** @type {Array<{ id: number, msg: string, tags: Set<string>, classes: string[] }>} */
+/** @type {Array<{ id: number, msg: string, tags: Set<string>, classes: string[], repeatCount?: number }>} */
 const entries = [];
 let nextEntryId = 1;
 /** @type {Set<string>} */
@@ -62,25 +63,52 @@ function createLogLineElement(entry) {
   return line;
 }
 
+/**
+ * Map full log text to a stable key so similar lines (e.g. same failure, different hex) collapse together.
+ */
+function messageGroupingKey(msg) {
+  const offGrid = /^Bot (\d+) tried to move to .+, but it's not in the grid$/.exec(msg);
+  if (offGrid) {
+    return `Bot ${offGrid[1]} tried to move to an off-map hex`;
+  }
+  return msg;
+}
+
 function groupKeyFor(entry) {
   const tags = [...entry.tags].sort().join(',');
-  return `${entry.msg}::${tags}`;
+  return `${messageGroupingKey(entry.msg)}::${tags}`;
+}
+
+/**
+ * Cap stored rows by array length (each coalesced run = one entry).
+ * Do not sum repeatCount toward the cap — otherwise one collapsed group of 100
+ * would count as 100 lines and evict everything before it.
+ */
+function trimEntriesToMax() {
+  while (entries.length > MAX_LINES) {
+    entries.shift();
+  }
 }
 
 function buildGroups() {
   const groups = [];
   for (const entry of entries) {
+    const n = entry.repeatCount ?? 1;
+    const items = Array.from({ length: n }, () => entry);
+    const key = groupKeyFor(entry);
     const last = groups[groups.length - 1];
-    if (last && last.key === groupKeyFor(entry)) {
-      last.items.push(entry);
+    if (last && last.key === key) {
+      last.items.push(...items);
       continue;
     }
+    const previewMsg =
+      n > 1 ? messageGroupingKey(entry.msg) : entry.msg;
     groups.push({
-      key: groupKeyFor(entry),
-      msg: entry.msg,
+      key,
+      msg: previewMsg,
       tags: entry.tags,
       classes: entry.classes,
-      items: [entry],
+      items,
     });
   }
   return groups;
@@ -89,9 +117,9 @@ function buildGroups() {
 function matchesFilters(tags) {
   if (activeFilters.size === 0) return true;
   for (const f of activeFilters) {
-    if (!tags.has(f)) return false;
+    if (tags.has(f)) return true;
   }
-  return true;
+  return false;
 }
 
 function renderSink(sink) {
@@ -125,7 +153,10 @@ function renderSink(sink) {
       const items = document.createElement('div');
       items.className = 'event-log-group-items';
       for (const item of g.items) {
-        const row = createLogLineElement(item);
+        const row = createLogLineElement({
+          msg: messageGroupingKey(item.msg),
+          classes: item.classes,
+        });
         row.classList.add('event-log-group-item');
         items.appendChild(row);
       }
@@ -294,13 +325,20 @@ export function attachEventLogMirror(mirrorEl) {
 export function logEvent(msg) {
   const tags = tagsFromMessage(msg);
   const classes = classesFromTags(tags);
-  entries.push({
-    id: nextEntryId++,
-    msg,
-    tags,
-    classes,
-  });
-  while (entries.length > MAX_LINES) entries.shift();
+  const candidate = { msg, tags, classes };
+  const last = entries[entries.length - 1];
+  if (last && groupKeyFor(candidate) === groupKeyFor(last)) {
+    last.repeatCount = (last.repeatCount ?? 1) + 1;
+  } else {
+    entries.push({
+      id: nextEntryId++,
+      msg,
+      tags,
+      classes,
+      repeatCount: 1,
+    });
+  }
+  trimEntriesToMax();
   renderAllSinks();
   for (const fn of lineListeners) {
     try {

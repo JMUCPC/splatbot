@@ -764,6 +764,14 @@ export function initApp() {
       setEventLogExpanded(false);
     });
   }
+  const btnEventLogClear = document.getElementById('btn-event-log-clear');
+  if (btnEventLogClear) {
+    btnEventLogClear.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      clearLog();
+    });
+  }
   if (btnEventLogPopout) {
     btnEventLogPopout.addEventListener('click', () => openEventLogPopout());
   }
