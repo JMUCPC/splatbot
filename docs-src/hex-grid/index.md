@@ -1,58 +1,30 @@
 # Hexagonal Grids
 
-Splatbot's arena is a hexagonal grid, not a square one. If you've only worked with square grids before, hexes take a little getting used to — but the payoff is worth it. Every tile connects to exactly **six neighbors** at equal distances, there are no awkward diagonals, and movement feels natural in all directions.
+Splatbot is played on a hexagonal grid. This makes the gameplay more interesting, but can take a little getting used to.
 
-This page covers the essentials: how coordinates work, the six directions your bot can face, and how to think about distance and neighbors. Along the way you'll see the utility functions available in `utils.hex_grid` — for full API details, see the [API reference](../api-docs/utils/hex_grid.md).
+## Coordinate Systems
 
-## Axial coordinates
+A coordinate system is a standard variation of some set of **"coordinates"** (one or more numbers that help describe where something is). These numbers are placed along **"axes"**. An axis is the line that exists where all but one of the coordinates are equal to 0. For example, an x/y/z grid has an x axis (where y,z=0), a y axis (where x,z=0), and a z axis (where x,y=0). Axes intersect at the **"origin"** - the position where _all_ coordinates are equal to 0.
 
-Each hex tile has two coordinates: **q** and **r**. This is called the **axial coordinate system**.
+### Cartesian (Square Grids)
 
-- The **q axis** runs **east–west**. Moving east increases q; moving west decreases it.
-- The **r axis** runs roughly **northwest–southeast**. Moving southeast increases r; moving northwest decreases it.
-- There's an implied third axis, **s = −q − r**, which you rarely need directly.
+The most common coordinate system is the **"Cartesian coordinate system"** (named after its inventor, René Descartes). In 2 dimensions, the Cartesian coordinates consist of 2 axes - `x` and `y`. However, this only works well for a square system, as the x and y axes are perpendicular. It cannot apply to hexagons without a little more work.
 
-The center of the grid is `(0, 0)`. Your bot's position is always a `Hex(q, r)` object — you can read `game_state.me.position.q` and `.r` at any time.
+<!-- TODO: interactive example -->
 
-### Moving along the q axis
+### Cubic
 
-<div class="action-demo" data-action-demo="hex-move-east" role="region" aria-label="Move east example">
-<div class="action-demo-grid" aria-hidden="true"></div>
-<div class="action-demo-buttons">
-<button type="button" class="action-demo-btn" data-demo-play>Play</button>
-<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-</div>
-<p class="action-demo-caption">Bot at <strong>(0, 0)</strong> moves east → lands on <strong>(1, 0)</strong>. Only q changed (+1); r stayed the same.</p>
-</div>
+One approach for creating a hexagonal coordinate system would be to draw an imaginary line through the grid of hexagons in the three directions (Northeast/Southwest, East/West, and Southeast/Northwest) that a line could pass through the grid. This is known as the **"Cubic coordinate system"**. _See the widget below for an interactive example._
 
-### Moving along the r axis
+These three axes aren't quite the same as the `x`,`y`,`z` seen in a regular 3D space, so they will need new names. By convention, they are called `q`,`r`,`s`. The `q` coordinate will track how far Southeast-Northwest a hexagon is, and so on for `r` (East-West) and `s` (Northeast-Southwest).
 
-<div class="action-demo" data-action-demo="hex-move-nw" role="region" aria-label="Move northwest example">
-<div class="action-demo-grid" aria-hidden="true"></div>
-<div class="action-demo-buttons">
-<button type="button" class="action-demo-btn" data-demo-play>Play</button>
-<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-</div>
-<p class="action-demo-caption">Bot at <strong>(0, 0)</strong> moves northwest → lands on <strong>(0, −1)</strong>. Only r changed (−1); q stayed the same.</p>
-</div>
+### Axial
 
-### Moving along both axes
+The cubic coordinate system for hexagons has an interesting property: `q+r+s=0` an identity that holds true for every single hexagonal tile. A single hexagonal tile's position can be full expressed using only 2 of the three cubic axes. This is known as the **"Axial Coordinate System"**. By convention, `q` and `r` are used. Just by knowing those two values, a tile's `s` coordinate can be found using the same identity (`q+r+s=0`, or `s=-q-r`). The axial coordinate system is the one used by Splatbot.
 
-<div class="action-demo" data-action-demo="hex-move-ne" role="region" aria-label="Move northeast example">
-<div class="action-demo-grid" aria-hidden="true"></div>
-<div class="action-demo-buttons">
-<button type="button" class="action-demo-btn" data-demo-play>Play</button>
-<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-</div>
-<p class="action-demo-caption">Bot at <strong>(0, 0)</strong> moves northeast → lands on <strong>(1, −1)</strong>. Both q (+1) and r (−1) changed.</p>
-</div>
+### Example
 
-The key insight: **east/west** movement only changes q, **northwest/southeast** only changes r, and **northeast/southwest** changes both. Every direction is a combination of at most two axis changes.
-
-### Hover map: q,r,s vs q,r
-
-Use this to build intuition for the cube coordinate identity `q + r + s = 0`.
-Hover any hex on the left map. The right map highlights the same hex, but only shows `q,r`.
+Hover a hex in either map below to see its coordinates. The colored lines connect hexes that share the same coordinate value: the <span class="hex-axis-q">q</span> line runs Southeast–Northwest, the <span class="hex-axis-r">r</span> line runs East–West, and (in the cubic map) the <span class="hex-axis-s">s</span> line runs Northeast–Southwest.
 
 <div class="hex-hover-demo" data-hex-hover-demo data-hex-radius="3" role="region" aria-label="Hex coordinate hover map">
   <div class="hex-hover-demo-grid">
@@ -69,43 +41,18 @@ Hover any hex on the left map. The right map highlights the same hex, but only s
   </div>
 </div>
 
-### Vector arithmetic
+## Hex Directions
 
-Positions and offsets support simple math. A `HexVector(dq, dr)` represents a displacement — add it to a `Hex` to get a new position:
+A hexagonal grid has 6 directions: East, Northeast, Northwest, West, Southwest, and Southeast. There is a utility built in to the Splatbot game called [HexDirection](../api-docs/utils/hex_grid.md#hexdirection) that explicitly lists these directions.
 
-```python
-from utils.hex_grid import Hex, HexVector
-
-pos = Hex(2, -1)
-offset = HexVector(1, 0)   # one step east
-new_pos = pos + offset      # Hex(3, -1)
-```
-
-You can subtract positions to get the offset between them, or multiply a vector by a scalar to scale it:
-
-```python
-from utils.hex_grid import Hex, HexVector
-
-a = Hex(0, 0)
-b = Hex(3, 0)
-diff = b - a                # Hex(3, 0) — three steps east
-
-step = HexVector(1, -1)     # one step northeast
-three_steps = step * 3      # HexVector(3, -3)
-```
-
-## Hex directions
-
-Your bot always faces one of **six directions**, numbered 0–5. The `HexDirection` enum gives them readable names:
-
-| Value | Name | Axial offset (q, r) |
-|-------|------|---------------------|
-| 0     | E    | (+1, 0)             |
-| 1     | NE   | (+1, −1)            |
-| 2     | NW   | (0, −1)             |
-| 3     | W    | (−1, 0)             |
-| 4     | SW   | (−1, +1)            |
-| 5     | SE   | (0, +1)             |
+| Name | Enum Value | Axial offset (q, r) |
+| ---- | ---------- | ------------------- |
+| E    | 0          | (+1, 0)             |
+| NE   | 1          | (+1, −1)            |
+| NW   | 2          | (0, −1)             |
+| W    | 3          | (−1, 0)             |
+| SW   | 4          | (−1, +1)            |
+| SE   | 5          | (0, +1)             |
 
 Directions are numbered **counterclockwise** starting from east. Turning **left** (counterclockwise on the map) increments the direction index (E → NE → NW → ...); turning **right** (clockwise on the map) decrements it (E → SE → SW → ...). Everything wraps mod 6.
 
@@ -118,18 +65,12 @@ opposite = (HexDirection.E + 3) % 6  # 3 → W
 clockwise = (HexDirection.E - 1) % 6  # 5 → SE
 ```
 
+# UNDER CONSTRUCTION
+The rest of this article is still being polished. Information is provided now for your convenience, but is subject to change. For another well-made write up, consider checking out [this article by redblob games](https://www.redblobgames.com/grids/hexagons/).
+
 ## Neighbors
 
 Every hex has exactly **six neighbors**, one in each direction. No diagonals, no ambiguity about adjacency — if two hexes share an edge, they're neighbors.
-
-<div class="action-demo" data-action-demo="hex-neighbors" role="region" aria-label="Hex neighbors example">
-<div class="action-demo-grid" aria-hidden="true"></div>
-<div class="action-demo-buttons">
-<button type="button" class="action-demo-btn" data-demo-play>Play</button>
-<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-</div>
-<p class="action-demo-caption">The bot at <strong>(0, 0)</strong> splats, painting all six neighbors. Each painted tile is exactly one step away in a different direction.</p>
-</div>
 
 `hex_neighbor(pos, direction)` returns the single neighbor in a given direction. `hex_neighbors(pos)` returns all six, in direction order (E through SE):
 
@@ -167,15 +108,6 @@ c = Hex(2, -2)
 hex_distance(a, c)  # 2 — two steps northeast
 ```
 
-<div class="action-demo" data-action-demo="hex-dash-3" role="region" aria-label="Hex distance example">
-<div class="action-demo-grid" aria-hidden="true"></div>
-<div class="action-demo-buttons">
-<button type="button" class="action-demo-btn" data-demo-play>Play</button>
-<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-</div>
-<p class="action-demo-caption">Bot dashes 3 hexes east — the distance between start and destination is exactly 3. On a hex grid, distance is simply the step count.</p>
-</div>
-
 ### Distance rings (cube coordinates)
 
 Hover a hex to treat it as the **origin**. Pick a ring distance **N** from the menu: every tile with `hex_distance(origin, tile) === N` is highlighted — that is the **ring** at distance N. Each ring tile shows its absolute `(q,r,s)` on the first line and `(Δq, Δr, Δs)` from the origin on the second. The **Δ** line uses the same colors as the cubic map: whichever of `|Δq|`, `|Δr|`, `|Δs|` is largest equals the distance (they can tie).
@@ -191,3 +123,28 @@ Hover a hex to treat it as the **origin**. Pick a ring distance **N** from the m
 </div>
 
 A useful rule of thumb: hex distance equals **max(|dq|, |dr|, |dq + dr|)** where dq and dr are the coordinate differences between the two hexes.
+
+### Vector arithmetic
+
+Positions and offsets support simple math. A `HexVector(dq, dr)` represents a displacement — add it to a `Hex` to get a new position:
+
+```python
+from utils.hex_grid import Hex, HexVector
+
+pos = Hex(2, -1)
+offset = HexVector(1, 0)   # one step east
+new_pos = pos + offset      # Hex(3, -1)
+```
+
+You can subtract positions to get the offset between them, or multiply a vector by a scalar to scale it:
+
+```python
+from utils.hex_grid import Hex, HexVector
+
+a = Hex(0, 0)
+b = Hex(3, 0)
+diff = b - a                # Hex(3, 0) — three steps east
+
+step = HexVector(1, -1)     # one step northeast
+three_steps = step * 3      # HexVector(3, -3)
+```

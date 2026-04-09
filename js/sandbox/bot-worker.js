@@ -96,10 +96,10 @@ def _parse_bot(bd):
 class _Snapshot:
     __slots__ = ('pid', 'me', 'opponents', 'opponent', 'grid', 'turn', 'max_turns')
     def __init__(self, d):
-        pid = d['pid']
-        object.__setattr__(self, 'pid', pid)
-
         me = _parse_bot(d['me'])
+        # Canonical id source is me.pid; keep self.pid for compatibility with older bots.
+        pid = int(d.get('pid', me.pid))
+        object.__setattr__(self, 'pid', pid)
         object.__setattr__(self, 'me', me)
 
         opps = {}
