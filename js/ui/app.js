@@ -188,9 +188,40 @@ function downloadBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function downloadStarterCodeZip() {
-  if (!actionsPy || !hexGridPy || !starterCodePy) {
-    logEvent('Starter code download unavailable until Python modules finish loading.');
+async function ensureStarterCodeSourcesLoaded() {
+  if (actionsPy && hexGridPy && starterCodePy) return;
+  const [hg, ac, starter] = await Promise.all([
+    hexGridPy
+      ? Promise.resolve(hexGridPy)
+      : fetch('python/utils/hex_grid.py').then((r) => {
+        if (!r.ok) throw new Error(`python/utils/hex_grid.py (${r.status})`);
+        return r.text();
+      }),
+    actionsPy
+      ? Promise.resolve(actionsPy)
+      : fetch('python/utils/actions.py').then((r) => {
+        if (!r.ok) throw new Error(`python/utils/actions.py (${r.status})`);
+        return r.text();
+      }),
+    starterCodePy
+      ? Promise.resolve(starterCodePy)
+      : fetch('python/starter_code.py').then((r) => {
+        if (!r.ok) throw new Error(`python/starter_code.py (${r.status})`);
+        return r.text();
+      }),
+  ]);
+  hexGridPy = hg;
+  actionsPy = ac;
+  starterCodePy = starter;
+}
+
+async function downloadStarterCodeZip() {
+  try {
+    await ensureStarterCodeSourcesLoaded();
+  } catch (err) {
+    const detail = err?.message ?? String(err);
+    logEvent(`Starter code download failed\n${detail}`);
+    setEventLogExpanded(true);
     return;
   }
   const zip = makeStoredZip([
@@ -871,7 +902,8 @@ export function initApp() {
   if (els.botFileChoose1) els.botFileChoose1.addEventListener('click', () => { void openBotFilePicker(1); });
   if (els.botFileChoose2) els.botFileChoose2.addEventListener('click', () => { void openBotFilePicker(2); });
   if (els.downloadStarterCode) {
-    els.downloadStarterCode.addEventListener('click', downloadStarterCodeZip);
+    els.downloadStarterCode.disabled = false;
+    els.downloadStarterCode.addEventListener('click', () => { void downloadStarterCodeZip(); });
   }
   syncFileUploadRow(1);
   syncFileUploadRow(2);
@@ -989,7 +1021,6 @@ export async function preloadWorkers() {
   if (els.botSelect2) els.botSelect2.disabled = noBots;
 
   botControlsReady = true;
-  if (els.downloadStarterCode) els.downloadStarterCode.disabled = false;
   syncFileUploadRow(1);
   syncFileUploadRow(2);
   syncStepControls();
