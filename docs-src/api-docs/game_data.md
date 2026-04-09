@@ -9,7 +9,6 @@ Conceptually it matches the data described below. Names follow the Python attrib
 ```python
 # Illustrative — actual class is injected by the sandbox; read-only.
 class GameStateSnapshot:
-    pid: int
     me: BotInfo
     opponents: Mapping[int, BotInfo]
     opponent: BotInfo | None
@@ -24,10 +23,6 @@ class GameStateSnapshot:
 ---
 
 ## Fields
-
-### `pid: int`
-
-Your player id (`1` or `2` in a two-player match). Same value as `me.pid`.
 
 ### `me: BotInfo`
 

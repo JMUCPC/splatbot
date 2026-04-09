@@ -4,7 +4,7 @@ class Bot:
     def decide(self, game_state):
         print(type(game_state))
         print(dir(game_state))
-        print(f"pid: {game_state.pid}")
+        print(f"pid: {game_state.me.pid}")
         print(f"me: {game_state.me}")
         print(f"opponents: {game_state.opponents}")
         print(f"opponent: {game_state.opponent}")

@@ -62,7 +62,7 @@ from utils.hex_grid import HexDirection
 
 class Bot:
     def decide(self, game_state):
-        # game_state.pid          — this bot's player id (1 or 2)
+        # game_state.me.pid       — this bot's player id (1 or 2)
         # game_state.me           — BotInfo for this bot (.position, .facing, .stun, cooldowns)
         # game_state.opponent     — BotInfo for the other bot in 1v1 (None otherwise)
         # game_state.opponents    — dict[int, BotInfo] of all other players

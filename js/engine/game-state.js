@@ -420,7 +420,6 @@ export class GameState {
     }
 
     return {
-      pid,
       me,
       opponents,
       grid,
