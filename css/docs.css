@@ -416,6 +416,118 @@
   text-underline-offset: 0.15em;
 }
 
+/* ── Sidebar search ───────────────────────────────────────────────────── */
+
+.docs-search {
+  position: relative;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid #1a2a40;
+}
+
+.docs-search-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.92rem;
+  color: #dde8f0;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.docs-search-input::placeholder {
+  color: #5a6e82;
+}
+
+.docs-search-input:focus {
+  border-color: #3a5070;
+}
+
+.docs-search-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 100;
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0.3rem 0;
+  background: #0e1525;
+  border: 1px solid #1e2d47;
+  border-radius: 8px;
+  max-height: 22rem;
+  overflow-y: auto;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+.docs-search-results[hidden] {
+  display: none;
+}
+
+.docs-search-result {
+  margin: 0;
+  padding: 0;
+}
+
+.docs-search-result-link {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  color: #a8b8c8;
+  text-decoration: none;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  border-radius: 4px;
+  transition: background-color 0.1s, color 0.1s;
+  cursor: pointer;
+}
+
+.docs-search-result-link:hover,
+.docs-search-result--active .docs-search-result-link {
+  background: #172240;
+  color: #dde8f0;
+  text-decoration: none;
+}
+
+.docs-search-page {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: inherit;
+}
+
+.docs-search-sep {
+  flex-shrink: 0;
+  color: #3a5070;
+  font-size: 0.8rem;
+}
+
+.docs-search-section {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #7a8a9a;
+}
+
+.docs-search-empty {
+  padding: 0.5rem 0.65rem;
+  color: #5a6e82;
+  font-size: 0.88rem;
+}
+
+.docs-search-highlight {
+  background: #00e5ff;
+  color: #03111c;
+  border-radius: 0;
+  padding: 0.04em 0.14em;
+  box-shadow: 0 0 0 1px #7ff4ff;
+}
+
 @media (max-width: 900px) {
   .docs-layout {
     grid-template-columns: 1fr;
@@ -433,5 +545,12 @@
 
   .docs-layout .docs-main {
     padding-top: 0;
+  }
+
+  .docs-search-results {
+    position: relative;
+    top: auto;
+    box-shadow: none;
+    margin-top: 0.3rem;
   }
 }

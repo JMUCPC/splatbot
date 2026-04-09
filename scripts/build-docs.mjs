@@ -119,6 +119,10 @@ function renderDocsSidebar(navTree, currentRel, outFile) {
 
   return `<aside class="docs-sidebar" aria-label="Docs navigation">
     <div class="docs-sidebar-inner">
+      <div class="docs-search" role="search">
+        <input class="docs-search-input" type="search" placeholder="Search docs\u2026" aria-label="Search documentation">
+        <ul class="docs-search-results" role="listbox" hidden></ul>
+      </div>
       <h2 class="docs-sidebar-title">Articles</h2>
       <ul class="docs-sidebar-list">
         ${sectionItems.filter(Boolean).join('\n')}
@@ -135,6 +139,8 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml }) {
   const botRunnableHref = path.join(toRoot, 'js', 'bot-runnable.js').split(path.sep).join('/');
   const copyJsHref = path.join(toRoot, 'js', 'docs-copy-code.js').split(path.sep).join('/');
   const actionDemosHref = path.join(toRoot, 'js', 'docs', 'action-demos.js').split(path.sep).join('/');
+  const minisearchHref = path.join(toRoot, 'js', 'vendor', 'minisearch.js').split(path.sep).join('/');
+  const docsSearchHref = path.join(toRoot, 'js', 'docs-search.js').split(path.sep).join('/');
   const gameHref = path.join(toRoot, 'index.html').split(path.sep).join('/');
   const docsIndexHref = path.join(toRoot, 'docs', 'index.html').split(path.sep).join('/');
   const iconHref = path.join(toRoot, 'images', 'splat.ico').split(path.sep).join('/');
@@ -167,6 +173,8 @@ ${bodyHtml}
   </div>
   <script src="${botRunnableHref}" defer></script>
   <script src="${copyJsHref}" defer></script>
+  <script src="${minisearchHref}" defer></script>
+  <script src="${docsSearchHref}" defer></script>
   <script type="module" src="${actionDemosHref}"></script>
 </body>
 </html>
@@ -319,6 +327,77 @@ function renderMarkdown(raw, absMd) {
   return md.render(raw);
 }
 
+/**
+ * Extract heading-delimited sections from raw Markdown for the search index.
+ * Returns an array of { title, slug, level, content } where content is the
+ * plain-text body below that heading (up to the next heading of equal or
+ * higher level), stripped of code fences and HTML tags.
+ */
+function extractSections(raw) {
+  const sectionSlugger = new GithubSlugger();
+  const headingRe = /^(#{1,6})\s+(.+)$/gm;
+  const sections = [];
+  let lastIndex = 0;
+  let lastHeading = null;
+
+  function stripMarkdown(text) {
+    return text
+      .replace(/^```[\s\S]*?^```/gm, '')   // code fences
+      .replace(/<[^>]+>/g, '')               // HTML tags
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // [text](url) → text
+      .replace(/[`*_~]+/g, '')               // inline formatting
+      .replace(/\n{2,}/g, '\n')
+      .trim();
+  }
+
+  let m;
+  while ((m = headingRe.exec(raw)) !== null) {
+    if (lastHeading) {
+      lastHeading.content = stripMarkdown(raw.slice(lastIndex, m.index));
+    }
+    const level = m[1].length;
+    const titleRaw = m[2].trim().replace(/\s+#+\s*$/, '').trim();
+    lastHeading = {
+      title: titleRaw,
+      slug: sectionSlugger.slug(titleRaw),
+      level,
+      content: '',
+    };
+    sections.push(lastHeading);
+    lastIndex = m.index + m[0].length;
+  }
+  if (lastHeading) {
+    lastHeading.content = stripMarkdown(raw.slice(lastIndex));
+  }
+  return sections;
+}
+
+/** URL path from the docs root for a given output file. */
+function urlPathForOutFile(outFile) {
+  return path.relative(DOCS, outFile).split(path.sep).join('/');
+}
+
+function buildSearchIndex(pages) {
+  const docs = [];
+  let id = 0;
+  for (const page of pages) {
+    const url = urlPathForOutFile(page.outFile);
+    const sections = extractSections(page.raw);
+    for (const sec of sections) {
+      docs.push({
+        id: id++,
+        pageTitle: page.title,
+        section: sec.title,
+        content: sec.content.slice(0, 1000),
+        url,
+        hash: sec.slug,
+        level: sec.level,
+      });
+    }
+  }
+  return docs;
+}
+
 async function cleanGeneratedHtml() {
   async function walk(dir) {
     let entries;
@@ -395,6 +474,9 @@ async function buildOnce() {
     const html = pageShell({ title: page.title, bodyHtml, outFile: page.outFile, sidebarHtml });
     await fs.writeFile(page.outFile, html, 'utf8');
   }
+
+  const searchIndex = buildSearchIndex(pages);
+  await fs.writeFile(path.join(DOCS, 'search-index.json'), JSON.stringify(searchIndex), 'utf8');
 
   console.log('docs: built HTML under docs/ from docs-src');
 }

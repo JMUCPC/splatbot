@@ -21,6 +21,10 @@
   <div class="docs-layout">
 <aside class="docs-sidebar" aria-label="Docs navigation">
     <div class="docs-sidebar-inner">
+      <div class="docs-search" role="search">
+        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
+        <ul class="docs-search-results" role="listbox" hidden></ul>
+      </div>
       <h2 class="docs-sidebar-title">Articles</h2>
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Splatbot documentation</a></li>
@@ -63,6 +67,8 @@
   </div>
   <script src="../js/bot-runnable.js" defer></script>
   <script src="../js/docs-copy-code.js" defer></script>
+  <script src="../js/vendor/minisearch.js" defer></script>
+  <script src="../js/docs-search.js" defer></script>
   <script type="module" src="../js/docs/action-demos.js"></script>
 </body>
 </html>
