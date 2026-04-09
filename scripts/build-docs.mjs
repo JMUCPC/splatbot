@@ -155,8 +155,11 @@ function renderDocsSidebar(navTree, currentRel, outFile, navOrder, navTitles) {
     );
     for (const [segment, child] of sortedChildren) {
       const sectionLabel = child.indexPage ? child.indexPage.title : formatNavLabel(segment);
+      const isActiveSection = Boolean(child.indexPage) && child.indexPage.rel === currentRel;
+      const sectionActiveClass = isActiveSection ? ' docs-sidebar-link--active' : '';
+      const sectionAriaCurrent = isActiveSection ? ' aria-current="page"' : '';
       const sectionHeader = child.indexPage
-        ? `<a class="docs-sidebar-section-link" href="${relHref(outFile, child.indexPage.outFile)}">${escapeHtml(sectionLabel)}</a>`
+        ? `<a class="docs-sidebar-section-link${sectionActiveClass}" href="${relHref(outFile, child.indexPage.outFile)}"${sectionAriaCurrent}>${escapeHtml(sectionLabel)}</a>`
         : `<span class="docs-sidebar-section-link">${escapeHtml(sectionLabel)}</span>`;
       const childItems = renderNode(child, false, false);
       orderedItems.push({

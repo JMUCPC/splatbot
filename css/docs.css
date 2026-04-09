@@ -111,10 +111,14 @@
 }
 
 .docs-sidebar-link:hover,
-.docs-sidebar-section-link:hover {
+a.docs-sidebar-section-link:hover {
   background: #111c2e;
   color: #d8e3ed;
   text-decoration: none;
+}
+
+span.docs-sidebar-section-link {
+  cursor: default;
 }
 
 .docs-sidebar-link--active {
