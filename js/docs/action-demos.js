@@ -76,6 +76,36 @@ const DEMOS = {
     build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
     action: { type: 'turn_180' },
   },
+
+  // ── hex-grid page demos ────────────────────────────────────────────────
+  'hex-move-east': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'move' },
+  },
+  'hex-move-nw': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.NW }]),
+    action: { type: 'move' },
+  },
+  'hex-move-ne': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.NE }]),
+    action: { type: 'move' },
+  },
+  'hex-neighbors': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0] }]),
+    action: { type: 'splat' },
+  },
+  'hex-dash-3': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [-1, 0], facing: HexDirection.E }]),
+    action: { type: 'dash', distance: 3 },
+  },
+  'hex-turn-right': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_right', steps: 1 },
+  },
+  'hex-opposite': {
+    build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
+    action: { type: 'turn_180' },
+  },
 };
 
 function mount(container) {

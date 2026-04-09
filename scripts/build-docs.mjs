@@ -217,6 +217,8 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml, pagerHtml }) {
   const botRunnableHref = path.join(toRoot, 'js', 'bot-runnable.js').split(path.sep).join('/');
   const copyJsHref = path.join(toRoot, 'js', 'docs-copy-code.js').split(path.sep).join('/');
   const actionDemosHref = path.join(toRoot, 'js', 'docs', 'action-demos.js').split(path.sep).join('/');
+  const hexHoverDemosHref = path.join(toRoot, 'js', 'docs', 'hex-hover-demos.js').split(path.sep).join('/');
+  const hexDistanceDemosHref = path.join(toRoot, 'js', 'docs', 'hex-distance-demos.js').split(path.sep).join('/');
   const minisearchHref = path.join(toRoot, 'js', 'vendor', 'minisearch.js').split(path.sep).join('/');
   const docsSearchHref = path.join(toRoot, 'js', 'docs-search.js').split(path.sep).join('/');
   const iconHref = path.join(toRoot, 'images', 'splat.ico').split(path.sep).join('/');
@@ -246,6 +248,8 @@ ${pagerHtml}
   <script src="${minisearchHref}" defer></script>
   <script src="${docsSearchHref}" defer></script>
   <script type="module" src="${actionDemosHref}"></script>
+  <script type="module" src="${hexHoverDemosHref}"></script>
+  <script type="module" src="${hexDistanceDemosHref}"></script>
 </body>
 </html>
 `;

@@ -421,6 +421,116 @@
   line-height: 1.45;
 }
 
+.hex-hover-demo {
+  margin: 1rem 0 1.35rem;
+  padding: 14px 16px;
+  background: #0e1525;
+  border: 1px solid #1a2a40;
+  border-radius: 8px;
+}
+
+.hex-hover-demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.hex-hover-map {
+  border: 1px solid #1a2a40;
+  background: #070d1a;
+  min-height: 180px;
+}
+
+/* Distance ring widget: cap height (~½ intrinsic at doc width); center so we don’t shrink width+height together */
+.hex-dist-demo .hex-hover-map {
+  min-height: 0;
+  max-height: min(560px, 82vh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.hex-dist-demo .hex-hover-map svg {
+  display: block;
+  max-height: min(560px, 82vh);
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
+.hex-hover-title {
+  margin: 0 0 0.35rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aacbf;
+}
+
+.hex-hover-readout {
+  margin: 0.7rem 0 0;
+  font-size: 0.96rem;
+  color: #8ea2b8;
+}
+
+.hex-hover-readout--inline {
+  margin-top: 0.45rem;
+}
+
+.hex-dist-toolbar {
+  margin-bottom: 0.65rem;
+}
+
+.hex-dist-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9aacbf;
+}
+
+.hex-dist-label select {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.88rem;
+  color: #dde8f0;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 0;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+}
+
+.hex-dist-ring-label {
+  color: #9aacbf;
+}
+
+.hex-dist-hint {
+  color: #7a8a9a;
+  font-size: 0.88rem;
+}
+
+.hex-axis-q {
+  color: #ff6b8a;
+}
+
+.hex-axis-r {
+  color: #53d97a;
+}
+
+.hex-axis-s {
+  color: #b58dff;
+}
+
+.hex-axis-value {
+  color: #dfe7ef;
+}
+
 .markdown-body table {
   width: 100%;
   border-collapse: separate;
@@ -591,5 +701,9 @@
     top: auto;
     box-shadow: none;
     margin-top: 0.3rem;
+  }
+
+  .hex-hover-demo-grid {
+    grid-template-columns: 1fr;
   }
 }

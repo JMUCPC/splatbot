@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TODO: write this page · Splatbot</title>
+  <title>The hex grid · Splatbot</title>
   <link rel="icon" href="../../images/splat.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-title">Articles</li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot documentation</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./index.html">TODO: write this page</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./index.html">The hex grid</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing bots</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging your bot</a></div></li>
@@ -36,7 +36,185 @@
     </div>
   </aside>
     <main class="docs-main markdown-body">
-<h1 id="todo-write-this-page" tabindex="-1">TODO: write this page</h1>
+<h1 id="the-hex-grid" tabindex="-1">The hex grid</h1>
+<p>Splatbot’s arena is a hexagonal grid, not a square one. If you’ve only worked with square grids before, hexes take a little getting used to — but the payoff is worth it. Every tile connects to exactly <strong>six neighbors</strong> at equal distances, there are no awkward diagonals, and movement feels natural in all directions.</p>
+<p>This page covers the essentials: how coordinates work, the six directions your bot can face, and how to think about distance and neighbors. Along the way you’ll see the utility functions available in <code>utils.hex_grid</code> — for full API details, see the <a href="../api-docs/utils/hex_grid/index.html">API reference</a>.</p>
+<h2 id="axial-coordinates" tabindex="-1">Axial coordinates</h2>
+<p>Each hex tile has two coordinates: <strong>q</strong> and <strong>r</strong>. This is called the <strong>axial coordinate system</strong>.</p>
+<ul>
+<li>The <strong>q axis</strong> runs <strong>east–west</strong>. Moving east increases q; moving west decreases it.</li>
+<li>The <strong>r axis</strong> runs roughly <strong>northwest–southeast</strong>. Moving southeast increases r; moving northwest decreases it.</li>
+<li>There’s an implied third axis, <strong>s = −q − r</strong>, which you rarely need directly.</li>
+</ul>
+<p>The center of the grid is <code>(0, 0)</code>. Your bot’s position is always a <code>Hex(q, r)</code> object — you can read <code>game_state.me.position.q</code> and <code>.r</code> at any time.</p>
+<h3 id="moving-along-the-q-axis" tabindex="-1">Moving along the q axis</h3>
+<div class="action-demo" data-action-demo="hex-move-east" role="region" aria-label="Move east example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Bot at <strong>(0, 0)</strong> moves east → lands on <strong>(1, 0)</strong>. Only q changed (+1); r stayed the same.</p>
+</div>
+<h3 id="moving-along-the-r-axis" tabindex="-1">Moving along the r axis</h3>
+<div class="action-demo" data-action-demo="hex-move-nw" role="region" aria-label="Move northwest example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Bot at <strong>(0, 0)</strong> moves northwest → lands on <strong>(0, −1)</strong>. Only r changed (−1); q stayed the same.</p>
+</div>
+<h3 id="moving-along-both-axes" tabindex="-1">Moving along both axes</h3>
+<div class="action-demo" data-action-demo="hex-move-ne" role="region" aria-label="Move northeast example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Bot at <strong>(0, 0)</strong> moves northeast → lands on <strong>(1, −1)</strong>. Both q (+1) and r (−1) changed.</p>
+</div>
+<p>The key insight: <strong>east/west</strong> movement only changes q, <strong>northwest/southeast</strong> only changes r, and <strong>northeast/southwest</strong> changes both. Every direction is a combination of at most two axis changes.</p>
+<h3 id="hover-map-qrs-vs-qr" tabindex="-1">Hover map: q,r,s vs q,r</h3>
+<p>Use this to build intuition for the cube coordinate identity <code>q + r + s = 0</code>.
+Hover any hex on the left map. The right map highlights the same hex, but only shows <code>q,r</code>.</p>
+<div class="hex-hover-demo" data-hex-hover-demo data-hex-radius="3" role="region" aria-label="Hex coordinate hover map">
+  <div class="hex-hover-demo-grid">
+    <div>
+      <p class="hex-hover-title">Full (Cubic) Coordinates (<span class="hex-axis-q">q</span>,<span class="hex-axis-r">r</span>,<span class="hex-axis-s">s</span>)</p>
+      <div class="hex-hover-map" data-hex-map-qrs aria-hidden="true"></div>
+      <p class="hex-hover-readout hex-hover-readout--inline" data-hex-readout><span class="hex-axis-q">q=</span> <span class="hex-axis-value">?</span> <span class="hex-axis-r">r=</span> <span class="hex-axis-value">?</span> <span class="hex-axis-s">s=</span> <span class="hex-axis-value">?</span></p>
+    </div>
+    <div>
+      <p class="hex-hover-title">Axial Coordinates (<span class="hex-axis-q">q</span>,<span class="hex-axis-r">r</span>)</p>
+      <div class="hex-hover-map" data-hex-map-qr aria-hidden="true"></div>
+      <p class="hex-hover-readout hex-hover-readout--inline" data-hex-readout-qr><span class="hex-axis-q">q=</span> <span class="hex-axis-value">?</span> <span class="hex-axis-r">r=</span> <span class="hex-axis-value">?</span></p>
+    </div>
+  </div>
+</div>
+<h3 id="vector-arithmetic" tabindex="-1">Vector arithmetic</h3>
+<p>Positions and offsets support simple math. A <code>HexVector(dq, dr)</code> represents a displacement — add it to a <code>Hex</code> to get a new position:</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, HexVector
+
+pos = Hex(<span class="hljs-number">2</span>, -<span class="hljs-number">1</span>)
+offset = HexVector(<span class="hljs-number">1</span>, <span class="hljs-number">0</span>)   <span class="hljs-comment"># one step east</span>
+new_pos = pos + offset      <span class="hljs-comment"># Hex(3, -1)</span>
+</code></pre>
+<p>You can subtract positions to get the offset between them, or multiply a vector by a scalar to scale it:</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, HexVector
+
+a = Hex(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
+b = Hex(<span class="hljs-number">3</span>, <span class="hljs-number">0</span>)
+diff = b - a                <span class="hljs-comment"># Hex(3, 0) — three steps east</span>
+
+step = HexVector(<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>)     <span class="hljs-comment"># one step northeast</span>
+three_steps = step * <span class="hljs-number">3</span>      <span class="hljs-comment"># HexVector(3, -3)</span>
+</code></pre>
+<h2 id="hex-directions" tabindex="-1">Hex directions</h2>
+<p>Your bot always faces one of <strong>six directions</strong>, numbered 0–5. The <code>HexDirection</code> enum gives them readable names:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Name</th>
+<th>Axial offset (q, r)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>E</td>
+<td>(+1, 0)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>NE</td>
+<td>(+1, −1)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>NW</td>
+<td>(0, −1)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>W</td>
+<td>(−1, 0)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>SW</td>
+<td>(−1, +1)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>SE</td>
+<td>(0, +1)</td>
+</tr>
+</tbody>
+</table>
+<p>Directions are numbered <strong>counterclockwise</strong> starting from east. Turning <strong>left</strong> (counterclockwise on the map) increments the direction index (E → NE → NW → …); turning <strong>right</strong> (clockwise on the map) decrements it (E → SE → SW → …). Everything wraps mod 6.</p>
+<p>The <code>HEX_DIRECTIONS</code> list maps each direction index to its <code>HexVector</code> offset, so <code>HEX_DIRECTIONS[HexDirection.E]</code> is <code>HexVector(1, 0)</code>.</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
+
+opposite = (HexDirection.E + <span class="hljs-number">3</span>) % <span class="hljs-number">6</span>  <span class="hljs-comment"># 3 → W</span>
+clockwise = (HexDirection.E - <span class="hljs-number">1</span>) % <span class="hljs-number">6</span>  <span class="hljs-comment"># 5 → SE</span>
+</code></pre>
+<h2 id="neighbors" tabindex="-1">Neighbors</h2>
+<p>Every hex has exactly <strong>six neighbors</strong>, one in each direction. No diagonals, no ambiguity about adjacency — if two hexes share an edge, they’re neighbors.</p>
+<div class="action-demo" data-action-demo="hex-neighbors" role="region" aria-label="Hex neighbors example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">The bot at <strong>(0, 0)</strong> splats, painting all six neighbors. Each painted tile is exactly one step away in a different direction.</p>
+</div>
+<p><code>hex_neighbor(pos, direction)</code> returns the single neighbor in a given direction. <code>hex_neighbors(pos)</code> returns all six, in direction order (E through SE):</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, hex_neighbor, hex_neighbors, HexDirection
+
+pos = Hex(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
+east_neighbor = hex_neighbor(pos, HexDirection.E)  <span class="hljs-comment"># Hex(1, 0)</span>
+all_six = hex_neighbors(pos)
+<span class="hljs-comment"># [Hex(1,0), Hex(1,-1), Hex(0,-1), Hex(-1,0), Hex(-1,1), Hex(0,1)]</span>
+</code></pre>
+<p>A common pattern — check whether a neighbor is inside the grid before acting on it:</p>
+<pre><code data-docs-code-lang="python" class="language-python">target = hex_neighbor(game_state.me.position, HexDirection.E)
+<span class="hljs-keyword">if</span> target <span class="hljs-keyword">in</span> game_state.grid:
+    <span class="hljs-comment"># safe to consider moving there</span>
+</code></pre>
+<h2 id="distance" tabindex="-1">Distance</h2>
+<p>Distance on a hex grid is the <strong>minimum number of steps</strong> to get from one hex to another. Unlike a square grid, moving “diagonally” doesn’t cost extra — all six neighbor directions cover equal ground.</p>
+<p><code>hex_distance(a, b)</code> computes this:</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, hex_distance
+
+a = Hex(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
+b = Hex(<span class="hljs-number">3</span>, <span class="hljs-number">0</span>)
+hex_distance(a, b)  <span class="hljs-comment"># 3 — three steps east</span>
+
+c = Hex(<span class="hljs-number">2</span>, -<span class="hljs-number">2</span>)
+hex_distance(a, c)  <span class="hljs-comment"># 2 — two steps northeast</span>
+</code></pre>
+<div class="action-demo" data-action-demo="hex-dash-3" role="region" aria-label="Hex distance example">
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Bot dashes 3 hexes east — the distance between start and destination is exactly 3. On a hex grid, distance is simply the step count.</p>
+</div>
+<h3 id="distance-rings-cube-coordinates" tabindex="-1">Distance rings (cube coordinates)</h3>
+<p>Hover a hex to treat it as the <strong>origin</strong>. Pick a ring distance <strong>N</strong> from the menu: every tile with <code>hex_distance(origin, tile) === N</code> is highlighted — that is the <strong>ring</strong> at distance N. Each ring tile shows its absolute <code>(q,r,s)</code> on the first line and <code>(Δq, Δr, Δs)</code> from the origin on the second. The <strong>Δ</strong> line uses the same colors as the cubic map: whichever of <code>|Δq|</code>, <code>|Δr|</code>, <code>|Δs|</code> is largest equals the distance (they can tie).</p>
+<div class="hex-hover-demo hex-dist-demo" data-hex-dist-demo data-hex-radius="4" role="region" aria-label="Hex distance ring explorer">
+  <div class="hex-dist-toolbar">
+    <label class="hex-dist-label">Ring distance <span class="hex-axis-value">N</span>
+      <select data-hex-dist-n aria-label="Ring distance N"></select>
+    </label>
+  </div>
+  <div class="hex-hover-map" data-hex-dist-map aria-hidden="true"></div>
+  <p class="hex-hover-readout hex-hover-readout--inline" data-hex-dist-readout><span class="hex-axis-q">Origin</span> <span class="hex-axis-value">—</span> · <span class="hex-dist-ring-label">Ring <span class="hex-axis-value">N</span>=</span> <span class="hex-axis-value">1</span></p>
+</div>
+<p>A useful rule of thumb: hex distance equals <strong>max(|dq|, |dr|, |dq + dr|)</strong> where dq and dr are the coordinate differences between the two hexes.</p>
 
 <nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../index.html">&larr; Back: Splatbot documentation</a><a class="docs-pager-link docs-pager-link--next" href="../actions/index.html">Next: Actions &rarr;</a></nav>
     </main>
@@ -46,5 +224,7 @@
   <script src="../../js/vendor/minisearch.js" defer></script>
   <script src="../../js/docs-search.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
+  <script type="module" src="../../js/docs/hex-hover-demos.js"></script>
+  <script type="module" src="../../js/docs/hex-distance-demos.js"></script>
 </body>
 </html>
