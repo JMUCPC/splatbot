@@ -1,4 +1,4 @@
-# Debugging your bot
+# Debugging Bots
 
 Three tools help you see what is going on: **`print()`** (browser **console**), **Step** (advance the match slowly), and the **event log** (in the game UI). They answer different questions.
 

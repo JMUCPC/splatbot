@@ -1,4 +1,4 @@
-# The hex grid
+# Hexagonal Grids
 
 Splatbot's arena is a hexagonal grid, not a square one. If you've only worked with square grids before, hexes take a little getting used to — but the payoff is worth it. Every tile connects to exactly **six neighbors** at equal distances, there are no awkward diagonals, and movement feels natural in all directions.
 

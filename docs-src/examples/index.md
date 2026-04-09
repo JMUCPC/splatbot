@@ -1,4 +1,4 @@
-# Example bots
+# Example Bots
 
 Full scripts below, then a short **how it works** list. Assumes you have read [Writing bots](../writing-bots/) and skimmed [Actions](../actions/).
 

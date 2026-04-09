@@ -1,4 +1,4 @@
-# Writing bots
+# Writing Bots
 
 _This tutorial assumes that the reader is familiar with basic scripting (if/for/functions) in Python. No other prerequisite knowledge is required._
 
@@ -119,7 +119,7 @@ The fields of BotInfo are:
 | `dash_cooldown`      | `int`          | Turns until the bot can dash again (`0` means available).              |
 | `paintball_cooldown` | `int`          | Turns until the bot can shoot a paintball again (`0` means available). |
 
-_Note: There are also `Hex` classes, explained [here](../hex-grid/index.md#the-hex-grid)_
+_Note: There are also `Hex` classes, explained [here](../hex-grid/index.md)_
 
 ## Putting It All Together
 

@@ -1,4 +1,4 @@
-# Splatbot documentation
+# Splatbot Documentation
 
 ## What is Splatbot?
 

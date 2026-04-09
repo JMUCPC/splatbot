@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The hex grid · Splatbot</title>
+  <title>Hexagonal Grids · Splatbot</title>
   <link rel="icon" href="../../images/splat.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,12 +21,12 @@
       </div>
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-title">Articles</li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot documentation</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">The hex grid</a></div></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../index.html">Splatbot Documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../actions/index.html">Actions</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging your bot</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../writing-bots/index.html">Writing Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Debugging Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../examples/index.html">Example Bots</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
@@ -36,7 +36,7 @@
     </div>
   </aside>
     <main class="docs-main markdown-body">
-<h1 id="the-hex-grid" tabindex="-1">The hex grid</h1>
+<h1 id="hexagonal-grids" tabindex="-1">Hexagonal Grids</h1>
 <p>Splatbot’s arena is a hexagonal grid, not a square one. If you’ve only worked with square grids before, hexes take a little getting used to — but the payoff is worth it. Every tile connects to exactly <strong>six neighbors</strong> at equal distances, there are no awkward diagonals, and movement feels natural in all directions.</p>
 <p>This page covers the essentials: how coordinates work, the six directions your bot can face, and how to think about distance and neighbors. Along the way you’ll see the utility functions available in <code>utils.hex_grid</code> — for full API details, see the <a href="../api-docs/utils/hex_grid/index.html">API reference</a>.</p>
 <h2 id="axial-coordinates" tabindex="-1">Axial coordinates</h2>
@@ -216,7 +216,7 @@ hex_distance(a, c)  <span class="hljs-comment"># 2 — two steps northeast</span
 </div>
 <p>A useful rule of thumb: hex distance equals <strong>max(|dq|, |dr|, |dq + dr|)</strong> where dq and dr are the coordinate differences between the two hexes.</p>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../index.html">&larr; Back: Splatbot documentation</a><a class="docs-pager-link docs-pager-link--next" href="../actions/index.html">Next: Actions &rarr;</a></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../index.html">&larr; Back: Splatbot Documentation</a><a class="docs-pager-link docs-pager-link--next" href="../actions/index.html">Next: Actions &rarr;</a></nav>
     </main>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>

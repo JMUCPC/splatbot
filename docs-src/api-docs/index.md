@@ -1,4 +1,4 @@
-# Python API reference
+# Python API Reference
 
 These pages describe the types and helpers available to bot scripts in the Splatbot sandbox (`Bot.decide(self, game_state)`).
 
