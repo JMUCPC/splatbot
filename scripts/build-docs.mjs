@@ -11,6 +11,56 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const DOCS = path.join(ROOT, 'docs');
 const SRC = path.join(ROOT, 'docs-src');
+const NAV_ORDER_FILE = path.join(SRC, 'nav-order.txt');
+
+async function readNavOrder() {
+  let raw;
+  try {
+    raw = await fs.readFile(NAV_ORDER_FILE, 'utf8');
+  } catch {
+    return { order: new Map(), titles: [] };
+  }
+  const order = new Map();
+  const titles = [];
+  let idx = 0;
+  for (const line of raw.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    if (/^\*+.+\*+$/.test(trimmed)) {
+      const title = trimmed.replace(/^\*+/, '').replace(/\*+$/, '').trim();
+      if (title) {
+        titles.push({ index: idx, title });
+      }
+      continue;
+    }
+    order.set(trimmed, idx++);
+  }
+  return { order, titles };
+}
+
+function navOrderComparator(order, keyFn) {
+  return (a, b) => {
+    const ka = keyFn(a);
+    const kb = keyFn(b);
+    const oa = order.has(ka) ? order.get(ka) : Infinity;
+    const ob = order.has(kb) ? order.get(kb) : Infinity;
+    if (oa !== ob) return oa - ob;
+    return ka.localeCompare(kb);
+  };
+}
+
+function buildPageNeighbors(pages, navOrder) {
+  const sorted = [...pages].sort(navOrderComparator(navOrder, (p) => p.rel));
+  const byRel = new Map();
+  for (let i = 0; i < sorted.length; i++) {
+    const page = sorted[i];
+    byRel.set(page.rel, {
+      prev: i > 0 ? sorted[i - 1] : null,
+      next: i < sorted.length - 1 ? sorted[i + 1] : null,
+    });
+  }
+  return byRel;
+}
 
 /** Set before each `md.render()` — used by the `.md` link rewriter. */
 let renderAbsMd = '';
@@ -76,54 +126,70 @@ function buildDocsNav(pages) {
   return root;
 }
 
-function renderDocsSidebar(navTree, currentRel, outFile) {
-  const sectionItems = [];
-
-  if (navTree.indexPage) {
-    const isActive = navTree.indexPage.rel === currentRel;
-    const activeClass = isActive ? ' docs-sidebar-link--active' : '';
-    const ariaCurrent = isActive ? ' aria-current="page"' : '';
-    sectionItems.push(
-      `<li class="docs-sidebar-item"><a class="docs-sidebar-link${activeClass}" href="${relHref(outFile, navTree.indexPage.outFile)}"${ariaCurrent}>${escapeHtml(navTree.indexPage.title)}</a></li>`
-    );
-  }
-
-  const renderNode = (node) => {
+function renderDocsSidebar(navTree, currentRel, outFile, navOrder, navTitles) {
+  const renderNode = (node, includeTitles = false, includeNodeIndex = false) => {
     const parts = [];
-    const sortedPages = [...node.pages].sort((a, b) => a.title.localeCompare(b.title));
+    const orderedItems = [];
+    if (includeNodeIndex && node.indexPage) {
+      const isActive = node.indexPage.rel === currentRel;
+      const activeClass = isActive ? ' docs-sidebar-link--active' : '';
+      const ariaCurrent = isActive ? ' aria-current="page"' : '';
+      orderedItems.push({
+        rel: node.indexPage.rel,
+        html: `<li class="docs-sidebar-item"><a class="docs-sidebar-link${activeClass}" href="${relHref(outFile, node.indexPage.outFile)}"${ariaCurrent}>${escapeHtml(node.indexPage.title)}</a></li>`,
+      });
+    }
+    const sortedPages = [...node.pages].sort(navOrderComparator(navOrder, (p) => p.rel));
     for (const page of sortedPages) {
       const isActive = page.rel === currentRel;
       const activeClass = isActive ? ' docs-sidebar-link--active' : '';
       const ariaCurrent = isActive ? ' aria-current="page"' : '';
-      parts.push(
-        `<li class="docs-sidebar-item"><a class="docs-sidebar-link${activeClass}" href="${relHref(outFile, page.outFile)}"${ariaCurrent}>${escapeHtml(page.title)}</a></li>`
-      );
+      orderedItems.push({
+        rel: page.rel,
+        html: `<li class="docs-sidebar-item"><a class="docs-sidebar-link${activeClass}" href="${relHref(outFile, page.outFile)}"${ariaCurrent}>${escapeHtml(page.title)}</a></li>`,
+      });
     }
 
-    const sortedChildren = [...node.children.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const sortedChildren = [...node.children.entries()].sort(
+      navOrderComparator(navOrder, ([, child]) => child.indexPage ? child.indexPage.rel : '')
+    );
     for (const [segment, child] of sortedChildren) {
       const sectionLabel = child.indexPage ? child.indexPage.title : formatNavLabel(segment);
       const sectionHeader = child.indexPage
         ? `<a class="docs-sidebar-section-link" href="${relHref(outFile, child.indexPage.outFile)}">${escapeHtml(sectionLabel)}</a>`
         : `<span class="docs-sidebar-section-link">${escapeHtml(sectionLabel)}</span>`;
-      const childItems = renderNode(child);
-      parts.push(
-        `<li class="docs-sidebar-section"><div class="docs-sidebar-section-head">${sectionHeader}</div>${childItems ? `<ul class="docs-sidebar-list docs-sidebar-list--nested">${childItems}</ul>` : ''}</li>`
-      );
+      const childItems = renderNode(child, false, false);
+      orderedItems.push({
+        rel: child.indexPage ? child.indexPage.rel : '',
+        html: `<li class="docs-sidebar-section"><div class="docs-sidebar-section-head">${sectionHeader}</div>${childItems ? `<ul class="docs-sidebar-list docs-sidebar-list--nested">${childItems}</ul>` : ''}</li>`,
+      });
+    }
+
+    if (!includeTitles) {
+      return orderedItems.map((item) => item.html).join('\n');
+    }
+
+    const titleByIndex = new Map(navTitles.map((t) => [t.index, t.title]));
+    for (const item of orderedItems) {
+      const orderIdx = navOrder.has(item.rel) ? navOrder.get(item.rel) : Infinity;
+      if (titleByIndex.has(orderIdx)) {
+        parts.push(`<li class="docs-sidebar-title">${escapeHtml(titleByIndex.get(orderIdx))}</li>`);
+      }
+      parts.push(item.html);
     }
 
     return parts.join('\n');
   };
 
-  sectionItems.push(renderNode(navTree));
+  const sectionItems = [renderNode(navTree, true, true)];
 
   return `<aside class="docs-sidebar" aria-label="Docs navigation">
     <div class="docs-sidebar-inner">
+      <a class="docs-sidebar-brand" href="${relHref(outFile, path.join(ROOT, 'index.html'))}">Splatbot</a>
       <div class="docs-search" role="search">
         <input class="docs-search-input" type="search" placeholder="Search docs\u2026" aria-label="Search documentation">
         <ul class="docs-search-results" role="listbox" hidden></ul>
       </div>
-      <h2 class="docs-sidebar-title">Articles</h2>
       <ul class="docs-sidebar-list">
         ${sectionItems.filter(Boolean).join('\n')}
       </ul>
@@ -131,7 +197,19 @@ function renderDocsSidebar(navTree, currentRel, outFile) {
   </aside>`;
 }
 
-function pageShell({ title, bodyHtml, outFile, sidebarHtml }) {
+function renderPager(currentPage, outFile, neighborsByRel) {
+  const neighbors = neighborsByRel.get(currentPage.rel) || { prev: null, next: null };
+  const prevHtml = neighbors.prev
+    ? `<a class="docs-pager-link docs-pager-link--prev" href="${relHref(outFile, neighbors.prev.outFile)}">&larr; Back: ${escapeHtml(neighbors.prev.title)}</a>`
+    : '<span class="docs-pager-spacer" aria-hidden="true"></span>';
+  const nextHtml = neighbors.next
+    ? `<a class="docs-pager-link docs-pager-link--next" href="${relHref(outFile, neighbors.next.outFile)}">Next: ${escapeHtml(neighbors.next.title)} &rarr;</a>`
+    : '<span class="docs-pager-spacer" aria-hidden="true"></span>';
+
+  return `<nav class="docs-pager" aria-label="Page navigation">${prevHtml}${nextHtml}</nav>`;
+}
+
+function pageShell({ title, bodyHtml, outFile, sidebarHtml, pagerHtml }) {
   const outDir = path.dirname(outFile);
   const toRoot = path.relative(outDir, ROOT) || '.';
   const cssHref = path.join(toRoot, 'css', 'docs.css').split(path.sep).join('/');
@@ -141,8 +219,6 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml }) {
   const actionDemosHref = path.join(toRoot, 'js', 'docs', 'action-demos.js').split(path.sep).join('/');
   const minisearchHref = path.join(toRoot, 'js', 'vendor', 'minisearch.js').split(path.sep).join('/');
   const docsSearchHref = path.join(toRoot, 'js', 'docs-search.js').split(path.sep).join('/');
-  const gameHref = path.join(toRoot, 'index.html').split(path.sep).join('/');
-  const docsIndexHref = path.join(toRoot, 'docs', 'index.html').split(path.sep).join('/');
   const iconHref = path.join(toRoot, 'images', 'splat.ico').split(path.sep).join('/');
 
   return `<!DOCTYPE html>
@@ -158,17 +234,11 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml }) {
   <link rel="stylesheet" href="${hljsHref}">
 </head>
 <body class="docs-body">
-  <header class="docs-header">
-    <nav class="docs-nav">
-      <a class="docs-brand" href="${gameHref}">Splatbot</a>
-      <span class="docs-sep">/</span>
-      <a class="docs-crumb" href="${docsIndexHref}">Docs</a>
-    </nav>
-  </header>
   <div class="docs-layout">
 ${sidebarHtml}
     <main class="docs-main markdown-body">
 ${bodyHtml}
+${pagerHtml}
     </main>
   </div>
   <script src="${botRunnableHref}" defer></script>
@@ -465,13 +535,16 @@ async function buildOnce() {
 
   await cleanGeneratedHtml();
 
+  const { order: navOrder, titles: navTitles } = await readNavOrder();
+  const neighborsByRel = buildPageNeighbors(pages, navOrder);
   const navTree = buildDocsNav(pages);
 
   for (const page of pages) {
     const bodyHtml = renderMarkdown(page.raw, page.absMd);
-    const sidebarHtml = renderDocsSidebar(navTree, page.rel, page.outFile);
+    const sidebarHtml = renderDocsSidebar(navTree, page.rel, page.outFile, navOrder, navTitles);
+    const pagerHtml = renderPager(page, page.outFile, neighborsByRel);
     await fs.mkdir(path.dirname(page.outFile), { recursive: true });
-    const html = pageShell({ title: page.title, bodyHtml, outFile: page.outFile, sidebarHtml });
+    const html = pageShell({ title: page.title, bodyHtml, outFile: page.outFile, sidebarHtml, pagerHtml });
     await fs.writeFile(page.outFile, html, 'utf8');
   }
 

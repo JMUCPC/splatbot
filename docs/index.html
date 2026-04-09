@@ -11,39 +11,34 @@
   <link rel="stylesheet" href="../css/docs-hljs.css">
 </head>
 <body class="docs-body">
-  <header class="docs-header">
-    <nav class="docs-nav">
-      <a class="docs-brand" href="../index.html">Splatbot</a>
-      <span class="docs-sep">/</span>
-      <a class="docs-crumb" href="../docs/index.html">Docs</a>
-    </nav>
-  </header>
   <div class="docs-layout">
 <aside class="docs-sidebar" aria-label="Docs navigation">
     <div class="docs-sidebar-inner">
+      <a class="docs-sidebar-brand" href="../index.html">Splatbot</a>
       <div class="docs-search" role="search">
         <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
         <ul class="docs-search-results" role="listbox" hidden></ul>
       </div>
-      <h2 class="docs-sidebar-title">Articles</h2>
       <ul class="docs-sidebar-list">
-        <li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Splatbot documentation</a></li>
+        <li class="docs-sidebar-title">Articles</li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Splatbot documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./hex-grid/index.html">TODO: write this page</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./actions/index.html">Actions</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/bot_info/index.html">Bot info API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./writing-bots/index.html">Writing bots</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./debugging/index.html">Debugging your bot</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./examples/index.html">Example bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./hex-grid/index.html">TODO: write this page</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./writing-bots/index.html">Writing bots</a></div></li>
+<li class="docs-sidebar-title">API Docs</li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/bot_info/index.html">Bot info API Reference</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
     <main class="docs-main markdown-body">
 <h1 id="splatbot-documentation" tabindex="-1">Splatbot documentation</h1>
 <h2 id="what-is-splatbot" tabindex="-1">What is Splatbot?</h2>
-<p>Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame  by creating, well… <strong>splatbots!</strong> The game is divided up into a series of turns, also referred to as <em>ticks</em>. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform. Then, the game will apply those actions to the bots.</p>
+<p>Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame by creating, well… <strong>splatbots!</strong> The game is divided up into a series of turns, also referred to as <em>ticks</em>. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform. Then, the game will apply those actions to the bots.</p>
 <p>Example of a tick:</p>
 <ul>
 <li>The game prompts both splatbots to make a decision about what action to perform.</li>
@@ -61,8 +56,8 @@
 <li><strong><a href="debugging/">Debugging</a></strong> — Tips and tools useful for debugging your bots</li>
 <li><strong><a href="examples/">Examples</a></strong> — Larger bot examples</li>
 </ol>
-<p><a href="../index.html">← Back to the game</a></p>
 
+<nav class="docs-pager" aria-label="Page navigation"><span class="docs-pager-spacer" aria-hidden="true"></span><a class="docs-pager-link docs-pager-link--next" href="./hex-grid/index.html">Next: TODO: write this page &rarr;</a></nav>
     </main>
   </div>
   <script src="../js/bot-runnable.js" defer></script>

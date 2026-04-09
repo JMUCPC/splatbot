@@ -1,0 +1,18 @@
+# Sidebar article order — one docs-src path per line.
+# Blank lines and lines starting with # are ignored.
+# Pages not listed here appear at the end in alphabetical order.
+
+*Articles*
+index.md
+hex-grid/index.md
+actions/index.md
+writing-bots/index.md
+debugging/index.md
+examples/index.md
+
+*API Docs*
+api-docs/index.md
+api-docs/game_data.md
+api-docs/bot_info.md
+api-docs/utils/actions.md
+api-docs/utils/hex_grid.md

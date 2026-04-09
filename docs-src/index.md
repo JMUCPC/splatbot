@@ -2,9 +2,10 @@
 
 ## What is Splatbot?
 
-Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame  by creating, well... **splatbots!** The game is divided up into a series of turns, also referred to as *ticks*. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform. Then, the game will apply those actions to the bots. 
+Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame by creating, well... **splatbots!** The game is divided up into a series of turns, also referred to as _ticks_. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform. Then, the game will apply those actions to the bots.
 
 Example of a tick:
+
 - The game prompts both splatbots to make a decision about what action to perform.
 - Splatbot 1 decides it wants to move west.
 - Simultaneously, splatbot 2 decides it wants to perform a "splat".
@@ -20,6 +21,3 @@ Example bots are provided, but it is easy to upload custom bots as well! Simply 
 3. **[Writing bots](writing-bots/)** — An overview of everything that goes into creating a bot
 4. **[Debugging](debugging/)** — Tips and tools useful for debugging your bots
 5. **[Examples](examples/)** — Larger bot examples
-
-
-[← Back to the game](../index.html)
