@@ -207,8 +207,11 @@ export class GameState {
         bot.position = newPos;
         bot.facing = dir;
         this._recordPaintIntent(newPos.key, pid);
-      } else if (logFn) {
-        logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
+      } else {
+        report.blocked = true;
+        if (logFn) {
+          logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
+        }
       }
     } else if (action.type === "dash") {
       if (!config.DASH_ALLOWED) {
