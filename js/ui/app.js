@@ -99,8 +99,15 @@ function makeInitialMatchStats() {
 
 let matchStats = makeInitialMatchStats();
 
-/** Player ids (1 / 2) with a bot file read/load in progress — blocks START until finished. */
-const fileUploadBusyPids = new Set();
+/** Player ids (1 / 2) while a bot swap is in progress (upload, dropdown, picker prep, docs import). */
+const botApplyBusyPids = new Set();
+
+function setBotApplyBusy(pid, busy) {
+  if (busy) botApplyBusyPids.add(pid);
+  else botApplyBusyPids.delete(pid);
+  syncRunToggleDisabled();
+  syncStepControls();
+}
 
 let eventLogPopoutWin = null;
 let eventLogPopoutDetach = null;
@@ -443,9 +450,14 @@ async function consumeDocsBotImportForPlayerOne() {
     }
     botSourceCache.set('upload:1', source);
     uploadDisplayName[1] = 'From docs';
-    await applyBotForPlayer(1, 'upload:1', { isInitialLoad: false });
-    syncFileUploadRow(1);
-    logEvent('P1 loaded bot from docs example.');
+    setBotApplyBusy(1, true);
+    try {
+      await applyBotForPlayer(1, 'upload:1', { isInitialLoad: false });
+      syncFileUploadRow(1);
+      logEvent('P1 loaded bot from docs example.');
+    } finally {
+      setBotApplyBusy(1, false);
+    }
   } catch (err) {
     const detail = err?.message ?? String(err);
     const msg = `Docs bot import — Python error\n${detail}`;
@@ -538,8 +550,7 @@ function syncFileUploadRow(pid) {
 }
 
 function setBotFileUploadLoading(pid, isLoading) {
-  if (isLoading) fileUploadBusyPids.add(pid);
-  else fileUploadBusyPids.delete(pid);
+  setBotApplyBusy(pid, isLoading);
   const wrap = els[`botFile${pid}`]?.closest?.('.sb-file-upload-wrap');
   const statusEl = els[`botFileStatus${pid}`];
   const chooseBtn = els[`botFileChoose${pid}`];
@@ -552,13 +563,12 @@ function setBotFileUploadLoading(pid, isLoading) {
     statusEl.innerHTML =
       '<span class="sb-spinner" aria-hidden="true"></span><span>Loading bot…</span>';
   }
-  syncRunToggleDisabled();
 }
 
 function syncRunToggleDisabled() {
   if (!els.runToggle) return;
-  const fileBusy = fileUploadBusyPids.size > 0;
-  els.runToggle.disabled = fileBusy && !running;
+  const botBusy = botApplyBusyPids.size > 0;
+  els.runToggle.disabled = botBusy && !running;
 }
 
 async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
@@ -638,6 +648,7 @@ async function onBotFileChange(pid, input) {
  */
 async function prepareBotFilePicker(pid) {
   if (!botControlsReady) return;
+  setBotApplyBusy(pid, true);
   const botId = `upload:${pid}`;
   const input = els[`botFile${pid}`];
   uploadDisplayName[pid] = null;
@@ -656,6 +667,7 @@ async function prepareBotFilePicker(pid) {
     }
   } finally {
     for (const s of locks) s.disabled = false;
+    setBotApplyBusy(pid, false);
     syncFileUploadRow(pid);
   }
 }
@@ -672,6 +684,7 @@ async function onBotSelectChange(pid) {
   const next = sel.value;
   const prev = playerBotId[pid];
   if (next === prev) return;
+  setBotApplyBusy(pid, true);
   const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
   for (const s of locks) s.disabled = true;
   try {
@@ -681,6 +694,7 @@ async function onBotSelectChange(pid) {
     logPythonLoadFailure(pid, err);
   } finally {
     for (const s of locks) s.disabled = false;
+    setBotApplyBusy(pid, false);
   }
 }
 
@@ -913,7 +927,7 @@ function toggleRun() {
 
 async function startGame() {
   if (running) return;
-  if (fileUploadBusyPids.size > 0) return;
+  if (botApplyBusyPids.size > 0) return;
   if (state?.isOver) {
     await resetGame();
   }
@@ -1008,7 +1022,7 @@ function syncStepControls() {
   const menuBtn = document.getElementById('btn-step-menu');
   if (!stepBtn || !menuBtn) return;
 
-  const disable = stepBusy || !botControlsReady || !state || state.isOver;
+  const disable = stepBusy || !botControlsReady || !state || state.isOver || botApplyBusyPids.size > 0;
   stepBtn.disabled = disable;
   menuBtn.disabled = disable;
   if (disable) closeStepMenu();
@@ -1079,7 +1093,7 @@ function openStepMenu() {
 }
 
 async function runStepTicks() {
-  if (stepBusy || !botControlsReady || !state || state.isOver) return;
+  if (stepBusy || !botControlsReady || !state || state.isOver || botApplyBusyPids.size > 0) return;
 
   stepBusy = true;
   syncStepControls();
