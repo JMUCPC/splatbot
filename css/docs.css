@@ -358,6 +358,7 @@
 .action-demo {
   margin: 1rem 0 1.35rem;
   padding: 14px 16px;
+  padding-top: 0;
   background: #0e1525;
   border: 1px solid #1a2a40;
   border-radius: 8px;

@@ -37,8 +37,9 @@
   </aside>
     <main class="docs-main markdown-body">
 <h1 id="writing-bots" tabindex="-1">Writing bots</h1>
-<p><em>This tutorial assumes that you are familiar with basic scripting (if/for/functions) in Python. No other prerequisite knowledge is required.</em></p>
-<p>A <em>bot</em> is a Python script you copy into Splatbot. The game will use it to decide what action a bot should take. Here is a simple template of a bot:</p>
+<p><em>This tutorial assumes that the reader is familiar with basic scripting (if/for/functions) in Python. No other prerequisite knowledge is required.</em></p>
+<h2 id="simple-template" tabindex="-1">Simple Template</h2>
+<p>A <em>bot</em> is a Python script run inside the Splatbot game. The game will run it to decide what action should be taken. Here is a simple template of a bot:</p>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Splatbot Template" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions <span class="hljs-comment"># Use this to create the Action that the decide method returns</span>
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> * <span class="hljs-comment"># This contains helpful functions for working with a hexagonal grid</span>
 
@@ -49,7 +50,7 @@
 </code></pre>
 <p>This may look complicated, but each part of this template is explained in more detail below. <em><a href="../actions/index.html">Actions</a></em> are explained in greater detail on their own page.</p>
 <h2 id="imports" tabindex="-1">Imports</h2>
-<p>Two custom imports are provided to players wanting to create their own splatbot: <code>utils.actions</code> and <code>utils.hex_grid</code>. The first contains the <code>Actions</code> class, which provides a template for the actions a bot may take. A detailed breakdown of how this works is provided <a href="../actions/index.html">here</a>. The second import provides useful utilities for working with a hexagonal grid. A similarly detailed breakdown for this can be found <a href="../hex-grid/">here</a>.</p>
+<p>Two custom imports are provided to players wanting to create their own splatbot: <code>utils.actions</code> and <code>utils.hex_grid</code>. The first contains the <code>Actions</code> class, which provides a template for the <a href="../actions/index.html">actions</a> a bot may take. The second import provides useful utilities for working with a <a href="../hex-grid/">hexagonal grid</a>. Details on the functions inside these imports can be found in the <a href="../api-docs/">API Docs</a>: see <a href="../api-docs/utils/actions/index.html"><em>utils.actions</em></a> and <a href="../api-docs/utils/hex_grid/index.html"><em>utils.hex_grid</em></a>.</p>
 <h2 id="deciding-on-an-action" tabindex="-1">Deciding on an Action</h2>
 <p>On every tick, the game will call the <code>decide</code> method of each bot in the game. Each call to <code>decide</code> must return <strong>one</strong> of:</p>
 <table>
@@ -62,11 +63,23 @@
 <tbody>
 <tr>
 <td><a href="../actions/index.html#move">move</a></td>
-<td>Step one hex <strong>forward</strong> and paint that hex.</td>
+<td>Step one hex forward and paint it.</td>
 </tr>
 <tr>
-<td><a href="../actions/index.html#facing-and-turning">turn_left / turn_right / face_direction / turn_180</a></td>
-<td>Change facing only (one tick each).</td>
+<td><a href="../actions/index.html#turn-left">turn_left</a></td>
+<td>Turn left 1-5 steps.</td>
+</tr>
+<tr>
+<td><a href="../actions/index.html#turn-right">turn_right</a></td>
+<td>Turn right 1-5 steps.</td>
+</tr>
+<tr>
+<td><a href="../actions/index.html#turn-around">turn_180</a></td>
+<td>Turn around.</td>
+</tr>
+<tr>
+<td><a href="../actions/index.html#face-direction">face_direction</a></td>
+<td>Turn to face a specified direction.</td>
 </tr>
 <tr>
 <td><a href="../actions/index.html#skip">skip</a></td>
@@ -74,22 +87,22 @@
 </tr>
 <tr>
 <td><a href="../actions/index.html#splat">splat</a></td>
-<td>Paint all adjacent tiles.</td>
-</tr>
-<tr>
-<td><a href="../actions/index.html#dash">dash</a></td>
-<td>Move 2–6 hexes <strong>forward</strong>; paint only where you land.</td>
+<td>Paint all neighboring tiles.</td>
 </tr>
 <tr>
 <td><a href="../actions/index.html#shoot-paintball">shoot_paintball</a></td>
-<td>Paint a straight line <strong>forward</strong> without moving.</td>
+<td>Paint a straight line forward without moving.</td>
+</tr>
+<tr>
+<td><a href="../actions/index.html#dash">dash</a></td>
+<td>Move 2–6 hexes forward - paint only the destination.</td>
 </tr>
 </tbody>
 </table>
 <p>Details and interactive demos are on the <a href="../actions/index.html">Actions</a> page.</p>
 <p>If the returned action is invalid for any reason, or if the <code>decide</code> method raises an Error/Exception or exceeds the time limit (configurable via settings), then the bot’s move will be skipped for the current turn.</p>
 <h3 id="simple-example" tabindex="-1">Simple Example</h3>
-<p>This bot aligns to <strong>east</strong>, then <strong>moves forward</strong> on later ticks (see <a href="../actions/index.html#facing-and-turning">facing</a>).</p>
+<p>This bot moves forwards.</p>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Forward Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> *
 
@@ -100,13 +113,14 @@
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 <h2 id="remembering-data" tabindex="-1">Remembering Data</h2>
-<p>The game creates a singular instance of <code>Bot</code> when your script loads. If you need to remember a value between calls to the <code>decide</code> method (for example “which way was I going last tick?”), it can be stored as an instance variable on <code>self</code>.</p>
-<p>To set starting values of these instance variables, add a constructor to the <code>Bot</code> class: <code>def __init__(self):</code>. This is optional, and only necessary if you wish to make a bot that can remember things. However, advanced bot strategies may benefit by using memory in their decisions.</p>
+<p>The game creates a singular instance of the <code>Bot</code> class when a script loads. To remember a value between calls to the <code>decide</code> method (for example “which way was this bot going last tick?”), it can be stored as an instance variable on <code>self</code>.</p>
+<p>To set starting values of these instance variables, add a constructor to the <code>Bot</code> class: <code>def __init__(self):</code>. This is optional, and only necessary to make a bot that can remember things. However, advanced bot strategies may benefit by using memory in their decisions.</p>
 <h3 id="example" tabindex="-1">Example</h3>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Counting Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> *
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-string">&quot;&quot;&quot; This Bot will count by incrementing a saved instance variable. &quot;&quot;&quot;</span>
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
         <span class="hljs-variable language_">self</span>.count = <span class="hljs-number">0</span>
 
@@ -117,7 +131,7 @@
 </code></pre>
 <h2 id="data-classes" tabindex="-1">Data Classes</h2>
 <h3 id="game-state" tabindex="-1">Game State</h3>
-<p><code>game_state</code> is <strong>read-only</strong>. You interact with the match only by <strong>returning</strong> an action.</p>
+<p>In order to make more informed decisions, a bot needs to be able to see the current state of the game. This information is available as an argument to the <code>decide</code> method, aptly named <code>game_state</code> in the provided <a href="./index.html#simple-template">template</a>. This <code>game_state</code> argument is <strong>read-only</strong>. A bot will only interact with the match only by returning an action.</p>
 <table>
 <thead>
 <tr>
@@ -127,39 +141,34 @@
 </thead>
 <tbody>
 <tr>
-<td><code>pid</code></td>
-<td>Your player id (<code>1</code> or <code>2</code>).</td>
-</tr>
-<tr>
-<td><code>me</code></td>
+<td><code>game_state.me</code></td>
 <td>Your BotInfo — <code>position</code>, <code>facing</code>, <code>stun</code>, cooldowns.</td>
 </tr>
 <tr>
-<td><code>opponents</code></td>
-<td>Other players’ BotInfo, keyed by player id.</td>
+<td><code>game_state.opponents</code></td>
+<td>Other players’ BotInfo, keyed by player id. (Irrelevant in 1v1)</td>
 </tr>
 <tr>
-<td><code>opponent</code></td>
-<td>The single opponent’s BotInfo in 1v1, or <code>None</code>.</td>
+<td><code>game_state.opponent</code></td>
+<td>The single opponent’s BotInfo in 1v1, or <code>None</code> in other modes.</td>
 </tr>
 <tr>
-<td><code>grid</code></td>
+<td><code>game_state.grid</code></td>
 <td>All hexes on the map (<code>Hex</code> values). Each has a <code>controller</code> (<code>BotInfo</code> or <code>None</code>).</td>
 </tr>
 <tr>
-<td><code>turn</code></td>
+<td><code>game_state.turn</code></td>
 <td>Current turn index.</td>
 </tr>
 <tr>
-<td><code>max_turns</code></td>
+<td><code>game_state.max_turns</code></td>
 <td>Match length.</td>
 </tr>
 </tbody>
 </table>
 <h3 id="botinfo" tabindex="-1">BotInfo</h3>
-<p>TODO: table of actual contents of BotInfo</p>
-<p>…</p>
-<p><code>BotInfo</code> is found in many of the fields of <code>GameState</code>.</p>
+<p><code>BotInfo</code> is a class meant to encapsulate all of the data pertaining to some bot.</p>
+<p>It can be found anywhere a bot is referenced:</p>
 <table>
 <thead>
 <tr>
@@ -177,40 +186,103 @@
 <td>The single opponent in 1v1 (<code>None</code> otherwise).</td>
 </tr>
 <tr>
-<td><code>game_state.opponents[pid]</code></td>
-<td>A specific opponent by player id.</td>
-</tr>
-<tr>
 <td><code>hex.controller</code></td>
 <td>The <code>BotInfo</code> that controls this tile, or <code>None</code>.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="putting-it-all-together" tabindex="-1">Putting it all together</h2>
-<p>This bot moves east until the next east step would leave the grid, then flips and moves west until it hits the other edge, and repeats — making a “ping-pong” pattern.</p>
+<p>The fields of BotInfo are:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pid</code></td>
+<td><code>int</code></td>
+<td>Player id (usually <code>1</code> or <code>2</code>).</td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td><code>Hex</code></td>
+<td>The bot’s current hex (<code>q</code>, <code>r</code>).</td>
+</tr>
+<tr>
+<td><code>facing</code></td>
+<td><code>HexDirection</code></td>
+<td>Which way the bot is facing (<code>E/NE/NW/W/SW/SE</code>).</td>
+</tr>
+<tr>
+<td><code>stun</code></td>
+<td><code>int</code></td>
+<td>Turns remaining where non-skip actions are blocked.</td>
+</tr>
+<tr>
+<td><code>splat_cooldown</code></td>
+<td><code>int</code></td>
+<td>Turns until the bot can splat again (<code>0</code> means available).</td>
+</tr>
+<tr>
+<td><code>dash_cooldown</code></td>
+<td><code>int</code></td>
+<td>Turns until the bot can dash again (<code>0</code> means available).</td>
+</tr>
+<tr>
+<td><code>paintball_cooldown</code></td>
+<td><code>int</code></td>
+<td>Turns until the bot can shoot a paintball again (<code>0</code> means available).</td>
+</tr>
+</tbody>
+</table>
+<p><em>Note: There are also <code>Hex</code> classes, explained <a href="../hex-grid/index.html#the-hex-grid">here</a></em></p>
+<h2 id="putting-it-all-together" tabindex="-1">Putting It All Together</h2>
+<p>This bot moves east until the next east step would leave the grid, when it instead turns around and moves west until it hits the other edge, and repeats - making a “ping-pong” pattern. It utilizes all of the bot-writing strategies discussed on this page.</p>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Ping-Pong Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection, hex_neighbor
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
+    <span class="hljs-string">&quot;&quot;&quot;This bot will ping-pong between moving east and west.&quot;&quot;&quot;</span>
+
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-string">&quot;&quot;&quot;Start the match going east. &quot;&quot;&quot;</span>
         <span class="hljs-variable language_">self</span>.going_east = <span class="hljs-literal">True</span>
 
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_current_direction</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-string">&quot;&quot;&quot; Return the HexDirection that the bot is currently moving in.&quot;&quot;&quot;</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.going_east:
+            <span class="hljs-keyword">return</span> HexDirection.E
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-keyword">return</span> HexDirection.W
+
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        me = game_state.me
-        d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.going_east <span class="hljs-keyword">else</span> HexDirection.W
-        nbr = hex_neighbor(me.position, d)
-        <span class="hljs-keyword">if</span> nbr <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
+        <span class="hljs-string">&quot;&quot;&quot; Keep going a direction until an edge is found, then turn around.&quot;&quot;&quot;</span>
+
+        <span class="hljs-comment"># Find the next position the bot will be in if it continues moving in the same direction</span>
+        direction = <span class="hljs-variable language_">self</span>.get_current_direction()
+        next_position = hex_neighbor(game_state.me.position, direction)
+
+        <span class="hljs-comment"># If the anticipated position falls outside of the grid, turn around instead</span>
+        <span class="hljs-keyword">if</span> next_position <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> game_state.grid:
             <span class="hljs-variable language_">self</span>.going_east = <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.going_east
-            d = HexDirection.E <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.going_east <span class="hljs-keyword">else</span> HexDirection.W
-        <span class="hljs-keyword">if</span> me.facing != d:
-            <span class="hljs-keyword">return</span> Actions.face_direction(d)
+            direction = <span class="hljs-variable language_">self</span>.get_current_direction()
+
+        <span class="hljs-comment"># If the bot is not currently facing the desired direction, turn to do so</span>
+        <span class="hljs-keyword">if</span> game_state.me.facing != direction:
+            <span class="hljs-keyword">return</span> Actions.face_direction(direction)
+
+        <span class="hljs-comment"># Keep on movin&#x27;</span>
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 <ul>
-<li><code>game_state.me</code> is your bot’s info (<code>position</code>, <code>facing</code>, cooldowns, etc.).</li>
-<li><code>hex_neighbor(hex, direction)</code> is the hex you would step into; if it is not in <code>game_state.grid</code>, that move would leave the map, so we flip direction first.</li>
-<li>We <strong>face</strong> the desired travel direction, then <strong>move</strong> forward on the next tick when already aligned.</li>
+<li>This bot implements the necessary template to be a game-recognized bot (and even implements a custom helper method!)</li>
+<li>This bot uses some of the utilities provided in <code>utils.hex_grid</code></li>
+<li>This bot can return different actions depending on what it thinks is a good next move</li>
+<li>This bot looks into data classes like <code>GameState</code> and <code>BotInfo</code> to see data about the game</li>
 </ul>
 <p>More walkthroughs (cooldowns, painting empty tiles) are on <a href="../examples/index.html">Examples</a>.</p>
 

@@ -64,9 +64,9 @@ const DEMOS = {
     build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
     action: { type: 'turn_left', steps: 1 },
   },
-  'turn-left-2': {
+  'turn-right-2': {
     build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),
-    action: { type: 'turn_left', steps: 2 },
+    action: { type: 'turn_right', steps: 2 },
   },
   'face-direction': {
     build: () => makeDemoState(3, [{ pid: 1, qr: [0, 0], facing: HexDirection.E }]),

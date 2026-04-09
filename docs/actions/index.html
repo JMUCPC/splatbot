@@ -37,88 +37,87 @@
   </aside>
     <main class="docs-main markdown-body">
 <h1 id="actions" tabindex="-1">Actions</h1>
-<p>Each time your bot’s <code>decide</code> runs, it must return <strong>exactly one</strong> action built with the <strong><code>Actions</code></strong> helpers below. Think of it as picking a single choice from a small menu: turn, step forward, stand still, splat, dash, or fire a paintball.</p>
-<ul>
-<li><strong>Facing:</strong> <a href="#move">Move</a>, <a href="#dash">dash</a>, and <a href="#shoot-paintball">shoot paintball</a> all use your bot’s current <strong>facing</strong>. Change facing with the <a href="#facing-and-turning">turning</a> actions.</li>
-<li><strong>Cooldowns:</strong> After splat, dash, or paintball, counters on <code>game_state.me</code> must tick down before you can repeat that same action (see <a href="../writing-bots/">Writing bots</a> for field names).</li>
-<li><strong>Stun:</strong> After some moves you may be unable to act for several turns except <code>skip</code> — check <code>game_state.me.stun</code>. While stunned you cannot <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, <strong>shoot paintball</strong>, or <strong>turn</strong> (<code>skip</code> still works).</li>
-<li><strong>Details:</strong> The <a href="../writing-bots/">Writing bots</a> page summarizes; this page explains each action in full, with demos.</li>
-</ul>
-<p>Interactive examples below use the same rules as the main game (mini grid, player 1 in orange). <strong>Play</strong> applies the action once; <strong>Reset</strong> restores the starting position.</p>
-<h2 id="move" tabindex="-1">Move</h2>
-<p><code>Actions.move()</code> moves <strong>one hex straight ahead</strong> in your bot’s current <strong>facing</strong> and paints the tile you land on. It does not take a direction argument.</p>
+<p>Each time your bot’s <code>decide</code> method runs, it must return <strong>exactly one</strong> action built with the <code>Actions</code> helpers below. The game will then apply that action’s effect to your bot. Most actions are <em>directional</em> - they will behave differently depending on the direction a bot is facing.</p>
+<h2 id="basic-actions" tabindex="-1">Basic Actions</h2>
+<p>Basic actions can be performed at any point a bot is not stunned. These are less powerful than special actions as they are a lot more limited in what they allow the bot to do, however, they have no cooldowns and can thus be performed more frequently.</p>
+<h3 id="move" tabindex="-1">Move</h3>
+<p><code>Actions.move()</code> moves one hex straight ahead in the direction a bot is currently facing, and paints the tile it lands on.</p>
 <p>If the step would leave the grid, nothing happens.</p>
 <div class="action-demo" data-action-demo="move" role="region" aria-label="Move action example">
+<h4> Move East </h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">Player 1 faces east; move steps one hex east and paints the landing tile.</p>
+<p class="action-demo-caption">Player 1 faces east. Play applies <code>Actions.move()</code> - step one hex east and paint the landing tile.</p>
 </div>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" data-docs-code-title="First Steps for Botkind" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-string">&quot;&quot;&quot;Face east, then step forward each time this runs (two phases in practice).&quot;&quot;&quot;</span>
-        me = game_state.me
-        <span class="hljs-keyword">if</span> me.facing != HexDirection.E:
-            <span class="hljs-keyword">return</span> Actions.face_direction(HexDirection.E)
+        <span class="hljs-string">&quot;&quot;&quot;This bot will move in a straight line forever.&quot;&quot;&quot;</span>
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
-<h2 id="facing-and-turning" tabindex="-1">Facing and turning</h2>
-<p>Your bot always has a <code>facing</code> value (<code>game_state.me.facing</code>), a <a href="../api-docs/utils/hex_grid/index.html#hexdirection">HexDirection</a>. Each turning action below costs <strong>one tick</strong>.</p>
-<ul>
-<li><strong><code>Actions.turn_left(steps=1)</code></strong> — Add <code>steps</code> to the direction index (mod 6); e.g. with <code>steps=1</code>, <strong>E → NE</strong>. Matches pivoting the marker <strong>left</strong> on the default map view. Default <code>steps</code> is <code>1</code>. One tick; <code>steps</code> is reduced mod 6 (e.g. <code>6</code> = full rotation = no net turn).</li>
-<li><strong><code>Actions.turn_right(steps=1)</code></strong> — Subtract <code>steps</code> from the direction index (mod 6); e.g. with <code>steps=1</code>, <strong>E → SE</strong>. Matches pivoting the marker <strong>right</strong> on the default map view. Default <code>steps</code> is <code>1</code>.</li>
-<li><strong><code>Actions.face_direction(direction)</code></strong> — Set facing to the given <code>HexDirection</code> or integer <code>0</code>–<code>5</code> (normalized with <code>% 6</code>). Use this when you want an absolute heading.</li>
-<li><strong><code>Actions.turn_180()</code></strong> — Turn to face the opposite hex direction (three 60° steps in one tick).</li>
-</ul>
-<p>You cannot use any of these while <strong>stunned</strong> (<code>game_state.me.stun &gt; 0</code>); the engine will no-op them like other blocked actions.</p>
-<p>Turning does <strong>not</strong> move the bot or paint tiles — only the <strong>facing</strong> changes (the triangle marker on the hex shows which way you point).</p>
+<h3 id="facing-and-turning" tabindex="-1">Facing and Turning</h3>
+<p>Moving around would be useless without a way for a bot to control its direction. To change which direction it is facing, there are a few actions that a bot can take:</p>
+<h4 id="turn-left" tabindex="-1">Turn Left</h4>
+<p><code>Actions.turn_left(steps=1)</code> — Turn some number of steps left (default to 1 step)</p>
 <div class="action-demo" data-action-demo="turn-left" role="region" aria-label="Turn left example">
+<h4>Turn One Step Left</h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">Player 1 starts facing east. <strong>Play</strong> applies <code>Actions.turn_left()</code> once — the marker pivots **left** on the map (<strong>E → NE</strong> in <code>HexDirection</code> index). No movement.</p>
+<p class="action-demo-caption">Play applies <code>Actions.turn_left()</code> - the marker pivots left (<strong>E → NE</strong>).</p>
 </div>
-<div class="action-demo" data-action-demo="turn-left-2" role="region" aria-label="Turn left two steps example">
+<h4 id="turn-right" tabindex="-1">Turn Right</h4>
+<p><code>Actions.turn_right(steps=1)</code> — Turn some number of steps right (default to 1 step)</p>
+<div class="action-demo" data-action-demo="turn-right-2" role="region" aria-label="Turn right two steps example">
+<h4>Turn Two Steps Right</h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">Same start. <strong>Play</strong> applies <code>Actions.turn_left(2)</code> — one tick, two left steps on the map (<strong>E → NW</strong>).</p>
+<p class="action-demo-caption">Play applies <code>Actions.turn_right(2)</code> - the marker pivots 2 tiles right (<strong>E → SW</strong>).</p>
 </div>
-<div class="action-demo" data-action-demo="face-direction" role="region" aria-label="Face direction example">
-<div class="action-demo-grid" aria-hidden="true"></div>
-<div class="action-demo-buttons">
-<button type="button" class="action-demo-btn" data-demo-play>Play</button>
-<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
-</div>
-<p class="action-demo-caption">Same start. <strong>Play</strong> applies <code>Actions.face_direction(HexDirection.SW)</code> — jump straight to an absolute heading (southwest here).</p>
-</div>
+<h4 id="turn-around" tabindex="-1">Turn Around</h4>
+<p><code>Actions.turn_180()</code> — Turn to face the opposite direction.</p>
 <div class="action-demo" data-action-demo="turn-180" role="region" aria-label="Turn 180 example">
+<h4>Turn 180 Degrees</h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">Same start (facing east). <strong>Play</strong> applies <code>Actions.turn_180()</code> — face the opposite way on the hex grid (<strong>E → W</strong>) in one tick. No movement.</p>
+<p class="action-demo-caption">Play applies <code>Actions.turn_180()</code> - the marker faces the opposite directions (<strong>E → W</strong>).</p>
 </div>
-<h2 id="skip" tabindex="-1">Skip</h2>
-<p>The skip action tells a splatbot to skip a turn.</p>
+<h4 id="face-direction" tabindex="-1">Face Direction</h4>
+<p><code>Actions.face_direction(direction)</code> — Set facing to the given <code>HexDirection</code> or integer <code>0</code>–<code>5</code>.</p>
+<div class="action-demo" data-action-demo="face-direction" role="region" aria-label="Face direction example">
+<h4>Face Southwest</h4>
+<div class="action-demo-grid" aria-hidden="true"></div>
+<div class="action-demo-buttons">
+<button type="button" class="action-demo-btn" data-demo-play>Play</button>
+<button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
+</div>
+<p class="action-demo-caption">Play applies <code>Actions.face_direction(HexDirection.SW)</code> - turn to that direction (<strong>E → SW</strong>).</p>
+</div>
+<p>Turning does <strong>not</strong> move the bot or paint tiles - only the direction the bot faces changes.</p>
+<h3 id="skip" tabindex="-1">Skip</h3>
+<p>The skip action tells a splatbot to skip a turn. It is the only legal action for a bot to take while it is stunned.</p>
 <div class="action-demo" data-action-demo="skip" role="region" aria-label="Skip action example">
+<h4>Skip</h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">Skip does not move or paint — the board stays the same.</p>
+<p class="action-demo-caption">Play applies <code>Actions.skip()</code> - nothing happens.</p>
 </div>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Lazy Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 
@@ -128,20 +127,25 @@
         <span class="hljs-string">&quot;&quot;&quot; This bot will not do anything. How lazy! &quot;&quot;&quot;</span>
         <span class="hljs-keyword">return</span> Actions.skip()
 </code></pre>
-<h2 id="splat" tabindex="-1">Splat</h2>
-<p><code>Actions.splat()</code> paints every <strong>in-grid neighbor</strong> of your current hex (not the tile you stand on).</p>
-<p>After splat:</p>
-<ol>
-<li><strong>Stun</strong> — for a number of turns you cannot <strong>move</strong>, <strong>dash</strong>, <strong>splat</strong>, <strong>shoot paintball</strong>, or <strong>turn</strong> (<code>game_state.me.stun</code>). Use <code>Actions.skip()</code> if you have no other option. Duration is configurable as <strong>Splat stun</strong> in <strong>SETTINGS</strong>.</li>
-<li><strong>Splat cooldown</strong> — you cannot <strong>splat</strong> again until this reaches <code>0</code> (<code>game_state.me.splat_cooldown</code>; default spacing enforces at most about one splat every 10 turns). You may <strong>move</strong> once stun ends even if splat cooldown is still counting down.</li>
-</ol>
+<h2 id="special-actions" tabindex="-1">Special Actions</h2>
+<p>Special actions are more powerful than basic actions. However, these actions have a cooldown that must finish before the action is allowed to be performed again. Especially powerful special actions will also stun the user for a few turns, preventing them from taking any actions at all until the stun expires. The exact values of these penalties are configurable in the settings menu of the game.</p>
+<p><strong>Stun:</strong> A number of turns a bot cannot perform any action</p>
+<p><strong>Cooldown:</strong> A number of turns before a bot can repeat the action “cooling down”</p>
+<h3 id="splat" tabindex="-1">Splat</h3>
+<p><code>Actions.splat()</code> paints every neighbor of a bot’s current hex.</p>
+<p>Default values:</p>
+<ul>
+<li>Stun: 3 turns</li>
+<li>Cooldown: 10 turns</li>
+</ul>
 <div class="action-demo" data-action-demo="splat" role="region" aria-label="Splat action example">
+<h4> Splat! </h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">All in-grid neighbors of the bot are painted; the bot's own tile is not.</p>
+<p class="action-demo-caption">Play applies <code>Actions.splat()</code> - all tiles neighboring the bot are painted.</p>
 </div>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Splat Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
@@ -149,76 +153,86 @@
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-comment"># If stunned, do nothing</span>
         <span class="hljs-keyword">if</span> game_state.me.stun &gt; <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.skip()
+        <span class="hljs-comment"># Splat if possible</span>
         <span class="hljs-keyword">if</span> game_state.me.splat_cooldown == <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.splat()
-        me = game_state.me
-        <span class="hljs-keyword">if</span> me.facing != HexDirection.E:
-            <span class="hljs-keyword">return</span> Actions.face_direction(HexDirection.E)
+        <span class="hljs-comment"># Otherwise, move forwards</span>
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
-<p>See <a href="../writing-bots/">Writing bots</a> for the full game state reference.</p>
-<h2 id="shoot-paintball" tabindex="-1">Shoot paintball</h2>
-<p><code>Actions.shoot_paintball()</code> does <strong>not</strong> move your bot. It fires along your current <strong>facing</strong>: every in-grid hex <strong>beyond</strong> your current tile in a straight line is painted until the ray leaves the map or reaches a hex occupied by the <strong>other</strong> bot (that hex is <strong>not</strong> painted; the ray stops there).</p>
-<p>You cannot use paintball while <strong>stunned</strong> (<code>game_state.me.stun</code>). After a shot, you are <strong>stunned</strong> for a number of turns (default <strong>7</strong>; <strong>Paintball stun</strong> in <strong>SETTINGS</strong>). Separately, by default you can shoot again only after <strong>20</strong> turns (<code>game_state.me.paintball_cooldown</code>; <strong>Paintball cooldown</strong> in <strong>SETTINGS</strong>).</p>
+<p><em>The <code>game_state</code> variable will be explained more in <a href="../writing-bots/#game-state">Writing Bots</a>.</em></p>
+<h3 id="shoot-paintball" tabindex="-1">Shoot paintball</h3>
+<p><code>Actions.shoot_paintball()</code> will fire a paintball in the direction a bot is currently facing. Thanks to <em>advanced bot technology™</em>, paintballs travel instantaneously. A paintball will travel until it collides with either another bot or the edge of the map.</p>
+<p>Default values:</p>
+<ul>
+<li>Stun: 7 turns</li>
+<li>Cooldown: 20 turns</li>
+</ul>
 <div class="action-demo" data-action-demo="shoot-paintball-edge" role="region" aria-label="Shoot paintball toward map edge">
+<h4>Shoot Paintball</h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">Only player 1 (orange), facing east: a paintball paints every hex along the line until the ray leaves the grid. Your own tile is not painted.</p>
+<p class="action-demo-caption">Play applies <code>Actions.shoot_paintball()</code> - all tiles in front of the bot are painted up to the edge of the map.</p>
 </div>
 <div class="action-demo" data-action-demo="shoot-paintball" role="region" aria-label="Shoot paintball blocked by other bot">
+<h4>Shoot Paintball (Bot Collision)</h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">With player 2 in the way: the ray travels east, painting each hex until it reaches the other bot — that hex is not painted.</p>
+<p class="action-demo-caption">Play applies <code>Actions.shoot_paintball()</code> - all tiles in front of the bot are painted until the paintball hits another bot.</p>
 </div>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" data-docs-code-title="Paintball Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-comment"># If stunned, do nothing</span>
         <span class="hljs-keyword">if</span> game_state.me.stun &gt; <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.skip()
-        me = game_state.me
-        <span class="hljs-keyword">if</span> me.facing != HexDirection.E:
-            <span class="hljs-keyword">return</span> Actions.face_direction(HexDirection.E)
+        <span class="hljs-comment"># If a paintball can be shot, use it</span>
         <span class="hljs-keyword">if</span> game_state.me.paintball_cooldown == <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.shoot_paintball()
+        <span class="hljs-comment"># Otherwise, move forwards</span>
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
-<h2 id="dash" tabindex="-1">Dash</h2>
-<p><code>Actions.dash(distance)</code> moves <strong>2–6</strong> hexes straight ahead in your current <strong>facing</strong> and paints <strong>only the destination</strong> hex.</p>
-<p><code>distance</code> is the only argument; direction comes from <strong>facing</strong>.</p>
-<p>A bot can dash once every <strong>7 turns</strong> by default; check <code>game_state.me.dash_cooldown</code> (<code>0</code> = dash available). Optionally, a <strong>Dash stun</strong> in <strong>SETTINGS</strong> (default <strong>0</strong>) applies stun after a dash the same way as splat/paintball.</p>
-<p>If the full distance would leave the grid, you stop at the <strong>last in-grid hex</strong> along that direction (the edge), paint only that hex, and the dash cooldown still applies.</p>
+<h3 id="dash" tabindex="-1">Dash</h3>
+<p><code>Actions.dash(distance)</code> moves a bot <strong>2–6</strong> hexes straight ahead, and only paints the destination hex.</p>
+<p>Default values:</p>
+<ul>
+<li>Stun: 0 turns</li>
+<li>Cooldown: 7 turns</li>
+</ul>
+<p>If the full distance of a dash would have the bot leave the grid, it will stop at the <strong>last in-grid hex</strong> along that direction (the edge of the grid).</p>
 <div class="action-demo" data-action-demo="dash" role="region" aria-label="Dash action example">
+<h4>Dash Bot</h4>
 <div class="action-demo-grid" aria-hidden="true"></div>
 <div class="action-demo-buttons">
 <button type="button" class="action-demo-btn" data-demo-play>Play</button>
 <button type="button" class="action-demo-btn action-demo-btn--secondary" data-demo-reset>Reset</button>
 </div>
-<p class="action-demo-caption">Player 1 faces east and dashes four steps; only the final hex is painted (not the path).</p>
+<p class="action-demo-caption">Play applies <code>Actions.dash(4)</code> - the bot moves 4 and paints the tile it lands on.</p>
 </div>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
+<pre><code data-docs-code-lang="python" data-docs-code-title="The Flash" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
 <span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-comment"># If stunned, do nothing</span>
         <span class="hljs-keyword">if</span> game_state.me.stun &gt; <span class="hljs-number">0</span>:
             <span class="hljs-keyword">return</span> Actions.skip()
-        me = game_state.me
-        <span class="hljs-keyword">if</span> me.facing != HexDirection.E:
-            <span class="hljs-keyword">return</span> Actions.face_direction(HexDirection.E)
+        <span class="hljs-comment"># Dash if possible</span>
         <span class="hljs-keyword">if</span> game_state.me.dash_cooldown == <span class="hljs-number">0</span>:
-            <span class="hljs-keyword">return</span> Actions.dash(<span class="hljs-number">4</span>)
+            <span class="hljs-keyword">return</span> Actions.dash(<span class="hljs-number">6</span>)
+        <span class="hljs-comment"># Otherwise, just walk like a normal person</span>
         <span class="hljs-keyword">return</span> Actions.move()
 </code></pre>
 
