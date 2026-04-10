@@ -3,7 +3,7 @@
  * Communicates with the main thread via postMessage.
  *
  * Messages IN:
- *   { type: 'init', data: { hexGridPy, actionsPy, botCode, interruptBuffer? } }
+ *   { type: 'init', data: { hexGridPy, actionsPy, splatbotDataTypesPy, botCode, interruptBuffer? } }
  *   { type: 'decide', data: { gameState, decisionId } }
  *   { type: 'resetMatch' } — re-run Bot() so instance state does not persist across matches
  *
@@ -51,6 +51,7 @@ self.onmessage = async function (e) {
       pyodide.FS.writeFile('/lib/utils/__init__.py', '');
       pyodide.FS.writeFile('/lib/utils/hex_grid.py', data.hexGridPy);
       pyodide.FS.writeFile('/lib/utils/actions.py', data.actionsPy);
+      pyodide.FS.writeFile('/lib/utils/splatbot_data_types.py', data.splatbotDataTypesPy);
 
       pyodide.runPython("import sys; sys.path.insert(0, '/lib')");
 

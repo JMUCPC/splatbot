@@ -39,7 +39,7 @@
     <main class="docs-main markdown-body">
 <h1 id="utilssplatbot_data_types-api-reference" tabindex="-1"><code>utils.splatbot_data_types</code> API Reference</h1>
 <p>Typing-only template datatypes for editor hints and static checking.</p>
-<p>These classes are included in starter downloads as a reference for bot authors. The runtime <code>game_state</code> object is still constructed by the sandbox worker and is read-only.</p>
+<p>These classes are included in starter downloads and <strong>mounted in the Pyodide sandbox</strong> as <code>utils/splatbot_data_types.py</code>, so you can import them in bot scripts. The runtime <code>game_state</code> object is still constructed by the sandbox worker and is read-only.</p>
 <h2 id="module-exports-public-api" tabindex="-1">Module exports (public API)</h2>
 <ul>
 <li><code>BotInfo</code></li>

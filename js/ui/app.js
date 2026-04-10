@@ -992,7 +992,7 @@ export async function preloadWorkers() {
   updateLoadingStatus('Starting Python sandbox (first load may take a moment)...');
   for (const pid of [1, 2]) {
     runners[pid] = new BotRunner(pid, STUB_BOT_CODE);
-    await runners[pid].init(hexGridPy, actionsPy);
+    await runners[pid].init(hexGridPy, actionsPy, splatbotDataTypesPy);
   }
 
   const defaultId = getDefaultBotId(botCatalog);

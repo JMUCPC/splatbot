@@ -9,8 +9,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-
-from utils.hex_grid import Hex, HexDirection
+# This is a workaround to avoid circular imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from utils.hex_grid import Hex, HexDirection
 
 __all__ = ["BotInfo", "GameState"]
 

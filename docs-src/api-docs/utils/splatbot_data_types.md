@@ -2,7 +2,7 @@
 
 Typing-only template datatypes for editor hints and static checking.
 
-These classes are included in starter downloads as a reference for bot authors. The runtime `game_state` object is still constructed by the sandbox worker and is read-only.
+These classes are included in starter downloads and **mounted in the Pyodide sandbox** as `utils/splatbot_data_types.py`, so you can import them in bot scripts. The runtime `game_state` object is still constructed by the sandbox worker and is read-only.
 
 ## Module exports (public API)
 

@@ -46,9 +46,10 @@ export async function mountTryBotPreview(container, { source }) {
     throw new Error(shapeIssues);
   }
 
-  const [hexGridPy, actionsPy] = await Promise.all([
+  const [hexGridPy, actionsPy, splatbotDataTypesPy] = await Promise.all([
     fetchTextAtRoot('python/utils/hex_grid.py'),
     fetchTextAtRoot('python/utils/actions.py'),
+    fetchTextAtRoot('python/utils/splatbot_data_types.py'),
   ]);
 
   let state = null;
@@ -61,7 +62,7 @@ export async function mountTryBotPreview(container, { source }) {
     1: new BotRunner(1, STUB_BOT_CODE),
   };
 
-  await runners[1].init(hexGridPy, actionsPy);
+  await runners[1].init(hexGridPy, actionsPy, splatbotDataTypesPy);
   await runners[1].setBotCode(source);
 
   container.innerHTML = '';
