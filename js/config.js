@@ -125,7 +125,7 @@ const config = {
     straight_line: "straight_line_bot.py",
     ping_pong: "ping_pong_bot.py",
   },
-  LOAD_DEBUG_BOTS: true,
+  LOAD_DEBUG_BOTS: false,
   DEBUG_BOT_PATH: "python/bots/.debug/",
   DEBUG_BOTS: {
     no_return: "no_return_bot.py",

@@ -10,6 +10,12 @@ export const SETTINGS_TABS = [
   { id: 'appearance', label: 'Appearance' },
 ];
 
+const SETTINGS_TAB_DESCRIPTIONS = {
+  match: 'Adjust game size, pacing, and turn timing.',
+  rules: 'Configure which abilities are allowed and their stun/cooldown values.',
+  appearance: 'Customize bot markers and the match color palette.',
+};
+
 /** Rows for the Rules tab matrix (special abilities). Order matches UI. */
 export const RULE_ABILITY_ROWS = [
   {
@@ -517,6 +523,13 @@ export function buildSettingsUI(container, currentValues) {
     panel.id = `settings-tabpanel-${t.id}`;
     panel.setAttribute('role', 'tabpanel');
     panel.setAttribute('aria-labelledby', `settings-tab-${t.id}`);
+    const desc = SETTINGS_TAB_DESCRIPTIONS[t.id];
+    if (desc) {
+      const descEl = document.createElement('p');
+      descEl.className = 'settings-tab-description';
+      descEl.textContent = desc;
+      panel.appendChild(descEl);
+    }
     panelsById[t.id] = panel;
   }
 
