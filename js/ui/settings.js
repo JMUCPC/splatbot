@@ -1,7 +1,19 @@
 import config from '../config.js';
 
-const STORAGE_KEY = 'splatbot_settings_v1';
+/** Wrapped JSON files; plain objects with only setting keys are also accepted. */
+export const SETTINGS_PROFILE_FORMAT = 'splatbot-settings-profile';
+export const SETTINGS_PROFILE_VERSION = 1;
+
 const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+/** Session-only overrides (no localStorage). */
+let memoryOverrides = {};
+
+try {
+  localStorage.removeItem('splatbot_settings_v1');
+} catch {
+  /* ignore */
+}
 
 /** Tab ids used by `SETTING_SPECS[].tab`. */
 export const SETTINGS_TABS = [
@@ -116,7 +128,7 @@ export const SETTING_SPECS = [
 
 const SPEC_BY_KEY = Object.fromEntries(SETTING_SPECS.map(s => [s.key, s]));
 
-/** Map pre-refactor localStorage keys to current keys so saved settings still apply. */
+/** Map legacy profile keys to current keys (old field names / appearance split colors). */
 function migrateLegacySettingsKeys(overrides) {
   const o = { ...overrides };
   const pairs = [
@@ -278,16 +290,65 @@ function coerceSetting(spec, rawValue) {
 }
 
 export function loadOverrides() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+  return { ...memoryOverrides };
 }
 
 export function saveOverrides(overrides) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+  memoryOverrides = { ...overrides };
+}
+
+/**
+ * @param {string} text
+ * @returns {{ clean: Record<string, unknown> | null, errors: string[] }}
+ */
+export function parseSettingsProfileJSON(text) {
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    return { clean: null, errors: [`Invalid JSON: ${e.message}`] };
+  }
+  if (data == null || typeof data !== 'object' || Array.isArray(data)) {
+    return { clean: null, errors: ['Profile must be a JSON object'] };
+  }
+  let rawSettings;
+  if (data.format === SETTINGS_PROFILE_FORMAT) {
+    if (data.version !== SETTINGS_PROFILE_VERSION) {
+      return {
+        clean: null,
+        errors: [`Unsupported profile version (expected ${SETTINGS_PROFILE_VERSION}): ${data.version}`],
+      };
+    }
+    if (data.settings == null || typeof data.settings !== 'object' || Array.isArray(data.settings)) {
+      return { clean: null, errors: ['Profile is missing a "settings" object'] };
+    }
+    rawSettings = data.settings;
+  } else {
+    rawSettings = data;
+  }
+  const migrated = migrateLegacySettingsKeys(rawSettings);
+  const picked = {};
+  for (const spec of SETTING_SPECS) {
+    if (spec.key in migrated) picked[spec.key] = migrated[spec.key];
+  }
+  return validateOverrides(picked);
+}
+
+/** @param {Record<string, unknown>} flat effective values (all SETTING_SPECS keys) */
+export function serializeSettingsProfile(flat) {
+  const settings = {};
+  for (const spec of SETTING_SPECS) {
+    settings[spec.key] = flat[spec.key];
+  }
+  return `${JSON.stringify(
+    {
+      format: SETTINGS_PROFILE_FORMAT,
+      version: SETTINGS_PROFILE_VERSION,
+      settings,
+    },
+    null,
+    2,
+  )}\n`;
 }
 
 export function mergeWithDefaults(overrides) {

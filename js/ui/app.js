@@ -16,8 +16,14 @@ import {
   setPlayerCardFeedForPlayer,
 } from './player-card-log-feed.js';
 import {
-  loadOverrides, saveOverrides, mergeWithDefaults, applyToConfig,
-  buildSettingsUI, validateOverrides, SETTING_SPECS,
+  loadOverrides,
+  saveOverrides,
+  mergeWithDefaults,
+  applyToConfig,
+  buildSettingsUI,
+  validateOverrides,
+  serializeSettingsProfile,
+  parseSettingsProfileJSON,
 } from './settings.js';
 import { fireWinCelebration } from './confetti.js';
 import { BotRunner } from '../sandbox/bot-runner.js';
@@ -75,6 +81,107 @@ const uploadDisplayName = { 1: null, 2: null };
 let botControlsReady = false;
 
 const els = {};
+
+/** Auto-collapse once the main scroll area overflows by more than this (px). Higher = full cards stay until the layout is shorter. */
+const PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX = 56;
+/** Leave compact when content fits; small slack for subpixel / scrollbar rounding. */
+const PLAYER_CARD_COMPACT_EXIT_SLACK_PX = 6;
+let playerCardCompactRaf = 0;
+
+function getLayoutMetricsRoot() {
+  return document.getElementById('app-main') || document.getElementById('app');
+}
+
+function syncPlayerCardToggleButtons() {
+  const app = document.getElementById('app');
+  const compact = app?.classList.contains('app--player-cards-compact');
+  document.querySelectorAll('.player-card').forEach((card) => {
+    const btn = card.querySelector('.player-card-expand-btn');
+    if (!btn) return;
+    if (!compact) {
+      btn.hidden = true;
+      btn.setAttribute('hidden', '');
+      return;
+    }
+    btn.hidden = false;
+    btn.removeAttribute('hidden');
+    const expanded = card.classList.contains('player-card--expanded');
+    btn.setAttribute('aria-expanded', String(expanded));
+    const pid = card.id === 'player-card-2' ? '2' : '1';
+    btn.setAttribute('aria-label', expanded ? `Hide player ${pid} bot controls` : `Show player ${pid} bot controls`);
+  });
+}
+
+function updatePlayerCardsCompactLayout() {
+  const app = document.getElementById('app');
+  const metricsRoot = getLayoutMetricsRoot();
+  if (!app || !metricsRoot) return;
+  const compact = app.classList.contains('app--player-cards-compact');
+
+  if (!compact) {
+    void metricsRoot.offsetHeight;
+    if (metricsRoot.scrollHeight > metricsRoot.clientHeight + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
+      app.classList.add('app--player-cards-compact');
+      document.querySelectorAll('.player-card').forEach((c) => c.classList.remove('player-card--expanded'));
+    }
+  } else {
+    void metricsRoot.offsetHeight;
+    if (metricsRoot.scrollHeight <= metricsRoot.clientHeight + PLAYER_CARD_COMPACT_EXIT_SLACK_PX) {
+      app.classList.remove('app--player-cards-compact');
+      void metricsRoot.offsetHeight;
+      if (metricsRoot.scrollHeight > metricsRoot.clientHeight + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
+        app.classList.add('app--player-cards-compact');
+      } else {
+        document.querySelectorAll('.player-card').forEach((c) => c.classList.remove('player-card--expanded'));
+      }
+    }
+  }
+  syncPlayerCardToggleButtons();
+}
+
+function schedulePlayerCardsCompactLayout() {
+  if (playerCardCompactRaf) return;
+  playerCardCompactRaf = requestAnimationFrame(() => {
+    playerCardCompactRaf = 0;
+    updatePlayerCardsCompactLayout();
+  });
+}
+
+function initPlayerCardsCompactLayout() {
+  const app = document.getElementById('app');
+  const metricsRoot = getLayoutMetricsRoot();
+  if (!app || !metricsRoot) return;
+  const onViewportChange = () => schedulePlayerCardsCompactLayout();
+  const ro = new ResizeObserver(onViewportChange);
+  ro.observe(metricsRoot);
+  const gameLayout = document.querySelector('.game-layout');
+  if (gameLayout) ro.observe(gameLayout);
+  const hexWrap = document.getElementById('hex-grid');
+  if (hexWrap) ro.observe(hexWrap);
+
+  window.addEventListener('resize', onViewportChange);
+  const vv = window.visualViewport;
+  if (vv) {
+    vv.addEventListener('resize', onViewportChange);
+  }
+  window.addEventListener('orientationchange', () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(onViewportChange);
+    });
+  });
+
+  document.querySelectorAll('.player-card-expand-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!app.classList.contains('app--player-cards-compact')) return;
+      const card = btn.closest('.player-card');
+      if (!card) return;
+      card.classList.toggle('player-card--expanded');
+      syncPlayerCardToggleButtons();
+      schedulePlayerCardsCompactLayout();
+    });
+  });
+  schedulePlayerCardsCompactLayout();
+}
 
 function buildCrc32Table() {
   const table = new Uint32Array(256);
@@ -322,6 +429,12 @@ function showMatchEndModal() {
   if (els.matchEndStats) {
     const s1 = matchStats[1];
     const s2 = matchStats[2];
+    const t1 = runners[1]?.getTimingStats?.();
+    const t2 = runners[2]?.getTimingStats?.();
+    const avgDecision = (timing) => {
+      if (!timing || timing.decisionCount <= 0) return '0.00000s/dec';
+      return `${(timing.totalDecisionSeconds / timing.decisionCount).toFixed(5)}s/dec`;
+    };
     const rows = [
       ['Tiles painted', s1.tilesPainted, s2.tilesPainted],
       ['Tiles moved', s1.tilesMoved, s2.tilesMoved],
@@ -331,6 +444,7 @@ function showMatchEndModal() {
       ['Splat uses', s1.splats, s2.splats],
       ['Paintball uses', s1.paintballs, s2.paintballs],
       ['Blocked actions', s1.blockedActions, s2.blockedActions],
+      ['Avg decision', avgDecision(t1), avgDecision(t2)],
     ];
     els.matchEndStats.innerHTML = `
       <table class="match-end-stats-table" aria-label="Player match stats">
@@ -447,7 +561,6 @@ function setEventLogExpanded(expanded) {
   const app = document.getElementById('app');
   const panel = document.getElementById('event-log-panel');
   const expandBtn = document.getElementById('btn-event-log-expand');
-  const hideBtn = document.getElementById('btn-event-log-hide');
   if (!panel) return;
 
   /* Attribute + CSS `#event-log-panel[hidden]` — property alone can desync in some cases. */
@@ -461,19 +574,11 @@ function setEventLogExpanded(expanded) {
   else app?.classList.remove('event-log-expanded');
 
   if (expandBtn) {
-    if (expanded) {
-      expandBtn.setAttribute('hidden', '');
-    } else {
-      expandBtn.removeAttribute('hidden');
-    }
-    expandBtn.setAttribute('aria-expanded', 'false');
+    expandBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     expandBtn.textContent = 'EVENT LOG';
-    expandBtn.setAttribute('aria-label', 'Show event log');
+    expandBtn.setAttribute('aria-label', expanded ? 'Collapse event log' : 'Expand event log');
   }
-
-  if (hideBtn) {
-    hideBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-  }
+  schedulePlayerCardsCompactLayout();
 }
 
 function logPythonLoadFailure(pid, err) {
@@ -862,8 +967,6 @@ export function initApp() {
   els.score2 = document.getElementById('score-2');
   els.pct1 = document.getElementById('pct-1');
   els.pct2 = document.getElementById('pct-2');
-  els.decisionTime1 = document.getElementById('decision-time-1');
-  els.decisionTime2 = document.getElementById('decision-time-2');
   els.turnNum = document.getElementById('turn-num');
   els.maxTurns = document.getElementById('max-turns');
   els.progressFill = document.getElementById('progress-fill');
@@ -914,15 +1017,9 @@ export function initApp() {
     btnEventLogExpand.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setEventLogExpanded(true);
-    });
-  }
-  const btnEventLogHide = document.getElementById('btn-event-log-hide');
-  if (btnEventLogHide) {
-    btnEventLogHide.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setEventLogExpanded(false);
+      const panel = document.getElementById('event-log-panel');
+      const expanded = panel ? !panel.hasAttribute('hidden') : false;
+      setEventLogExpanded(!expanded);
     });
   }
   const btnEventLogClear = document.getElementById('btn-event-log-clear');
@@ -961,6 +1058,16 @@ export function initApp() {
   document.getElementById('btn-settings-reset').addEventListener('click', resetSettingsForm);
   document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings);
   document.getElementById('btn-settings-apply').addEventListener('click', applySettings);
+  const btnDownloadProfile = document.getElementById('btn-settings-download-profile');
+  const btnUploadProfile = document.getElementById('btn-settings-upload-profile');
+  const settingsProfileFile = document.getElementById('settings-profile-file');
+  if (btnDownloadProfile) {
+    btnDownloadProfile.addEventListener('click', () => downloadSettingsProfile());
+  }
+  if (btnUploadProfile && settingsProfileFile) {
+    btnUploadProfile.addEventListener('click', () => settingsProfileFile.click());
+    settingsProfileFile.addEventListener('change', onSettingsProfileFileChange);
+  }
   els.speedSlider.addEventListener('input', (e) => setSpeed(Number(e.target.value)));
   if (els.matchEndClose) {
     els.matchEndClose.addEventListener('click', hideMatchEndModal);
@@ -970,6 +1077,8 @@ export function initApp() {
       if (e.target === els.matchEndModal) hideMatchEndModal();
     });
   }
+
+  initPlayerCardsCompactLayout();
 
   push();
   logEvent('Splatbot ready — press START to begin demo.');
@@ -1047,20 +1156,6 @@ function push() {
   els.maxTurns.textContent = `/ ${state.maxTurns}`;
   els.progressFill.style.width = `${(pct * 100).toFixed(1)}%`;
 
-  for (const pid of [1, 2]) {
-    const runner = runners[pid];
-    const el = pid === 1 ? els.decisionTime1 : els.decisionTime2;
-    if (runner) {
-      const stats = runner.getTimingStats();
-      const avg = stats.decisionCount > 0
-        ? stats.totalDecisionSeconds / stats.decisionCount
-        : 0;
-      el.textContent = `${avg.toFixed(5)}s/dec`;
-    } else {
-      el.textContent = '0.00000s/dec';
-    }
-  }
-
   if (state.isOver) {
     const w = state.winner();
     if (w === 1) {
@@ -1073,11 +1168,8 @@ function push() {
       els.status.textContent = 'DRAW';
       els.status.style.color = '#8899aa';
     }
-  } else if (running) {
-    els.status.textContent = '● LIVE';
-    els.status.style.color = '#22cc66';
   } else {
-    els.status.textContent = '● PAUSED';
+    els.status.textContent = '';
     els.status.style.color = '#4a6080';
   }
 
@@ -1089,6 +1181,7 @@ function push() {
   }
 
   syncStepControls();
+  schedulePlayerCardsCompactLayout();
 }
 
 // ── Control callbacks ────────────────────────────────────────────────────
@@ -1394,6 +1487,52 @@ async function gameLoop() {
 }
 
 // ── Settings dialog ──────────────────────────────────────────────────────
+
+function downloadSettingsProfile() {
+  let flat;
+  if (settingsForm) {
+    const { clean, errors } = validateOverrides(settingsForm.getValues());
+    if (errors.length > 0) {
+      logEvent(`Settings profile: fix errors first — ${errors[0]}`);
+      return;
+    }
+    flat = mergeWithDefaults(clean);
+  } else {
+    flat = mergeWithDefaults(loadOverrides());
+  }
+  const blob = new Blob([serializeSettingsProfile(flat)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'splatbot-settings.json';
+  a.rel = 'noopener';
+  a.click();
+  URL.revokeObjectURL(url);
+  logEvent('Settings profile downloaded.');
+}
+
+function onSettingsProfileFileChange(e) {
+  const input = e.target;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = typeof reader.result === 'string' ? reader.result : '';
+    const { clean, errors } = parseSettingsProfileJSON(text);
+    if (errors.length > 0 || clean == null) {
+      logEvent(`Settings profile: ${errors[0] ?? 'Invalid file'}`);
+      return;
+    }
+    saveOverrides(clean);
+    if (settingsForm) {
+      settingsForm.setValues(mergeWithDefaults(clean));
+    }
+    logEvent('Profile loaded — review the form and press Apply to use it in a match.');
+  };
+  reader.onerror = () => logEvent('Settings profile: could not read file.');
+  reader.readAsText(file);
+}
 
 function openSettings() {
   const overrides = loadOverrides();

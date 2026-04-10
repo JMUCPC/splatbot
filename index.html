@@ -17,60 +17,78 @@
   </div>
 
   <div id="app" class="app-container">
-    <div class="header-row">
-      <div class="sb-cond title" style="display:flex;align-items:center;gap:14px">
-        <span>SPLATBOT</span>
-        <a href="docs/" class="sb-btn" style="letter-spacing:0.2em;text-decoration:none;display:inline-flex;align-items:center" target="_blank" rel="noopener noreferrer">DOCS</a>
+    <div id="app-main" class="app-main">
+    <div class="game-layout">
+      <div class="main-row-gutter main-row-gutter--brand">
+        <div class="sb-cond title header-brand-title">SPLATBOT</div>
       </div>
-      <div id="status" class="status">● PAUSED</div>
-      <div class="button-group">
-        <button type="button" id="btn-run" class="sb-btn" aria-label="Start or pause match">&#9654;  START</button>
-        <div class="sb-step-wrap" id="step-control-wrap">
-          <button type="button" id="btn-step" class="sb-btn sb-step-main" disabled aria-label="Step simulation forward by the chosen number of ticks">Step 1 tick</button>
-          <button type="button" id="btn-step-menu" class="sb-btn sb-step-chevron" disabled aria-label="Choose ticks per step" aria-expanded="false" aria-haspopup="menu" aria-controls="step-tick-menu">&#9662;</button>
-          <div id="step-tick-menu" class="sb-step-menu" role="menu" hidden aria-label="Ticks per step">
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="1">1 tick</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="2">2 ticks</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="3">3 ticks</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="5">5 ticks</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="10">10 ticks</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="25">25 ticks</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="50">50 ticks</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="100">100 ticks</button>
-            <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" id="btn-step-custom">Custom…</button>
-            <div id="step-tick-custom-panel" class="sb-step-custom-panel" hidden>
-              <div class="sb-step-custom-row">
-                <input type="number" id="step-tick-custom-input" class="sb-input sb-step-custom-input" min="1" max="99999" step="1" value="1" inputmode="numeric" aria-label="Custom number of ticks">
-                <button type="button" class="sb-btn sb-step-custom-apply" id="step-tick-custom-apply" role="menuitem">Apply</button>
+      <div class="hex-column hex-column--controls-only">
+        <div class="hex-control-bar" role="toolbar" aria-label="Match controls">
+          <div class="button-group">
+            <button type="button" id="btn-run" class="sb-btn" aria-label="Start or pause match">&#9654;  START</button>
+            <div class="sb-step-wrap" id="step-control-wrap">
+              <button type="button" id="btn-step" class="sb-btn sb-step-main" disabled aria-label="Step simulation forward by the chosen number of ticks">Step 1 tick</button>
+              <button type="button" id="btn-step-menu" class="sb-btn sb-step-chevron" disabled aria-label="Choose ticks per step" aria-expanded="false" aria-haspopup="menu" aria-controls="step-tick-menu">&#9662;</button>
+              <div id="step-tick-menu" class="sb-step-menu" role="menu" hidden aria-label="Ticks per step">
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="1">1 tick</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="2">2 ticks</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="3">3 ticks</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="5">5 ticks</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="10">10 ticks</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="25">25 ticks</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="50">50 ticks</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" data-ticks="100">100 ticks</button>
+                <button type="button" class="sb-btn sb-step-menu-btn" role="menuitem" id="btn-step-custom">Custom…</button>
+                <div id="step-tick-custom-panel" class="sb-step-custom-panel" hidden>
+                  <div class="sb-step-custom-row">
+                    <input type="number" id="step-tick-custom-input" class="sb-input sb-step-custom-input" min="1" max="99999" step="1" value="1" inputmode="numeric" aria-label="Custom number of ticks">
+                    <button type="button" class="sb-btn sb-step-custom-apply" id="step-tick-custom-apply" role="menuitem">Apply</button>
+                  </div>
+                </div>
               </div>
             </div>
+            <button id="btn-reset" class="sb-btn">&#8634;  RESET</button>
+            <button id="btn-settings" class="sb-btn">&#9881;  SETTINGS</button>
           </div>
         </div>
-        <button id="btn-reset" class="sb-btn">&#8634;  RESET</button>
-        <button id="btn-settings" class="sb-btn">&#9881;  SETTINGS</button>
       </div>
-    </div>
-
-    <div class="main-row">
+      <div class="main-row-gutter main-row-gutter--actions">
+        <div id="status" class="status header-row-status"></div>
+        <a
+          href="docs/"
+          class="header-docs-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open documentation: code a bot (opens in new tab)"
+        >Code a bot<span class="header-docs-link__ext" aria-hidden="true"> ↗</span></a>
+      </div>
       <div class="sb-card player-card" id="player-card-1">
-        <div class="sb-label-xs player-card-title">PLAYER  1</div>
-        <div id="score-1" class="sb-score">0</div>
-        <div id="pct-1" class="sb-label-xs">0.0%</div>
-        <div id="decision-time-1" class="sb-label-xs">0.00000s/dec</div>
-        <hr class="sb-divider">
-        <div class="sb-label-xs">BOT SCRIPT</div>
-        <select id="bot-select-1" class="sb-select" aria-label="Player 1 bot script"></select>
-        <div class="sb-label-xs">BOT FILE</div>
-        <div class="sb-file-upload-wrap">
-          <input type="file" id="bot-file-1" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 1 bot Python file">
-          <div class="sb-file-upload-actions">
-            <button type="button" id="bot-file-choose-1" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Choose or replace player 1 bot Python file">CHOOSE FILE</button>
+        <div class="player-card-summary">
+          <div class="player-card-summary-main">
+            <div class="sb-label-xs player-card-title">PLAYER  1</div>
+            <div id="score-1" class="sb-score">0</div>
+            <div id="pct-1" class="sb-label-xs">0.0%</div>
           </div>
-          <div id="bot-file-status-1" class="sb-file-status" aria-live="polite"></div>
+          <button type="button" class="player-card-expand-btn" id="player-card-expand-1" hidden aria-expanded="false" aria-controls="player-card-details-1" aria-label="Show player 1 bot controls">
+            <span class="player-card-expand-icon" aria-hidden="true">&#9660;</span>
+          </button>
         </div>
-        <div class="player-card-log-block">
-          <div class="sb-label-xs player-card-feed-heading">FROM EVENT LOG</div>
-          <div id="player-card-feed-1" class="player-card-feed" role="status" aria-live="polite"></div>
+        <div class="player-card-details" id="player-card-details-1">
+          <hr class="sb-divider">
+          <div class="sb-label-xs">BOT SCRIPT</div>
+          <select id="bot-select-1" class="sb-select" aria-label="Player 1 bot script"></select>
+          <div class="sb-label-xs">BOT FILE</div>
+          <div class="sb-file-upload-wrap">
+            <input type="file" id="bot-file-1" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 1 bot Python file">
+            <div class="sb-file-upload-actions">
+              <button type="button" id="bot-file-choose-1" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Choose or replace player 1 bot Python file">CHOOSE FILE</button>
+            </div>
+            <div id="bot-file-status-1" class="sb-file-status" aria-live="polite"></div>
+          </div>
+          <div class="player-card-log-block">
+            <div class="sb-label-xs player-card-feed-heading">FROM EVENT LOG</div>
+            <div id="player-card-feed-1" class="player-card-feed" role="status" aria-live="polite"></div>
+          </div>
         </div>
       </div>
 
@@ -79,28 +97,38 @@
       </div>
 
       <div class="sb-card player-card" id="player-card-2">
-        <div class="sb-label-xs player-card-title">PLAYER  2</div>
-        <div id="score-2" class="sb-score">0</div>
-        <div id="pct-2" class="sb-label-xs">0.0%</div>
-        <div id="decision-time-2" class="sb-label-xs">0.00000s/dec</div>
-        <hr class="sb-divider">
-        <div class="sb-label-xs">BOT SCRIPT</div>
-        <select id="bot-select-2" class="sb-select" aria-label="Player 2 bot script"></select>
-        <div class="sb-label-xs">BOT FILE</div>
-        <div class="sb-file-upload-wrap">
-          <input type="file" id="bot-file-2" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 2 bot Python file">
-          <div class="sb-file-upload-actions">
-            <button type="button" id="bot-file-choose-2" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Choose or replace player 2 bot Python file">CHOOSE FILE</button>
+        <div class="player-card-summary">
+          <div class="player-card-summary-main">
+            <div class="sb-label-xs player-card-title">PLAYER  2</div>
+            <div id="score-2" class="sb-score">0</div>
+            <div id="pct-2" class="sb-label-xs">0.0%</div>
           </div>
-          <div id="bot-file-status-2" class="sb-file-status" aria-live="polite"></div>
+          <button type="button" class="player-card-expand-btn" id="player-card-expand-2" hidden aria-expanded="false" aria-controls="player-card-details-2" aria-label="Show player 2 bot controls">
+            <span class="player-card-expand-icon" aria-hidden="true">&#9660;</span>
+          </button>
         </div>
-        <div class="player-card-log-block">
-          <div class="sb-label-xs player-card-feed-heading">FROM EVENT LOG</div>
-          <div id="player-card-feed-2" class="player-card-feed" role="status" aria-live="polite"></div>
+        <div class="player-card-details" id="player-card-details-2">
+          <hr class="sb-divider">
+          <div class="sb-label-xs">BOT SCRIPT</div>
+          <select id="bot-select-2" class="sb-select" aria-label="Player 2 bot script"></select>
+          <div class="sb-label-xs">BOT FILE</div>
+          <div class="sb-file-upload-wrap">
+            <input type="file" id="bot-file-2" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 2 bot Python file">
+            <div class="sb-file-upload-actions">
+              <button type="button" id="bot-file-choose-2" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Choose or replace player 2 bot Python file">CHOOSE FILE</button>
+            </div>
+            <div id="bot-file-status-2" class="sb-file-status" aria-live="polite"></div>
+          </div>
+          <div class="player-card-log-block">
+            <div class="sb-label-xs player-card-feed-heading">FROM EVENT LOG</div>
+            <div id="player-card-feed-2" class="player-card-feed" role="status" aria-live="polite"></div>
+          </div>
         </div>
       </div>
     </div>
+    </div>
 
+    <div class="app-dock">
     <div class="turn-row">
       <button type="button" id="btn-download-starter-code" class="sb-btn sb-btn--compact" aria-label="Download starter bot code zip" disabled>DOWNLOAD STARTER CODE</button>
       <div class="sb-label-xs" style="flex-shrink:0">TURN</div>
@@ -110,7 +138,7 @@
         <div id="progress-fill" class="sb-progress-fill"></div>
       </div>
       <div class="sb-label-xs" style="flex-shrink:0">SPEED</div>
-      <input type="range" id="speed-slider" class="sb-slider" min="1" max="20" step="1" value="15">
+      <input type="range" id="speed-slider" class="sb-slider" min="1" max="20" step="1" value="15" aria-label="Match speed, slower to faster">
       <button type="button" id="btn-event-log-expand" class="sb-btn sb-btn--compact turn-row-event-log-btn" aria-expanded="false" aria-controls="event-log-panel">EVENT LOG</button>
     </div>
 
@@ -144,11 +172,11 @@
         </div>
         <div class="event-log-toolbar-actions">
           <button type="button" id="btn-event-log-clear" class="sb-btn sb-btn--compact" aria-controls="event-log" aria-label="Clear event log">CLEAR LOG</button>
-          <button type="button" id="btn-event-log-hide" class="sb-btn sb-btn--compact" aria-controls="event-log-panel" aria-label="Hide event log">HIDE LOG</button>
           <button type="button" id="btn-event-log-popout" class="sb-btn sb-btn--compact">POP OUT</button>
         </div>
       </div>
       <div id="event-log" class="event-log"></div>
+    </div>
     </div>
 
     <footer class="app-footer">
@@ -161,9 +189,14 @@
     <div class="sb-card settings-card">
       <div class="sb-cond" style="font-size:1.75rem; font-weight:700; letter-spacing:0.14em; color:#dde8f0">SETTINGS</div>
       <div style="font-family:'Share Tech Mono',monospace; font-size:1.02rem; color:#8a9db4; margin-bottom:8px">
-        Changes apply at runtime and are saved per browser.
+        Apply keeps settings for this session only. Use Download / Load profile to save or restore JSON on disk.
       </div>
       <div id="settings-fields" class="settings-fields"></div>
+      <div class="settings-profile-actions">
+        <button type="button" id="btn-settings-download-profile" class="sb-btn sb-btn--compact">DOWNLOAD PROFILE</button>
+        <button type="button" id="btn-settings-upload-profile" class="sb-btn sb-btn--compact">LOAD PROFILE…</button>
+        <input type="file" id="settings-profile-file" class="sb-file-input-native" accept=".json,application/json" aria-label="Choose settings profile JSON file">
+      </div>
       <div class="settings-actions">
         <button id="btn-settings-reset" class="sb-btn">RESET TO DEFAULTS</button>
         <button id="btn-settings-cancel" class="sb-btn">CANCEL</button>
