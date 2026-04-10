@@ -16,3 +16,4 @@ api-docs/game_data.md
 api-docs/bot_info.md
 api-docs/utils/actions.md
 api-docs/utils/hex_grid.md
+api-docs/utils/splatbot_data_types.md

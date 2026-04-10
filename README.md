@@ -57,7 +57,6 @@ Bots are Python scripts that define a `class Bot` with `decide(self, game_state)
 
 ```python
 from utils.actions import Actions
-from utils.hex_grid import HexDirection
 
 
 class Bot:
@@ -70,15 +69,12 @@ class Bot:
         # game_state.turn         — current turn number
         # game_state.max_turns    — total turns in the match
         # Also: Actions.skip(), Actions.splat(), turning helpers, Actions.dash(distance), Actions.shoot_paintball()
-        me = game_state.me
-        if me.facing != HexDirection.E:
-            return Actions.face_direction(HexDirection.E)
         return Actions.move()
 ```
 
 `Bot()` is created once when your script loads in the worker; use `self` to keep state between turns.
 
-Available imports inside the sandbox: `utils.hex_grid` and `utils.actions`.
+Available imports inside the sandbox: `utils.hex_grid`, `utils.actions`, and `utils.splatbot_data_types` (typing/reference templates).
 
 ## Settings
 

@@ -1,20 +1,14 @@
-"""Ping-pong east/west along the q-axis using facing + ``face_direction`` at edges."""
+"""Ping-pong: move forward until the map edge, then turn 180° and repeat."""
 
 from utils.actions import Actions
-from utils.hex_grid import HexDirection, hex_neighbor
+from utils.hex_grid import HexUtils
 
 
 class Bot:
-    def __init__(self):
-        self._going_east = True
-
     def decide(self, game_state):
         me = game_state.me
-        d = HexDirection.E if self._going_east else HexDirection.W
-        nbr = hex_neighbor(me.position, d)
-        if nbr not in game_state.grid:
-            self._going_east = not self._going_east
-            d = HexDirection.E if self._going_east else HexDirection.W
-        if me.facing != d:
-            return Actions.face_direction(d)
+        hx = HexUtils(game_state)
+        forward = hx.hex_neighbor(me.position, me.facing)
+        if forward not in game_state.grid:
+            return Actions.turn_180()
         return Actions.move()

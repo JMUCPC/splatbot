@@ -59,6 +59,7 @@ let settingsForm = null;
 let hexGridPy = '';
 let actionsPy = '';
 let starterCodePy = '';
+let splatbotDataTypesPy = '';
 const STARTER_ZIP_NAME = 'splatbot_starter_code.zip';
 
 /** @type {Map<string, string>} */
@@ -190,8 +191,8 @@ function downloadBlob(blob, filename) {
 }
 
 async function ensureStarterCodeSourcesLoaded() {
-  if (actionsPy && hexGridPy && starterCodePy) return;
-  const [hg, ac, starter] = await Promise.all([
+  if (actionsPy && hexGridPy && starterCodePy && splatbotDataTypesPy) return;
+  const [hg, ac, starter, dataTypes] = await Promise.all([
     hexGridPy
       ? Promise.resolve(hexGridPy)
       : fetch('python/utils/hex_grid.py').then((r) => {
@@ -210,10 +211,17 @@ async function ensureStarterCodeSourcesLoaded() {
         if (!r.ok) throw new Error(`python/starter_code.py (${r.status})`);
         return r.text();
       }),
+    splatbotDataTypesPy
+      ? Promise.resolve(splatbotDataTypesPy)
+      : fetch('python/utils/splatbot_data_types.py').then((r) => {
+        if (!r.ok) throw new Error(`python/utils/splatbot_data_types.py (${r.status})`);
+        return r.text();
+      }),
   ]);
   hexGridPy = hg;
   actionsPy = ac;
   starterCodePy = starter;
+  splatbotDataTypesPy = dataTypes;
 }
 
 async function downloadStarterCodeZip() {
@@ -228,6 +236,7 @@ async function downloadStarterCodeZip() {
   const zip = makeStoredZip([
     { path: 'utils/actions.py', content: actionsPy },
     { path: 'utils/hex_grid.py', content: hexGridPy },
+    { path: 'utils/splatbot_data_types.py', content: splatbotDataTypesPy },
     { path: 'starter_code.py', content: starterCodePy },
   ]);
   downloadBlob(zip, STARTER_ZIP_NAME);
@@ -958,19 +967,21 @@ export function updateLoadingStatus(text) {
 export async function preloadWorkers() {
   botControlsReady = false;
   updateLoadingStatus('Fetching Python modules...');
-  const [hg, ac, starter] = await Promise.all([
+  const [hg, ac, starter, dataTypes] = await Promise.all([
     fetch('python/utils/hex_grid.py').then((r) => r.text()),
     fetch('python/utils/actions.py').then((r) => r.text()),
     fetch('python/starter_code.py').then((r) => r.text()),
+    fetch('python/utils/splatbot_data_types.py').then((r) => r.text()),
   ]);
   hexGridPy = hg;
   actionsPy = ac;
   starterCodePy = starter;
+  splatbotDataTypesPy = dataTypes;
 
   updateLoadingStatus('Starting Python sandbox (first load may take a moment)...');
   for (const pid of [1, 2]) {
     runners[pid] = new BotRunner(pid, STUB_BOT_CODE);
-    await runners[pid].init(hexGridPy, actionsPy);
+    await runners[pid].init(hexGridPy, actionsPy, splatbotDataTypesPy);
   }
 
   const defaultId = getDefaultBotId(botCatalog);

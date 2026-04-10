@@ -1,24 +1,23 @@
 """utils/hex_grid.py — Axial-coordinate hex grid utilities.
 
 Uses pointy-top hexagon orientation; axial E/W align with screen right/left (+x / −x).
+Grid helpers live on :class:`HexUtils`, constructed with the current ``game_state``.
 Reference: https://www.redblobgames.com/grids/hexagons/
 """
 from __future__ import annotations
 from enum import IntEnum
-import math
-
+from utils.splatbot_data_types import BotInfo, GameState
 
 class Hex:
     """Axial (q, r) hex coordinate with optional tile-ownership controller.
 
     Equality and hashing use *only* ``(q, r)`` so geometric lookups
-    (``hex_neighbor(...) in grid``) work regardless of controller state.
+    (``HexUtils(game_state).hex_neighbor(...) in grid``) work regardless of controller state.
     ``controller`` is ``BotInfo | None`` in the sandbox snapshot.
     """
 
-    __slots__ = ("q", "r", "controller")
-
-    def __init__(self, q: int, r: int, controller: object | None = None) -> None:
+    def __init__(self, q: int, r: int, controller: BotInfo | None = None) -> None:
+        # Use object.__setattr__ to set the attributes of the class while maintaining immutability
         object.__setattr__(self, "q", q)
         object.__setattr__(self, "r", r)
         object.__setattr__(self, "controller", controller)
@@ -64,9 +63,8 @@ class Hex:
 class HexVector:
     """Immutable axial vector offset (dq, dr)."""
 
-    __slots__ = ("q", "r")
-
     def __init__(self, q: int, r: int) -> None:
+        # Use object.__setattr__ to set the attributes of the class while maintaining immutability
         object.__setattr__(self, "q", q)
         object.__setattr__(self, "r", r)
 
@@ -125,44 +123,53 @@ HEX_DIRECTIONS: list[HexVector] = [
 ]
 
 
-def hex_neighbors(h: Hex) -> list[Hex]:
-    return [hex_neighbor(h, d) for d in HexDirection]
+class HexUtils:
+    """Hex grid helpers bound to a turn snapshot (``game_state``).
 
+    The snapshot is the same object passed to ``Bot.decide``; it is stored so
+    methods can use board context where needed.
+    """
 
-def hex_neighbor(h: Hex, direction: int | HexDirection) -> Hex:
-    """Return the neighbor of `h` in direction 0–5 (wraps mod 6)."""
-    return h + HEX_DIRECTIONS[int(direction) % 6]
+    def __init__(self, game_state: GameState) -> None:
+        self.game_state = game_state
+        
+    def hex_neighbor(self, h: Hex, direction: int | HexDirection) -> Hex:
+        """Return the neighbor of `h` in direction 0–5 (wraps mod 6)."""
+        direction_index = int(direction) % 6
+        step = HEX_DIRECTIONS[direction_index]
+        return h + step
 
+    def hex_neighbors(self, h: Hex) -> list[Hex]:
+        """Return all six neighbors of ``h`` in enum order (E → SE)."""
+        neighbors: list[Hex] = []
+        for direction in HexDirection:
+            neighbor = self.hex_neighbor(h, direction)
+            neighbors.append(neighbor)
+        return neighbors
 
-def hex_distance(a: Hex, b: Hex) -> int:
-    """Axial cube-distance between two hexes."""
-    d = a - b
-    return (abs(d.q) + abs(d.q + d.r) + abs(d.r)) // 2
+    def in_grid_neighbors(self, h: Hex) -> list[Hex]:
+        """Return only neighbors that are present in ``game_state.grid``."""
+        in_grid: list[Hex] = []
+        for neighbor in self.hex_neighbors(h):
+            if neighbor in self.game_state.grid:
+                in_grid.append(neighbor)
+        return in_grid
 
+    def hex_at(self, h: Hex) -> Hex | None:
+        """Return the matching grid tile object for position ``h``, if present."""
+        for tile in self.game_state.grid:
+            if tile == h:
+                return tile
+        return None
 
-# def generate_hex_grid(radius: int) -> set[Hex]:
-#     """All hexes whose axial distance from the origin is ≤ `radius`."""
-#     return {
-#         Hex(q, r)
-#         for q in range(-radius, radius + 1)
-#         for r in range(-radius, radius + 1)
-#         if abs(q + r) <= radius
-#     }
+    def hex_controller(self, h: Hex) -> BotInfo | None:
+        """Return controller of tile ``h`` from the current grid, or ``None``."""
+        tile = self.hex_at(h)
+        if tile is None:
+            return None
+        return tile.controller
 
-
-# def axial_to_pixel(q: int, r: int, size: float) -> tuple[float, float]:
-#     """Pointy-top hex: axial (q, r) → pixel center (E increases x, W decreases x)."""
-#     x = size * math.sqrt(3.0) * (q + r / 2.0)
-#     y = size * 1.5 * r
-#     return x, y
-
-
-# def hex_corners(cx: float, cy: float, size: float) -> list[tuple[float, float]]:
-#     """Six corner points for a pointy-top hex (size = center to vertex)."""
-#     return [
-#         (
-#             cx + size * math.cos(math.radians(60.0 * i - 90.0)),
-#             cy + size * math.sin(math.radians(60.0 * i - 90.0)),
-#         )
-#         for i in range(6)
-# ]
+    def hex_distance(self, a: Hex, b: Hex) -> int:
+        """Axial cube-distance between two hexes."""
+        d = a - b
+        return (abs(d.q) + abs(d.q + d.r) + abs(d.r)) // 2

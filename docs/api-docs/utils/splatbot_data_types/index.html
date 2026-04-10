@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>`utils.splatbot_data_types` API Reference · Splatbot</title>
+  <link rel="icon" href="../../../../images/splat.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../css/docs.css">
+  <link rel="stylesheet" href="../../../../css/docs-hljs.css">
+</head>
+<body class="docs-body">
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <a class="docs-sidebar-brand" href="../../../../index.html">Splatbot</a>
+      <div class="docs-search" role="search">
+        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
+        <ul class="docs-search-results" role="listbox" hidden></ul>
+      </div>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-title">Articles</li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../../index.html">Splatbot Documentation</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../writing-bots/index.html">Writing Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../hex-grid/index.html">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Advanced Debugging</a></div></li>
+<li class="docs-sidebar-title">API Docs</li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../game_data/index.html">Game state (`game_state`) API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../bot_info/index.html">Bot info API Reference</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../actions/index.html">`utils.actions` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
+      </ul>
+    </div>
+  </aside>
+    <main class="docs-main markdown-body">
+<h1 id="utilssplatbot_data_types-api-reference" tabindex="-1"><code>utils.splatbot_data_types</code> API Reference</h1>
+<p>Typing-only template datatypes for editor hints and static checking.</p>
+<p>These classes are included in starter downloads and <strong>mounted in the Pyodide sandbox</strong> as <code>utils/splatbot_data_types.py</code>, so you can import them in bot scripts. The runtime <code>game_state</code> object is still constructed by the sandbox worker and is read-only.</p>
+<h2 id="module-exports-public-api" tabindex="-1">Module exports (public API)</h2>
+<ul>
+<li><code>BotInfo</code></li>
+<li><code>GameState</code></li>
+</ul>
+<hr>
+<h2 id="botinfo" tabindex="-1"><code>BotInfo</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">BotInfo</span>:
+    pid: <span class="hljs-built_in">int</span>
+    position: Hex
+    facing: HexDirection
+    stun: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span>
+    splat_cooldown: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span>
+    dash_cooldown: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span>
+    paintball_cooldown: <span class="hljs-built_in">int</span> = <span class="hljs-number">0</span>
+</code></pre>
+<p>Template shape for per-player state exposed on <code>game_state</code> (<code>game_state.me</code>, values in <code>game_state.opponents</code>, and <code>game_state.opponent</code> in 1v1).</p>
+<hr>
+<h2 id="gamestate" tabindex="-1"><code>GameState</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">GameState</span>:
+    me: BotInfo
+    opponents: MappingProxyType[<span class="hljs-built_in">int</span>, BotInfo]
+    opponent: BotInfo | <span class="hljs-literal">None</span>
+    grid: <span class="hljs-built_in">frozenset</span>[Hex]
+    turn: <span class="hljs-built_in">int</span>
+    max_turns: <span class="hljs-built_in">int</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_grid_as_2D_list</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">list</span>[<span class="hljs-built_in">list</span>[Hex]]: ...
+</code></pre>
+<p>Template shape for the read-only snapshot passed to <code>Bot.decide(self, game_state)</code>.</p>
+<p>Use <code>game_state.me.pid</code> as the player id source.</p>
+<h3 id="get_grid_as_2d_list" tabindex="-1"><code>get_grid_as_2D_list</code></h3>
+<p>Returns grid tiles grouped by axial rows (<code>r</code> ascending), then sorted by <code>q</code> within each row.</p>
+<hr>
+<h2 id="notes" tabindex="-1">Notes</h2>
+<ul>
+<li>This module is for typing/reference; it does not create or mutate runtime sandbox objects.</li>
+<li>Runtime semantics are documented in <a href="../../game_data/index.html">Game state (<code>game_state</code>)</a> and <a href="../../bot_info/index.html">Bot info</a>.</li>
+</ul>
+
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../hex_grid/index.html">&larr; Back: `utils.hex_grid` API Reference</a><span class="docs-pager-spacer" aria-hidden="true"></span></nav>
+    </main>
+  </div>
+  <script src="../../../../js/bot-runnable.js" defer></script>
+  <script src="../../../../js/docs-copy-code.js" defer></script>
+  <script src="../../../../js/vendor/minisearch.js" defer></script>
+  <script src="../../../../js/docs-search.js" defer></script>
+  <script type="module" src="../../../../js/docs/action-demos.js"></script>
+  <script type="module" src="../../../../js/docs/hex-hover-demos.js"></script>
+  <script type="module" src="../../../../js/docs/hex-distance-demos.js"></script>
+</body>
+</html>

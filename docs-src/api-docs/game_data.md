@@ -42,9 +42,12 @@ All **other** players in the match, keyed by their player id. Read-only (`types.
 Convenience shortcut: the **single** opponent's `BotInfo` when there is exactly one opponent (the standard 1v1 case). `None` if there are zero or more than one opponents.
 
 ```python
+from utils.hex_grid import HexUtils
+
 opp = game_state.opponent
 if opp is not None:
-    dist = hex_distance(game_state.me.position, opp.position)
+    hx = HexUtils(game_state)
+    dist = hx.hex_distance(game_state.me.position, opp.position)
 ```
 
 ### `grid: frozenset[Hex]`
@@ -57,7 +60,7 @@ for hex in game_state.grid:
         ...  # this tile is mine
 ```
 
-Position checks like `hex_neighbor(pos, d) in game_state.grid` still work — `Hex` equality uses only `(q, r)`, not `controller`.
+Position checks like `HexUtils(game_state).hex_neighbor(pos, d) in game_state.grid` still work — `Hex` equality uses only `(q, r)`, not `controller`.
 
 ### `get_grid_as_2D_list() -> list[list[Hex]]`
 

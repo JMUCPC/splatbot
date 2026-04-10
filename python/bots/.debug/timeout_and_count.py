@@ -1,5 +1,5 @@
 from utils.actions import Actions
-from utils.hex_grid import *
+
 
 class Bot:
     def __init__(self):

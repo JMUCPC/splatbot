@@ -31,7 +31,8 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
@@ -118,30 +119,35 @@ clockwise = (HexDirection.E - <span class="hljs-number">1</span>) % <span class=
 <p>The rest of this article is still being polished. Information is provided now for your convenience, but is subject to change. For another well-made write up, consider checking out <a href="https://www.redblobgames.com/grids/hexagons/">this article by redblob games</a>.</p>
 <h2 id="neighbors" tabindex="-1">Neighbors</h2>
 <p>Every hex has exactly <strong>six neighbors</strong>, one in each direction. No diagonals, no ambiguity about adjacency — if two hexes share an edge, they’re neighbors.</p>
-<p><code>hex_neighbor(pos, direction)</code> returns the single neighbor in a given direction. <code>hex_neighbors(pos)</code> returns all six, in direction order (E through SE):</p>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, hex_neighbor, hex_neighbors, HexDirection
+<p><code>HexUtils(game_state).hex_neighbor(pos, direction)</code> returns the single neighbor in a given direction. <code>HexUtils(game_state).hex_neighbors(pos)</code> returns all six, in direction order (E through SE). The same <code>game_state</code> object passed to <code>decide</code> is used so helpers can use board context when needed.</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, HexDirection, HexUtils
 
-pos = Hex(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
-east_neighbor = hex_neighbor(pos, HexDirection.E)  <span class="hljs-comment"># Hex(1, 0)</span>
-all_six = hex_neighbors(pos)
-<span class="hljs-comment"># [Hex(1,0), Hex(1,-1), Hex(0,-1), Hex(-1,0), Hex(-1,1), Hex(0,1)]</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+    hx = HexUtils(game_state)
+    pos = Hex(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
+    east_neighbor = hx.hex_neighbor(pos, HexDirection.E)  <span class="hljs-comment"># Hex(1, 0)</span>
+    all_six = hx.hex_neighbors(pos)
+    <span class="hljs-comment"># [Hex(1,0), Hex(1,-1), Hex(0,-1), Hex(-1,0), Hex(-1,1), Hex(0,1)]</span>
 </code></pre>
 <p>A common pattern — check whether a neighbor is inside the grid before acting on it:</p>
-<pre><code data-docs-code-lang="python" class="language-python">target = hex_neighbor(game_state.me.position, HexDirection.E)
+<pre><code data-docs-code-lang="python" class="language-python">hx = HexUtils(game_state)
+target = hx.hex_neighbor(game_state.me.position, HexDirection.E)
 <span class="hljs-keyword">if</span> target <span class="hljs-keyword">in</span> game_state.grid:
     <span class="hljs-comment"># safe to consider moving there</span>
 </code></pre>
 <h2 id="distance" tabindex="-1">Distance</h2>
 <p>Distance on a hex grid is the <strong>minimum number of steps</strong> to get from one hex to another. Unlike a square grid, moving “diagonally” doesn’t cost extra — all six neighbor directions cover equal ground.</p>
-<p><code>hex_distance(a, b)</code> computes this:</p>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, hex_distance
+<p><code>HexUtils(game_state).hex_distance(a, b)</code> computes this (the snapshot is required even though distance is purely geometric today):</p>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> Hex, HexUtils
 
-a = Hex(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
-b = Hex(<span class="hljs-number">3</span>, <span class="hljs-number">0</span>)
-hex_distance(a, b)  <span class="hljs-comment"># 3 — three steps east</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
+    hx = HexUtils(game_state)
+    a = Hex(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>)
+    b = Hex(<span class="hljs-number">3</span>, <span class="hljs-number">0</span>)
+    hx.hex_distance(a, b)  <span class="hljs-comment"># 3 — three steps east</span>
 
-c = Hex(<span class="hljs-number">2</span>, -<span class="hljs-number">2</span>)
-hex_distance(a, c)  <span class="hljs-comment"># 2 — two steps northeast</span>
+    c = Hex(<span class="hljs-number">2</span>, -<span class="hljs-number">2</span>)
+    hx.hex_distance(a, c)  <span class="hljs-comment"># 2 — two steps northeast</span>
 </code></pre>
 <h3 id="distance-rings-cube-coordinates" tabindex="-1">Distance rings (cube coordinates)</h3>
 <p>Hover a hex to treat it as the <strong>origin</strong>. Pick a ring distance <strong>N</strong> from the menu: every tile with <code>hex_distance(origin, tile) === N</code> is highlighted — that is the <strong>ring</strong> at distance N. Each ring tile shows its absolute <code>(q,r,s)</code> on the first line and <code>(Δq, Δr, Δs)</code> from the origin on the second. The <strong>Δ</strong> line uses the same colors as the cubic map: whichever of <code>|Δq|</code>, <code>|Δr|</code>, <code>|Δs|</code> is largest equals the distance (they can tie).</p>
@@ -181,7 +187,6 @@ three_steps = step * <span class="hljs-number">3</span>      <span class="hljs-c
   <script src="../../js/docs-copy-code.js" defer></script>
   <script src="../../js/vendor/minisearch.js" defer></script>
   <script src="../../js/docs-search.js" defer></script>
-  <script src="../../js/docs-sidebar-headings.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
   <script type="module" src="../../js/docs/hex-hover-demos.js"></script>
   <script type="module" src="../../js/docs/hex-distance-demos.js"></script>

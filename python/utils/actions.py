@@ -95,7 +95,10 @@ Action = (
 
 
 class Actions:
-    """Factories for :class:`Action` values (use from bot scripts / ``Bot.decide``)."""
+    """Factories for :class:`Action` values.
+
+    Bot scripts should return one of these values from ``Bot.decide``.
+    """
 
     @staticmethod
     def move() -> MoveAction:

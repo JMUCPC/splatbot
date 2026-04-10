@@ -6,6 +6,7 @@ These pages describe the types and helpers available to bot scripts in the Splat
 
 - [`utils.actions`](utils/actions.md) — action datatypes and the `Actions` factory.
 - [`utils.hex_grid`](utils/hex_grid.md) — axial hex coordinates, directions, and grid helpers.
+- [`utils.splatbot_data_types`](utils/splatbot_data_types.md) — typing templates for `BotInfo` and `GameState`.
 
 ## Runtime snapshot types
 

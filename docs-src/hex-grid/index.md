@@ -72,21 +72,24 @@ The rest of this article is still being polished. Information is provided now fo
 
 Every hex has exactly **six neighbors**, one in each direction. No diagonals, no ambiguity about adjacency — if two hexes share an edge, they're neighbors.
 
-`hex_neighbor(pos, direction)` returns the single neighbor in a given direction. `hex_neighbors(pos)` returns all six, in direction order (E through SE):
+`HexUtils(game_state).hex_neighbor(pos, direction)` returns the single neighbor in a given direction. `HexUtils(game_state).hex_neighbors(pos)` returns all six, in direction order (E through SE). The same `game_state` object passed to `decide` is used so helpers can use board context when needed.
 
 ```python
-from utils.hex_grid import Hex, hex_neighbor, hex_neighbors, HexDirection
+from utils.hex_grid import Hex, HexDirection, HexUtils
 
-pos = Hex(0, 0)
-east_neighbor = hex_neighbor(pos, HexDirection.E)  # Hex(1, 0)
-all_six = hex_neighbors(pos)
-# [Hex(1,0), Hex(1,-1), Hex(0,-1), Hex(-1,0), Hex(-1,1), Hex(0,1)]
+def decide(self, game_state):
+    hx = HexUtils(game_state)
+    pos = Hex(0, 0)
+    east_neighbor = hx.hex_neighbor(pos, HexDirection.E)  # Hex(1, 0)
+    all_six = hx.hex_neighbors(pos)
+    # [Hex(1,0), Hex(1,-1), Hex(0,-1), Hex(-1,0), Hex(-1,1), Hex(0,1)]
 ```
 
 A common pattern — check whether a neighbor is inside the grid before acting on it:
 
 ```python
-target = hex_neighbor(game_state.me.position, HexDirection.E)
+hx = HexUtils(game_state)
+target = hx.hex_neighbor(game_state.me.position, HexDirection.E)
 if target in game_state.grid:
     # safe to consider moving there
 ```
@@ -95,17 +98,19 @@ if target in game_state.grid:
 
 Distance on a hex grid is the **minimum number of steps** to get from one hex to another. Unlike a square grid, moving "diagonally" doesn't cost extra — all six neighbor directions cover equal ground.
 
-`hex_distance(a, b)` computes this:
+`HexUtils(game_state).hex_distance(a, b)` computes this (the snapshot is required even though distance is purely geometric today):
 
 ```python
-from utils.hex_grid import Hex, hex_distance
+from utils.hex_grid import Hex, HexUtils
 
-a = Hex(0, 0)
-b = Hex(3, 0)
-hex_distance(a, b)  # 3 — three steps east
+def decide(self, game_state):
+    hx = HexUtils(game_state)
+    a = Hex(0, 0)
+    b = Hex(3, 0)
+    hx.hex_distance(a, b)  # 3 — three steps east
 
-c = Hex(2, -2)
-hex_distance(a, c)  # 2 — two steps northeast
+    c = Hex(2, -2)
+    hx.hex_distance(a, c)  # 2 — two steps northeast
 ```
 
 ### Distance rings (cube coordinates)

@@ -8,9 +8,7 @@ Axial-coordinate utilities for the hex board. The engine uses **pointy-top** hex
 - `HexVector`
 - `HexDirection`
 - `HEX_DIRECTIONS`
-- `hex_neighbors`
-- `hex_neighbor`
-- `hex_distance`
+- `HexUtils`
 
 ---
 
@@ -28,9 +26,9 @@ class Hex:
 
 - `q: int` — axial q component.
 - `r: int` — axial r component.
-- `controller: BotInfo | None` — the bot that controls (paints) this tile, or `None` if unpainted. Set automatically in `game_state.grid`; defaults to `None` for hexes created by arithmetic or helper functions.
+- `controller: BotInfo | None` — the bot that controls (paints) this tile, or `None` if unpainted. Set automatically in `game_state.grid`; defaults to `None` for hexes created by arithmetic or helper methods.
 
-**Equality and hashing** use **only `(q, r)`** — `controller` is excluded. This means `hex_neighbor(pos, d) in game_state.grid` works regardless of controller state, and `Hex` is suitable for use in sets and as dict keys.
+**Equality and hashing** use **only `(q, r)`** — `controller` is excluded. This means `HexUtils(game_state).hex_neighbor(pos, d) in game_state.grid` works regardless of controller state, and `Hex` is suitable for use in sets and as dict keys.
 
 **Methods**
 
@@ -87,7 +85,7 @@ class HexDirection(IntEnum):
     SE = 5
 ```
 
-Integer enum values match indices into `HEX_DIRECTIONS` and are accepted wherever a direction is passed as `int | HexDirection` (for example `Actions.face_direction`, `hex_neighbor` — typically normalized with `% 6`).
+Integer enum values match indices into `HEX_DIRECTIONS` and are accepted wherever a direction is passed as `int | HexDirection` (for example `Actions.face_direction`, `HexUtils.hex_neighbor` — typically normalized with `% 6`).
 
 ---
 
@@ -108,31 +106,45 @@ Axial step vector for each `HexDirection` value (same order as the enum).
 
 ---
 
-## `hex_neighbors`
+## `HexUtils`
 
 ```python
-def hex_neighbors(h: Hex) -> list[Hex]
+class HexUtils:
+    game_state: GameState  # read-only snapshot passed to Bot.decide
+
+    def __init__(self, game_state: GameState) -> None: ...
+
+    def hex_neighbor(self, h: Hex, direction: int | HexDirection) -> Hex: ...
+    def hex_neighbors(self, h: Hex) -> list[Hex]: ...
+    def in_grid_neighbors(self, h: Hex) -> list[Hex]: ...
+    def hex_at(self, h: Hex) -> Hex | None: ...
+    def hex_controller(self, h: Hex) -> BotInfo | None: ...
+    def hex_distance(self, a: Hex, b: Hex) -> int: ...
 ```
+
+Construct once per call to `decide` (or whenever you have a current snapshot). The `game_state` argument is the same object the sandbox passes to `decide`; it is stored on `HexUtils.game_state` for helpers that need map or player context.
+
+### `hex_neighbors`
 
 Returns the six neighboring hexes of `h`, one per `HexDirection`, in enum order (`E` through `SE`).
 
----
-
-## `hex_neighbor`
-
-```python
-def hex_neighbor(h: Hex, direction: int | HexDirection) -> Hex
-```
+### `hex_neighbor`
 
 Returns the neighbor of `h` in the given direction. The direction is taken as `int(direction) % 6`, so integer values wrap modulo 6.
 
----
+### `in_grid_neighbors`
 
-## `hex_distance`
+Returns only the neighbors of `h` that exist in `game_state.grid`.
 
-```python
-def hex_distance(a: Hex, b: Hex) -> int
-```
+### `hex_at`
+
+Returns the matching tile object from `game_state.grid` for coordinate `h`, or `None` if `h` is outside the map.
+
+### `hex_controller`
+
+Returns the controlling `BotInfo` for tile `h`, or `None` if the tile is unpainted or not in the map.
+
+### `hex_distance`
 
 Returns the **axial cube distance** between two hexes (integer steps on the hex grid).
 

@@ -24,7 +24,6 @@ If the step would leave the grid, nothing happens.
 
 ```python title="First Steps for Botkind"
 from utils.actions import Actions
-from utils.hex_grid import HexDirection
 
 
 class Bot:
@@ -148,7 +147,6 @@ Default settings:
 
 ```python title="Splat Bot"
 from utils.actions import Actions
-from utils.hex_grid import HexDirection
 
 
 class Bot:
@@ -196,7 +194,6 @@ Default settings:
 
 ```python title="Paintball Bot"
 from utils.actions import Actions
-from utils.hex_grid import HexDirection
 
 
 class Bot:
@@ -234,7 +231,6 @@ If the full distance of a dash would have the bot leave the grid, it will stop a
 
 ```python title="The Flash"
 from utils.actions import Actions
-from utils.hex_grid import HexDirection
 
 
 class Bot:

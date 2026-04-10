@@ -20,6 +20,7 @@ export class BotRunner {
     this._timeoutCount = 0;
     this._hexGridPy = null;
     this._actionsPy = null;
+    this._splatbotDataTypesPy = null;
     this._resetMatchResolve = null;
     this._decisionSeq = 0;
     this._activeDecisionId = 0;
@@ -36,9 +37,10 @@ export class BotRunner {
     }
   }
 
-  async init(hexGridPy, actionsPy) {
+  async init(hexGridPy, actionsPy, splatbotDataTypesPy) {
     this._hexGridPy = hexGridPy;
     this._actionsPy = actionsPy;
+    this._splatbotDataTypesPy = splatbotDataTypesPy;
     await this._spawnWorker();
   }
 
@@ -137,6 +139,7 @@ export class BotRunner {
         data: {
           hexGridPy: this._hexGridPy,
           actionsPy: this._actionsPy,
+          splatbotDataTypesPy: this._splatbotDataTypesPy,
           botCode: this.botCode,
           interruptBuffer: this._interruptBuffer,
         },
