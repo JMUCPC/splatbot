@@ -666,6 +666,24 @@ a.sb-btn:visited {
   margin-top: 0;
 }
 
+.sb-bot-source-actions {
+  display: flex;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.sb-bot-source-view-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* BOT FILE block reads as its own section under view source. */
+.player-card-details .sb-bot-source-actions + .sb-label-xs {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #1a2a40;
+}
+
 /* When main Event Log panel is expanded, hide per-player mini log section. */
 .app-container.event-log-expanded .player-card-log-block {
   display: none;
@@ -1153,6 +1171,204 @@ a.sb-btn:visited {
   max-width: 94vw;
   padding: 24px 22px;
   font-size: 1.12rem;
+}
+
+.bot-source-card {
+  width: min(920px, 96vw);
+  max-height: 88vh;
+  padding: 16px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+}
+
+.bot-source-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.bot-source-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #dde8f0;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.bot-source-close-x {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #334a6e;
+  border-radius: 6px;
+  background: #121b2c;
+  color: #a8b8cc;
+  font-family: system-ui, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.bot-source-close-x:hover {
+  background: #1a2638;
+  border-color: #4a6490;
+  color: #e8f0f8;
+}
+
+.bot-source-close-x:focus-visible {
+  outline: 2px solid #6a8ec4;
+  outline-offset: 2px;
+}
+
+/* Bot source body: same chrome as docs fenced blocks (css/docs.css). */
+.bot-source-card .bot-source-docs-code-wrap {
+  margin: 10px 0 0;
+  border: 1px solid #1a2a40;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #070d1a;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(62vh, 520px);
+  display: flex;
+  flex-direction: column;
+}
+
+.bot-source-card .docs-code-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.4rem 0.55rem;
+  background: #0e1525;
+  border-bottom: 1px solid #1a2a40;
+  flex-shrink: 0;
+}
+
+.bot-source-card .docs-code-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9aacbf;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.bot-source-card .docs-copy-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aacbf;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 4px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.bot-source-card .docs-code-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+}
+
+.bot-source-card .docs-code-toolbar .docs-copy-btn,
+.bot-source-card .docs-code-toolbar .docs-try-btn {
+  flex: 0 0 auto;
+}
+
+.bot-source-card .docs-copy-btn:hover,
+.bot-source-card .docs-try-btn:hover {
+  border-color: #3a5070;
+  color: #c0d0e0;
+}
+
+.bot-source-card .docs-copy-btn--done {
+  border-color: #2a6048;
+  color: #7dccb0;
+}
+
+.bot-source-card .docs-try-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aacbf;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 4px;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.bot-source-download-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.bot-source-download-icon {
+  flex-shrink: 0;
+  opacity: 0.92;
+}
+
+.bot-source-card .docs-code-wrap pre {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.bot-source-card .bot-source-code-pre {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem 1.1rem;
+  background: #070d1a;
+}
+
+.bot-source-card .bot-source-code-pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.95rem;
+  font-family: 'Share Tech Mono', monospace;
+  white-space: pre;
+  tab-size: 4;
+}
+
+.bot-source-card .bot-source-code-pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.bot-source-card .bot-source-code-pre code:not(.hljs) {
+  color: #8899aa;
 }
 
 .match-end-card {

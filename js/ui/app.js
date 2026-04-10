@@ -79,6 +79,40 @@ const playerBotId = { 1: null, 2: null };
 /** Shown under CHOOSE FILE after a successful upload or docs import. */
 const uploadDisplayName = { 1: null, 2: null };
 let botControlsReady = false;
+/** Player + bot id for the open source modal (copy / download). */
+let botSourceModalContext = null;
+/** Bumps on each open/close so async highlight cannot paint a stale modal. */
+let botSourceModalSeq = 0;
+let hljsBotSourceCache = null;
+let botSourceCopyResetTimer = 0;
+
+async function ensureHljsBotSource() {
+  if (hljsBotSourceCache) return hljsBotSourceCache;
+  const [coreMod, pythonMod] = await Promise.all([
+    import('https://esm.sh/highlight.js@11.10.0/es/core.js'),
+    import('https://esm.sh/highlight.js@11.10.0/es/languages/python.js'),
+  ]);
+  const hljs = coreMod.default;
+  hljs.registerLanguage('python', pythonMod.default);
+  hljsBotSourceCache = hljs;
+  return hljs;
+}
+
+async function applyBotSourceHighlight(rawText, seq) {
+  const el = els.botSourceCode;
+  if (!el || seq !== botSourceModalSeq) return;
+  try {
+    const hljs = await ensureHljsBotSource();
+    const { value } = hljs.highlight(rawText, { language: 'python', ignoreIllegals: true });
+    if (seq !== botSourceModalSeq || !els.botSourceCode) return;
+    els.botSourceCode.innerHTML = value;
+    els.botSourceCode.classList.add('hljs');
+  } catch {
+    if (seq !== botSourceModalSeq || !els.botSourceCode) return;
+    els.botSourceCode.textContent = rawText;
+    els.botSourceCode.classList.remove('hljs');
+  }
+}
 
 const els = {};
 
@@ -789,6 +823,162 @@ async function fetchBotSource(botId) {
   }
 }
 
+function suggestBotDownloadFilename(pid, botId) {
+  if (botId.startsWith('upload:')) {
+    const name = uploadDisplayName[pid];
+    if (name) {
+      const trimmed = name.trim();
+      if (trimmed.toLowerCase().endsWith('.py')) return trimmed;
+      const dot = trimmed.lastIndexOf('.');
+      const base = dot > 0 ? trimmed.slice(0, dot) : trimmed;
+      return `${base || 'bot'}.py`;
+    }
+    const input = els[`botFile${pid}`];
+    const f = input?.files?.[0];
+    if (f?.name) {
+      const n = f.name.trim();
+      return n.toLowerCase().endsWith('.py') ? n : `${n.replace(/\.[^/.]+$/, '') || 'bot'}.py`;
+    }
+    return 'bot.py';
+  }
+  const entry = catalogById.get(botId);
+  if (entry?.path) {
+    const seg = entry.path.split('/').pop();
+    if (seg) return seg;
+  }
+  return 'bot.py';
+}
+
+function botSourceModalTitleFor(pid, botId) {
+  if (botId.startsWith('upload:')) {
+    return uploadDisplayName[pid] || 'Uploaded file';
+  }
+  return catalogById.get(botId)?.label ?? botId;
+}
+
+function closeBotSourceModal() {
+  if (!els.botSourceModal) return;
+  botSourceModalSeq += 1;
+  botSourceModalContext = null;
+  clearTimeout(botSourceCopyResetTimer);
+  botSourceCopyResetTimer = 0;
+  if (els.botSourceCopy) {
+    els.botSourceCopy.textContent = 'Copy code';
+    els.botSourceCopy.classList.remove('docs-copy-btn--done');
+  }
+  els.botSourceModal.classList.remove('open');
+  els.botSourceModal.setAttribute('aria-hidden', 'true');
+}
+
+function openBotSourceModal(title, text, ctx) {
+  botSourceModalContext = ctx;
+  const seq = (botSourceModalSeq += 1);
+  if (els.botSourceTitle) els.botSourceTitle.textContent = title;
+  clearTimeout(botSourceCopyResetTimer);
+  botSourceCopyResetTimer = 0;
+  if (els.botSourceCopy) {
+    els.botSourceCopy.textContent = 'Copy code';
+    els.botSourceCopy.classList.remove('docs-copy-btn--done');
+  }
+  if (els.botSourceCode) {
+    els.botSourceCode.textContent = text;
+    els.botSourceCode.className = 'language-python';
+    void applyBotSourceHighlight(text, seq);
+  }
+  els.botSourceModal?.classList.add('open');
+  els.botSourceModal?.setAttribute('aria-hidden', 'false');
+}
+
+function syncBotSourceActionButtons() {
+  const disabled = !botControlsReady || botCatalog.length === 0;
+  for (const pid of [1, 2]) {
+    const v = document.getElementById(`btn-bot-source-view-${pid}`);
+    if (v) v.disabled = disabled;
+  }
+}
+
+async function viewBotSourceForPlayer(pid) {
+  if (!botControlsReady) return;
+  const sel = els[`botSelect${pid}`];
+  if (!sel) return;
+  const botId = sel.value;
+  try {
+    const code = await fetchBotSource(botId);
+    const subtitle = botSourceModalTitleFor(pid, botId);
+    openBotSourceModal(`P${pid} — ${subtitle}`, code, { pid, botId });
+  } catch (err) {
+    const detail = err?.message ?? String(err);
+    logEvent(`View source (P${pid}) failed\n${detail}`);
+    setEventLogExpanded(true);
+  }
+}
+
+function setBotSourceCopyButtonFeedback(state) {
+  const btn = els.botSourceCopy;
+  if (!btn) return;
+  clearTimeout(botSourceCopyResetTimer);
+  botSourceCopyResetTimer = 0;
+  if (state === 'ok') {
+    btn.textContent = 'Copied!';
+    btn.classList.add('docs-copy-btn--done');
+    botSourceCopyResetTimer = setTimeout(() => {
+      botSourceCopyResetTimer = 0;
+      btn.textContent = 'Copy code';
+      btn.classList.remove('docs-copy-btn--done');
+    }, 2000);
+    return;
+  }
+  if (state === 'fail') {
+    btn.textContent = 'Copy failed';
+    botSourceCopyResetTimer = setTimeout(() => {
+      botSourceCopyResetTimer = 0;
+      btn.textContent = 'Copy code';
+    }, 2000);
+  }
+}
+
+async function copyBotSourceFromModal() {
+  const code = els.botSourceCode?.textContent ?? '';
+  if (!code) return;
+  try {
+    await navigator.clipboard.writeText(code);
+    setBotSourceCopyButtonFeedback('ok');
+    logEvent('Bot source copied to clipboard.');
+    return;
+  } catch {
+    // Non-secure contexts or denied permission: fall through.
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    setBotSourceCopyButtonFeedback('ok');
+    logEvent('Bot source copied to clipboard.');
+  } catch (err) {
+    setBotSourceCopyButtonFeedback('fail');
+    const detail = err?.message ?? String(err);
+    logEvent(`Copy bot source failed\n${detail}`);
+    setEventLogExpanded(true);
+  }
+}
+
+function downloadBotSourceFromModal() {
+  if (!botSourceModalContext) return;
+  const { pid, botId } = botSourceModalContext;
+  const code = els.botSourceCode?.textContent ?? '';
+  if (!code) return;
+  const filename = suggestBotDownloadFilename(pid, botId);
+  const blob = new Blob([code], { type: 'text/x-python;charset=utf-8' });
+  downloadBlob(blob, filename);
+  logEvent(`Downloaded ${filename} (P${pid}).`);
+}
+
 function syncFileUploadRow(pid) {
   const input = els[`botFile${pid}`];
   const statusEl = els[`botFileStatus${pid}`];
@@ -982,6 +1172,12 @@ export function initApp() {
   els.botFileStatus1 = document.getElementById('bot-file-status-1');
   els.botFileStatus2 = document.getElementById('bot-file-status-2');
   els.downloadStarterCode = document.getElementById('btn-download-starter-code');
+  els.botSourceModal = document.getElementById('bot-source-modal');
+  els.botSourceTitle = document.getElementById('bot-source-title');
+  els.botSourceCode = document.getElementById('bot-source-code');
+  els.botSourceCopy = document.getElementById('btn-bot-source-copy');
+  els.botSourceDownload = document.getElementById('btn-bot-source-download');
+  els.botSourceClose = document.getElementById('btn-bot-source-close');
 
   populateBotSelects();
   if (els.botSelect1) els.botSelect1.disabled = true;
@@ -996,6 +1192,29 @@ export function initApp() {
     els.downloadStarterCode.disabled = false;
     els.downloadStarterCode.addEventListener('click', () => { void downloadStarterCodeZip(); });
   }
+  syncBotSourceActionButtons();
+  for (const pid of [1, 2]) {
+    const v = document.getElementById(`btn-bot-source-view-${pid}`);
+    if (v) v.addEventListener('click', () => { void viewBotSourceForPlayer(pid); });
+  }
+  if (els.botSourceCopy) {
+    els.botSourceCopy.addEventListener('click', () => { void copyBotSourceFromModal(); });
+  }
+  if (els.botSourceDownload) {
+    els.botSourceDownload.addEventListener('click', () => downloadBotSourceFromModal());
+  }
+  if (els.botSourceClose) {
+    els.botSourceClose.addEventListener('click', closeBotSourceModal);
+  }
+  if (els.botSourceModal) {
+    els.botSourceModal.addEventListener('click', (e) => {
+      if (e.target === els.botSourceModal) closeBotSourceModal();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (els.botSourceModal?.classList.contains('open')) closeBotSourceModal();
+  });
   syncFileUploadRow(1);
   syncFileUploadRow(2);
 
@@ -1122,6 +1341,7 @@ export async function preloadWorkers() {
   botControlsReady = true;
   syncFileUploadRow(1);
   syncFileUploadRow(2);
+  syncBotSourceActionButtons();
   syncStepControls();
   updateLoadingStatus('Ready.');
 }

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/docs-hljs.css">
 </head>
 <body>
   <div id="loading" class="loading-overlay">
@@ -77,6 +78,9 @@
           <hr class="sb-divider">
           <div class="sb-label-xs">BOT SCRIPT</div>
           <select id="bot-select-1" class="sb-select" aria-label="Player 1 bot script"></select>
+          <div class="sb-bot-source-actions">
+            <button type="button" id="btn-bot-source-view-1" class="sb-btn sb-btn--compact sb-bot-source-view-btn" aria-label="View source code for player 1 bot">VIEW SOURCE</button>
+          </div>
           <div class="sb-label-xs">BOT FILE</div>
           <div class="sb-file-upload-wrap">
             <input type="file" id="bot-file-1" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 1 bot Python file">
@@ -111,6 +115,9 @@
           <hr class="sb-divider">
           <div class="sb-label-xs">BOT SCRIPT</div>
           <select id="bot-select-2" class="sb-select" aria-label="Player 2 bot script"></select>
+          <div class="sb-bot-source-actions">
+            <button type="button" id="btn-bot-source-view-2" class="sb-btn sb-btn--compact sb-bot-source-view-btn" aria-label="View source code for player 2 bot">VIEW SOURCE</button>
+          </div>
           <div class="sb-label-xs">BOT FILE</div>
           <div class="sb-file-upload-wrap">
             <input type="file" id="bot-file-2" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 2 bot Python file">
@@ -201,6 +208,28 @@
         <button id="btn-settings-reset" class="sb-btn">RESET TO DEFAULTS</button>
         <button id="btn-settings-cancel" class="sb-btn">CANCEL</button>
         <button id="btn-settings-apply" class="sb-btn">APPLY</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bot-source-modal" class="modal-overlay" aria-hidden="true">
+    <div class="sb-card bot-source-card" role="dialog" aria-modal="true" aria-labelledby="bot-source-title">
+      <div class="bot-source-header">
+        <div id="bot-source-title" class="sb-cond bot-source-title">BOT SOURCE</div>
+        <button type="button" id="btn-bot-source-close" class="bot-source-close-x" aria-label="Close">&times;</button>
+      </div>
+      <div class="docs-code-wrap bot-source-docs-code-wrap">
+        <div class="docs-code-toolbar">
+          <span class="docs-code-label">Python</span>
+          <div class="docs-code-actions">
+            <button type="button" id="btn-bot-source-download" class="docs-try-btn bot-source-download-with-icon" aria-label="Download bot as Python file">
+              <svg class="bot-source-download-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              <span>Download .py</span>
+            </button>
+            <button type="button" id="btn-bot-source-copy" class="docs-copy-btn" aria-label="Copy code to clipboard">Copy code</button>
+          </div>
+        </div>
+        <pre class="bot-source-code-pre"><code id="bot-source-code" class="language-python"></code></pre>
       </div>
     </div>
   </div>
