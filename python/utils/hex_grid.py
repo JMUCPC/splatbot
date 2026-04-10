@@ -48,7 +48,7 @@ class Hex:
     def __repr__(self) -> str:
         return f"Hex({self.q}, {self.r})"
 
-    def is_controlled_by(self, bot_or_pid: object) -> bool:
+    def is_controlled_by(self, bot_or_pid: BotInfo | int) -> bool:
         """Return True when this tile is controlled by *bot_or_pid*.
 
         Accepts a ``BotInfo`` instance (uses ``==``) or an ``int`` player-id
@@ -148,11 +148,16 @@ class HexUtils:
         return neighbors
 
     def in_grid_neighbors(self, h: Hex) -> list[Hex]:
-        """Return only neighbors that are present in ``game_state.grid``."""
+        """Return grid tile objects for neighbors of ``h`` that are on the map.
+
+        Each value is the actual ``Hex`` from ``game_state.grid`` (including
+        ``controller``), not a synthetic neighbor from coordinate arithmetic.
+        """
         in_grid: list[Hex] = []
         for neighbor in self.hex_neighbors(h):
-            if neighbor in self.game_state.grid:
-                in_grid.append(neighbor)
+            tile = self.hex_at(neighbor)
+            if tile is not None:
+                in_grid.append(tile)
         return in_grid
 
     def hex_at(self, h: Hex) -> Hex | None:

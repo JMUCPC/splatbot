@@ -133,19 +133,6 @@ class Bot:
         # used to count moves over the edges of the larger ring shape
         self.steps = 0
 
-    def should_splat(self, game_state):
-        """True if at least 3 neighboring tiles are not under this bot's control"""
-        hx = HexUtils(game_state)
-        # count the number of neighbors not controlled by this bot
-        count = 0
-        neighbors = set(hx.hex_neighbors(game_state.me.position))
-        for tile in neighbors:
-            if not tile.is_controlled_by(game_state.me):
-                count += 1
-        # only splat if at least 3 neighbors aren't controlled by this bot
-        print(count)
-        return count >= 3
-
     def decide(self, game_state):
         me = game_state.me
         hx = HexUtils(game_state)
@@ -154,7 +141,6 @@ class Bot:
             return Actions.skip()
         # If splat is off cooldown and the bot is in a good position to splat, then do so
         if me.splat_cooldown == 0 and self.should_splat(game_state):
-            print("SPLAT!")
             return Actions.splat()
         # if moving forward would leave the grid, or if finished with this side of the hexagon, then turn
         forward = hx.hex_neighbor(me.position, me.facing)
@@ -164,6 +150,18 @@ class Bot:
         # move forwards, and count the move
         self.steps += 1
         return Actions.move()
+
+    def should_splat(self, game_state):
+        """Utility Method; True if at least 3 neighboring tiles are not under this bot's control"""
+        hx = HexUtils(game_state)
+        # count the number of neighbors not controlled by this bot
+        count = 0
+        neighbors = set(hx.in_grid_neighbors(game_state.me.position))
+        for tile in neighbors:
+            if not tile.is_controlled_by(game_state.me):
+                count += 1
+        # only splat if at least 3 neighbors aren't controlled by this bot
+        return count >= 3
 ```
 
 - This bot implements the necessary template to be a game-recognized bot

@@ -19,7 +19,11 @@ __all__ = ["BotInfo", "GameState"]
 
 @dataclass(frozen=True)
 class BotInfo:
-    """Template shape of bot metadata exposed on ``game_state``."""
+    """Template shape of bot metadata exposed on ``game_state``.
+
+    Equality matches the sandbox: two instances are equal iff ``pid`` matches,
+    so ``hex.controller == game_state.me`` stays true across snapshot updates.
+    """
 
     pid: int
     position: Hex
@@ -28,6 +32,14 @@ class BotInfo:
     splat_cooldown: int = 0
     dash_cooldown: int = 0
     paintball_cooldown: int = 0
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BotInfo):
+            return NotImplemented
+        return self.pid == other.pid
+
+    def __hash__(self) -> int:
+        return hash(self.pid)
 
 
 @dataclass(frozen=True)
