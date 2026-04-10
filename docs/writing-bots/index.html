@@ -249,19 +249,6 @@
         <span class="hljs-comment"># used to count moves over the edges of the larger ring shape</span>
         <span class="hljs-variable language_">self</span>.steps = <span class="hljs-number">0</span>
 
-    <span class="hljs-keyword">def</span> <span class="hljs-title function_">should_splat</span>(<span class="hljs-params">self, game_state</span>):
-        <span class="hljs-string">&quot;&quot;&quot;True if at least 3 neighboring tiles are not under this bot&#x27;s control&quot;&quot;&quot;</span>
-        hx = HexUtils(game_state)
-        <span class="hljs-comment"># count the number of neighbors not controlled by this bot</span>
-        count = <span class="hljs-number">0</span>
-        neighbors = <span class="hljs-built_in">set</span>(hx.hex_neighbors(game_state.me.position))
-        <span class="hljs-keyword">for</span> tile <span class="hljs-keyword">in</span> neighbors:
-            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> tile.is_controlled_by(game_state.me):
-                count += <span class="hljs-number">1</span>
-        <span class="hljs-comment"># only splat if at least 3 neighbors aren&#x27;t controlled by this bot</span>
-        <span class="hljs-built_in">print</span>(count)
-        <span class="hljs-keyword">return</span> count &gt;= <span class="hljs-number">3</span>
-
     <span class="hljs-keyword">def</span> <span class="hljs-title function_">decide</span>(<span class="hljs-params">self, game_state</span>):
         me = game_state.me
         hx = HexUtils(game_state)
@@ -270,7 +257,6 @@
             <span class="hljs-keyword">return</span> Actions.skip()
         <span class="hljs-comment"># If splat is off cooldown and the bot is in a good position to splat, then do so</span>
         <span class="hljs-keyword">if</span> me.splat_cooldown == <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> <span class="hljs-variable language_">self</span>.should_splat(game_state):
-            <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;SPLAT!&quot;</span>)
             <span class="hljs-keyword">return</span> Actions.splat()
         <span class="hljs-comment"># if moving forward would leave the grid, or if finished with this side of the hexagon, then turn</span>
         forward = hx.hex_neighbor(me.position, me.facing)
@@ -280,6 +266,19 @@
         <span class="hljs-comment"># move forwards, and count the move</span>
         <span class="hljs-variable language_">self</span>.steps += <span class="hljs-number">1</span>
         <span class="hljs-keyword">return</span> Actions.move()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">should_splat</span>(<span class="hljs-params">self, game_state</span>):
+        <span class="hljs-string">&quot;&quot;&quot;Utility Method; True if at least 3 neighboring tiles are not under this bot&#x27;s control&quot;&quot;&quot;</span>
+        hx = HexUtils(game_state)
+        <span class="hljs-comment"># count the number of neighbors not controlled by this bot</span>
+        count = <span class="hljs-number">0</span>
+        neighbors = <span class="hljs-built_in">set</span>(hx.in_grid_neighbors(game_state.me.position))
+        <span class="hljs-keyword">for</span> tile <span class="hljs-keyword">in</span> neighbors:
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> tile.is_controlled_by(game_state.me):
+                count += <span class="hljs-number">1</span>
+        <span class="hljs-comment"># only splat if at least 3 neighbors aren&#x27;t controlled by this bot</span>
+        <span class="hljs-built_in">print</span>(count)
+        <span class="hljs-keyword">return</span> count &gt;= <span class="hljs-number">3</span>
 </code></pre>
 <ul>
 <li>This bot implements the necessary template to be a game-recognized bot</li>
