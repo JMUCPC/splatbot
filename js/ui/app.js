@@ -16,8 +16,14 @@ import {
   setPlayerCardFeedForPlayer,
 } from './player-card-log-feed.js';
 import {
-  loadOverrides, saveOverrides, mergeWithDefaults, applyToConfig,
-  buildSettingsUI, validateOverrides, SETTING_SPECS,
+  loadOverrides,
+  saveOverrides,
+  mergeWithDefaults,
+  applyToConfig,
+  buildSettingsUI,
+  validateOverrides,
+  serializeSettingsProfile,
+  parseSettingsProfileJSON,
 } from './settings.js';
 import { fireWinCelebration } from './confetti.js';
 import { BotRunner } from '../sandbox/bot-runner.js';
@@ -1045,6 +1051,16 @@ export function initApp() {
   document.getElementById('btn-settings-reset').addEventListener('click', resetSettingsForm);
   document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings);
   document.getElementById('btn-settings-apply').addEventListener('click', applySettings);
+  const btnDownloadProfile = document.getElementById('btn-settings-download-profile');
+  const btnUploadProfile = document.getElementById('btn-settings-upload-profile');
+  const settingsProfileFile = document.getElementById('settings-profile-file');
+  if (btnDownloadProfile) {
+    btnDownloadProfile.addEventListener('click', () => downloadSettingsProfile());
+  }
+  if (btnUploadProfile && settingsProfileFile) {
+    btnUploadProfile.addEventListener('click', () => settingsProfileFile.click());
+    settingsProfileFile.addEventListener('change', onSettingsProfileFileChange);
+  }
   els.speedSlider.addEventListener('input', (e) => setSpeed(Number(e.target.value)));
   if (els.matchEndClose) {
     els.matchEndClose.addEventListener('click', hideMatchEndModal);
@@ -1464,6 +1480,52 @@ async function gameLoop() {
 }
 
 // ── Settings dialog ──────────────────────────────────────────────────────
+
+function downloadSettingsProfile() {
+  let flat;
+  if (settingsForm) {
+    const { clean, errors } = validateOverrides(settingsForm.getValues());
+    if (errors.length > 0) {
+      logEvent(`Settings profile: fix errors first — ${errors[0]}`);
+      return;
+    }
+    flat = mergeWithDefaults(clean);
+  } else {
+    flat = mergeWithDefaults(loadOverrides());
+  }
+  const blob = new Blob([serializeSettingsProfile(flat)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'splatbot-settings.json';
+  a.rel = 'noopener';
+  a.click();
+  URL.revokeObjectURL(url);
+  logEvent('Settings profile downloaded.');
+}
+
+function onSettingsProfileFileChange(e) {
+  const input = e.target;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = typeof reader.result === 'string' ? reader.result : '';
+    const { clean, errors } = parseSettingsProfileJSON(text);
+    if (errors.length > 0 || clean == null) {
+      logEvent(`Settings profile: ${errors[0] ?? 'Invalid file'}`);
+      return;
+    }
+    saveOverrides(clean);
+    if (settingsForm) {
+      settingsForm.setValues(mergeWithDefaults(clean));
+    }
+    logEvent('Profile loaded — review the form and press Apply to use it in a match.');
+  };
+  reader.onerror = () => logEvent('Settings profile: could not read file.');
+  reader.readAsText(file);
+}
 
 function openSettings() {
   const overrides = loadOverrides();

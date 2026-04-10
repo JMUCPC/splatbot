@@ -54,9 +54,13 @@
       </div>
       <div class="main-row-gutter main-row-gutter--actions">
         <div id="status" class="status header-row-status"></div>
-        <div class="hex-control-bar hex-control-bar--cta">
-          <a href="docs/" class="sb-btn header-docs-btn" target="_blank" rel="noopener noreferrer" aria-label="Open documentation: code a bot">CODE A BOT</a>
-        </div>
+        <a
+          href="docs/"
+          class="header-docs-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open documentation: code a bot (opens in new tab)"
+        >Code a bot<span class="header-docs-link__ext" aria-hidden="true"> ↗</span></a>
       </div>
       <div class="sb-card player-card" id="player-card-1">
         <div class="player-card-summary">
@@ -185,9 +189,14 @@
     <div class="sb-card settings-card">
       <div class="sb-cond" style="font-size:1.75rem; font-weight:700; letter-spacing:0.14em; color:#dde8f0">SETTINGS</div>
       <div style="font-family:'Share Tech Mono',monospace; font-size:1.02rem; color:#8a9db4; margin-bottom:8px">
-        Changes apply at runtime and are saved per browser.
+        Apply keeps settings for this session only. Use Download / Load profile to save or restore JSON on disk.
       </div>
       <div id="settings-fields" class="settings-fields"></div>
+      <div class="settings-profile-actions">
+        <button type="button" id="btn-settings-download-profile" class="sb-btn sb-btn--compact">DOWNLOAD PROFILE</button>
+        <button type="button" id="btn-settings-upload-profile" class="sb-btn sb-btn--compact">LOAD PROFILE…</button>
+        <input type="file" id="settings-profile-file" class="sb-file-input-native" accept=".json,application/json" aria-label="Choose settings profile JSON file">
+      </div>
       <div class="settings-actions">
         <button id="btn-settings-reset" class="sb-btn">RESET TO DEFAULTS</button>
         <button id="btn-settings-cancel" class="sb-btn">CANCEL</button>
