@@ -76,6 +76,107 @@ let botControlsReady = false;
 
 const els = {};
 
+/** Auto-collapse once the main scroll area overflows by more than this (px). Higher = full cards stay until the layout is shorter. */
+const PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX = 56;
+/** Leave compact when content fits; small slack for subpixel / scrollbar rounding. */
+const PLAYER_CARD_COMPACT_EXIT_SLACK_PX = 6;
+let playerCardCompactRaf = 0;
+
+function getLayoutMetricsRoot() {
+  return document.getElementById('app-main') || document.getElementById('app');
+}
+
+function syncPlayerCardToggleButtons() {
+  const app = document.getElementById('app');
+  const compact = app?.classList.contains('app--player-cards-compact');
+  document.querySelectorAll('.player-card').forEach((card) => {
+    const btn = card.querySelector('.player-card-expand-btn');
+    if (!btn) return;
+    if (!compact) {
+      btn.hidden = true;
+      btn.setAttribute('hidden', '');
+      return;
+    }
+    btn.hidden = false;
+    btn.removeAttribute('hidden');
+    const expanded = card.classList.contains('player-card--expanded');
+    btn.setAttribute('aria-expanded', String(expanded));
+    const pid = card.id === 'player-card-2' ? '2' : '1';
+    btn.setAttribute('aria-label', expanded ? `Hide player ${pid} bot controls` : `Show player ${pid} bot controls`);
+  });
+}
+
+function updatePlayerCardsCompactLayout() {
+  const app = document.getElementById('app');
+  const metricsRoot = getLayoutMetricsRoot();
+  if (!app || !metricsRoot) return;
+  const compact = app.classList.contains('app--player-cards-compact');
+
+  if (!compact) {
+    void metricsRoot.offsetHeight;
+    if (metricsRoot.scrollHeight > metricsRoot.clientHeight + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
+      app.classList.add('app--player-cards-compact');
+      document.querySelectorAll('.player-card').forEach((c) => c.classList.remove('player-card--expanded'));
+    }
+  } else {
+    void metricsRoot.offsetHeight;
+    if (metricsRoot.scrollHeight <= metricsRoot.clientHeight + PLAYER_CARD_COMPACT_EXIT_SLACK_PX) {
+      app.classList.remove('app--player-cards-compact');
+      void metricsRoot.offsetHeight;
+      if (metricsRoot.scrollHeight > metricsRoot.clientHeight + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
+        app.classList.add('app--player-cards-compact');
+      } else {
+        document.querySelectorAll('.player-card').forEach((c) => c.classList.remove('player-card--expanded'));
+      }
+    }
+  }
+  syncPlayerCardToggleButtons();
+}
+
+function schedulePlayerCardsCompactLayout() {
+  if (playerCardCompactRaf) return;
+  playerCardCompactRaf = requestAnimationFrame(() => {
+    playerCardCompactRaf = 0;
+    updatePlayerCardsCompactLayout();
+  });
+}
+
+function initPlayerCardsCompactLayout() {
+  const app = document.getElementById('app');
+  const metricsRoot = getLayoutMetricsRoot();
+  if (!app || !metricsRoot) return;
+  const onViewportChange = () => schedulePlayerCardsCompactLayout();
+  const ro = new ResizeObserver(onViewportChange);
+  ro.observe(metricsRoot);
+  const gameLayout = document.querySelector('.game-layout');
+  if (gameLayout) ro.observe(gameLayout);
+  const hexWrap = document.getElementById('hex-grid');
+  if (hexWrap) ro.observe(hexWrap);
+
+  window.addEventListener('resize', onViewportChange);
+  const vv = window.visualViewport;
+  if (vv) {
+    vv.addEventListener('resize', onViewportChange);
+  }
+  window.addEventListener('orientationchange', () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(onViewportChange);
+    });
+  });
+
+  document.querySelectorAll('.player-card-expand-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!app.classList.contains('app--player-cards-compact')) return;
+      const card = btn.closest('.player-card');
+      if (!card) return;
+      card.classList.toggle('player-card--expanded');
+      syncPlayerCardToggleButtons();
+      schedulePlayerCardsCompactLayout();
+    });
+  });
+  schedulePlayerCardsCompactLayout();
+}
+
 function buildCrc32Table() {
   const table = new Uint32Array(256);
   for (let i = 0; i < 256; i += 1) {
@@ -464,6 +565,7 @@ function setEventLogExpanded(expanded) {
     expandBtn.textContent = 'EVENT LOG';
     expandBtn.setAttribute('aria-label', expanded ? 'Collapse event log' : 'Expand event log');
   }
+  schedulePlayerCardsCompactLayout();
 }
 
 function logPythonLoadFailure(pid, err) {
@@ -953,6 +1055,8 @@ export function initApp() {
     });
   }
 
+  initPlayerCardsCompactLayout();
+
   push();
   logEvent('Splatbot ready — press START to begin demo.');
 
@@ -1054,6 +1158,7 @@ function push() {
   }
 
   syncStepControls();
+  schedulePlayerCardsCompactLayout();
 }
 
 // ── Control callbacks ────────────────────────────────────────────────────

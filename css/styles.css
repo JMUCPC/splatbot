@@ -1,7 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
+  width: 100%;
   height: 100%;
+  min-height: 100dvh;
   font-size: 20px;
 }
 
@@ -22,6 +24,7 @@ body {
   color: #8899aa;
   font-family: 'Share Tech Mono', monospace;
   font-size: 1.05rem;
+  width: 100%;
   min-height: 100%;
   min-height: 100dvh;
   height: 100%;
@@ -129,6 +132,8 @@ a.sb-btn:visited {
   flex-direction: column;
   align-items: stretch;
   width: 100%;
+  min-width: 0;
+  min-height: 0;
   height: 100vh;
   height: 100dvh;
   max-height: 100vh;
@@ -136,7 +141,32 @@ a.sb-btn:visited {
   padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
     max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  gap: 10px;
+}
+
+/* Scroll the board + player column here so the turn row stays under the game area (not mid-scroll). */
+.app-main {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+/* Turn row + event log share one column so width tracks together. */
+.app-dock {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
 }
 
@@ -361,13 +391,50 @@ a.sb-btn:visited {
 }
 
 .hex-column--controls-only {
+  container-type: inline-size;
+  container-name: match-controls;
   min-width: 0;
   width: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  /* Top-align: when row 1 is taller than the bar (e.g. status/docs column), centering adds empty space above and below. */
+  justify-content: flex-start;
+}
+
+/* Narrow center column (grid layout): wrap match controls instead of overflowing. */
+@container match-controls (max-width: 720px) {
+  .hex-control-bar .button-group {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 8px;
+  }
+}
+
+@container match-controls (max-width: 420px) {
+  .hex-control-bar {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .hex-control-bar .button-group > .sb-btn,
+  .hex-control-bar .button-group .sb-step-wrap > .sb-btn {
+    font-size: 0.92rem;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Browsers without container queries: still wrap when the window is fairly narrow. */
+@supports not (container-type: inline-size) {
+  @media (max-width: 960px) {
+    .hex-control-bar .button-group {
+      flex-wrap: wrap;
+      justify-content: center;
+      row-gap: 8px;
+    }
+  }
 }
 
 /* Full width of center column so it matches .hex-wrap below. */
@@ -384,11 +451,91 @@ a.sb-btn:visited {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  overflow: hidden;
 }
 
-/* Keep scores / controls from shrinking; log block absorbs extra height down to the turn row. */
-.player-card > :not(.player-card-log-block) {
+.player-card-summary {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   flex-shrink: 0;
+}
+
+.player-card-summary-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.player-card-expand-btn {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #334a6e;
+  border-radius: 5px;
+  background: #1a2638;
+  color: #a8b8cc;
+  font-family: 'Share Tech Mono', monospace;
+  cursor: pointer;
+  line-height: 1;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+#app.app--player-cards-compact .player-card-expand-btn {
+  display: inline-flex !important;
+}
+
+.player-card-expand-btn:hover {
+  background: #223048;
+  border-color: #4a6490;
+  color: #d8e4f0;
+}
+
+.player-card-expand-icon {
+  display: block;
+  font-size: 0.72rem;
+  line-height: 1;
+  transition: transform 0.18s ease;
+  transform: rotate(-90deg);
+}
+
+.player-card.player-card--expanded .player-card-expand-icon {
+  transform: rotate(0deg);
+}
+
+.player-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* !important beats [hidden] / grid / flex quirks so collapsed cards reliably hide details. */
+#app.app--player-cards-compact .player-card:not(.player-card--expanded) .player-card-details {
+  display: none !important;
+}
+
+/* Single padding in compact mode so expand/collapse does not shift the card shell (avoids background “tearing”). */
+#app.app--player-cards-compact .player-card {
+  padding: 10px 14px 10px;
+}
+
+#app.app--player-cards-compact .player-card.player-card--expanded .player-card-details {
+  display: flex !important;
 }
 
 .player-card .sb-score {
@@ -492,7 +639,7 @@ a.sb-btn:visited {
 }
 
 .player-card.player-card--feed-flash {
-  animation: player-card-log-highlight 0.48s ease-out;
+  animation: player-card-log-highlight 0.48s ease-out forwards;
 }
 
 .player-card .sb-select {
@@ -502,6 +649,11 @@ a.sb-btn:visited {
 /* When main Event Log panel is expanded, hide per-player mini log section. */
 .app-container.event-log-expanded .player-card-log-block {
   display: none;
+}
+
+/* Tall event log + footer on short screens: allow outer scroll so nothing is clipped. */
+.app-container.event-log-expanded {
+  overflow-y: auto;
 }
 
 .hex-column {
@@ -516,14 +668,28 @@ a.sb-btn:visited {
 .turn-row {
   width: 100%;
   flex: 0 0 auto;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
   flex-wrap: wrap;
+  background: #080c14;
+  box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.35);
 }
 .turn-row-event-log-btn {
   margin-left: auto;
+}
+
+/* Narrow width: keep EVENT LOG on its own full row so it sits above the panel edge-to-edge. */
+@media (max-width: 720px) {
+  .turn-row-event-log-btn {
+    margin-left: 0;
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
 }
 
 .turn-row-event-log-btn::after {
@@ -554,6 +720,7 @@ a.sb-btn:visited {
 
 .event-log-card {
   width: 100%;
+  min-width: 0;
   flex: 0 0 auto;
   padding: 12px 16px;
   display: flex;
@@ -879,36 +1046,73 @@ a.sb-btn:visited {
   }
 }
 
-/* ── Slider ────────────────────────────────────────────────────────────── */
+/* ── Slider (speed) ──────────────────────────────────────────────────── */
 
 .sb-slider {
   -webkit-appearance: none;
   appearance: none;
-  width: 150px;
-  height: 6px;
-  background: #111c2e;
-  border-radius: 3px;
+  width: clamp(120px, 18vw, 200px);
+  height: 22px;
+  background: transparent;
   outline: none;
   flex-shrink: 0;
+  cursor: pointer;
 }
+
+.sb-slider:focus-visible {
+  outline: 2px solid #4a6490;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sb-slider::-webkit-slider-runnable-track {
+  height: 10px;
+  background: #111c2e;
+  border: 1px solid #334a6e;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
 .sb-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  background: #dde8f0;
+  width: 22px;
+  height: 22px;
+  margin-top: -7px;
+  background: linear-gradient(180deg, #eef4fa 0%, #c8d4e0 100%);
   border-radius: 50%;
-  border: 1px solid #3a4a60;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  cursor: pointer;
+  border: 2px solid #4a6490;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 2px 6px rgba(0, 0, 0, 0.45);
+  cursor: grab;
 }
+
+.sb-slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+
+.sb-slider::-moz-range-track {
+  height: 10px;
+  background: #111c2e;
+  border: 1px solid #334a6e;
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
 .sb-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  background: #dde8f0;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(180deg, #eef4fa 0%, #c8d4e0 100%);
   border-radius: 50%;
-  border: 1px solid #3a4a60;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  cursor: pointer;
+  border: 2px solid #4a6490;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 2px 6px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+}
+
+.sb-slider:active::-moz-range-thumb {
+  cursor: grabbing;
 }
 
 /* ── Settings modal ────────────────────────────────────────────────────── */
@@ -1151,42 +1355,65 @@ a.sb-btn:visited {
   .game-layout {
     display: flex;
     flex-direction: column;
+    gap: 4px;
   }
 
-  .game-layout .main-row-gutter--brand,
-  .game-layout .main-row-gutter--actions {
+  .game-layout > .main-row-gutter--brand {
     width: 100%;
+    order: 1;
   }
 
-  .game-layout .hex-control-bar--cta {
-    width: 100%;
-    align-self: stretch;
+  /* Lift status + CODE A BOT so we can reorder: docs link sits under the hex map. */
+  .game-layout > .main-row-gutter--actions {
+    display: contents;
   }
 
-  .game-layout .main-row-gutter--actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
+  /* Status after P1 so the control bar sits directly above player 1 (tighter grouping). */
   .game-layout .main-row-gutter--actions .header-row-status {
+    order: 4;
     align-self: flex-end;
     text-align: right;
     width: 100%;
   }
 
+  .game-layout > #player-card-1 {
+    order: 3;
+  }
+
+  .game-layout > .hex-column:not(.hex-column--controls-only) {
+    order: 5;
+  }
+
+  .game-layout .main-row-gutter--actions .hex-control-bar--cta {
+    order: 6;
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .game-layout > #player-card-2 {
+    order: 7;
+  }
+
+  /* Map column only: .hex-column--controls-only also has .hex-column — do not give it flex-grow or map min-height. */
+  .hex-column:not(.hex-column--controls-only) {
+    flex: 1 1 0;
+    min-height: min(42dvh, 380px);
+  }
+
   .hex-column--controls-only {
+    order: 2;
     width: 100%;
     flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .game-layout > .hex-column--controls-only > .hex-control-bar {
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 
   .player-card {
     width: 100%;
-  }
-
-  .hex-column {
-    flex: 1 1 0;
-    min-height: min(42dvh, 380px);
   }
 
   .header-brand-title {
