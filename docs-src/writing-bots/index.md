@@ -92,17 +92,9 @@ In order to make more informed decisions, a bot needs to be able to see the curr
 | `game_state.turn`      | Current turn index.                                                                 |
 | `game_state.max_turns` | Match length.                                                                       |
 
-### BotInfo
+### Bot Info
 
-`BotInfo` is a class meant to encapsulate all of the data pertaining to some bot.
-
-It can be found anywhere a bot is referenced:
-
-| Expression            | What it gives you                                 |
-| --------------------- | ------------------------------------------------- |
-| `game_state.me`       | Your bot's `BotInfo`.                             |
-| `game_state.opponent` | The single opponent in 1v1 (`None` otherwise).    |
-| `hex.controller`      | The `BotInfo` that controls this tile, or `None`. |
+`BotInfo` is a class meant to encapsulate all of the data pertaining to some bot. It can be found anywhere a bot is referenced, such as in the `GameState` class.
 
 The fields of BotInfo are:
 

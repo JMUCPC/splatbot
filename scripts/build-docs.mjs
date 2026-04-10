@@ -71,6 +71,7 @@ function titleFromMarkdown(source, fallback) {
 }
 
 function formatNavLabel(segment) {
+  if (segment === 'utils') return 'utils';
   return segment
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());

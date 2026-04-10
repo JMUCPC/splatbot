@@ -1,60 +1,49 @@
-# `utils.splatbot_data_types` API Reference
+# splatbot_data_types
 
-Typing-only template datatypes for editor hints and static checking.
+Data types used to communicate game information to the bots. These are meant to be used for type hinting in code editors, as the game runner contstructs instances of these data classes on the fly.
 
-These classes are included in starter downloads and **mounted in the Pyodide sandbox** as `utils/splatbot_data_types.py`, so you can import them in bot scripts. The runtime `game_state` object is still constructed by the sandbox worker and is read-only.
+**Exports:** BotInfo, GameState
 
-## Module exports (public API)
+## BotInfo
 
-- `BotInfo`
-- `GameState`
+Immutable dataclass representing all the info associated with some bot.
 
----
+### Attributes
 
-## `BotInfo`
+| Attribute          | Type                                     | Description                                               |
+| ------------------ | ---------------------------------------- | --------------------------------------------------------- |
+| pid                | int                                      | Player id.                                                |
+| position           | [Hex](hex_grid.md#hex)                   | Hex tile the bot is occupying.                            |
+| facing             | [HexDirection](hex_grid.md#hexdirection) | Direction the bot is facing.                              |
+| stun               | int                                      | Number of turns left stunned.                             |
+| splat_cooldown     | int                                      | Number of turns until the bot can splat again.            |
+| dash_cooldown      | int                                      | Number of turns until the bot can dash again.             |
+| paintball_cooldown | int                                      | Number of turns until the bot can fire a paintball again. |
 
-```python
-@dataclass(frozen=True)
-class BotInfo:
-    pid: int
-    position: Hex
-    facing: HexDirection
-    stun: int = 0
-    splat_cooldown: int = 0
-    dash_cooldown: int = 0
-    paintball_cooldown: int = 0
-```
+### Methods
 
-Template shape for per-player state exposed on `game_state` (`game_state.me`, values in `game_state.opponents`, and `game_state.opponent` in 1v1).
+| Method            | Returns | Description                                                                       |
+| ----------------- | ------- | --------------------------------------------------------------------------------- |
+| \_\_eq\_\_(other) | bool    | Do the two BotInfo classes being compared have identical pids (only pid is used)? |
+| \_\_hash\_\_()    | int     | Hash (based on pid).                                                              |
 
----
+## GameState
 
-## `GameState`
+Immutable dataclass representing all the info associated with the state of the game.
 
-```python
-@dataclass(frozen=True)
-class GameState:
-    me: BotInfo
-    opponents: MappingProxyType[int, BotInfo]
-    opponent: BotInfo | None
-    grid: frozenset[Hex]
-    turn: int
-    max_turns: int
+### Attributes
 
-    def get_grid_as_2D_list(self) -> list[list[Hex]]: ...
-```
+| Attribute | Type                                | Description                                          |
+| --------- | ----------------------------------- | ---------------------------------------------------- |
+| me        | [BotInfo](#botinfo)                 | Your bot.                                            |
+| opponents | MappingProxyType[int, BotInfo]      | Other players by id; values are [BotInfo](#botinfo). |
+| opponent  | [BotInfo](#botinfo) or None         | Single-opponent shortcut - **used in 1v1**.          |
+| grid      | frozenset of [Hex](hex_grid.md#hex) | Map tiles.                                           |
+| turn      | int                                 | Current turn.                                        |
+| max_turns | int                                 | Turn limit.                                          |
 
-Template shape for the read-only snapshot passed to `Bot.decide(self, game_state)`.
+### Methods
 
-Use `game_state.me.pid` as the player id source.
-
-### `get_grid_as_2D_list`
-
-Returns grid tiles grouped by axial rows (`r` ascending), then sorted by `q` within each row.
-
----
-
-## Notes
-
-- This module is for typing/reference; it does not create or mutate runtime sandbox objects.
-- Runtime semantics are documented in [Game state (`game_state`)](../game_data.md) and [Bot info](../bot_info.md).
+| Method                | Returns                                | Description              |
+| --------------------- | -------------------------------------- | ------------------------ |
+| get_grid_as_2D_list() | list of list of [Hex](hex_grid.md#hex) | Rows by r, columns by q. |

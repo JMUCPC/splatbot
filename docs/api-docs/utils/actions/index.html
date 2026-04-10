@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>`utils.actions` API Reference · Splatbot</title>
+  <title>actions · Splatbot</title>
   <link rel="icon" href="../../../../images/splat.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
@@ -28,155 +28,161 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../hex-grid/index.html">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../game_data/index.html">Game state (`game_state`) API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../bot_info/index.html">Bot info API Reference</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../hex_grid/index.html">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
     <main class="docs-main markdown-body">
-<h1 id="utilsactions-api-reference" tabindex="-1"><code>utils.actions</code> API Reference</h1>
-<p>Bot scripts should return a single <code>Action</code> from <code>Bot.decide(self, game_state)</code>.
-This module defines immutable action datatypes and a factory class (<code>Actions</code>)
-used to construct them.</p>
-<h2 id="exports" tabindex="-1">Exports</h2>
-<ul>
-<li><code>Action</code></li>
-<li><code>MoveAction</code></li>
-<li><code>SkipAction</code></li>
-<li><code>SplatAction</code></li>
-<li><code>DashAction</code></li>
-<li><code>ShootPaintballAction</code></li>
-<li><code>TurnLeftAction</code></li>
-<li><code>TurnRightAction</code></li>
-<li><code>FaceDirectionAction</code></li>
-<li><code>Turn180Action</code></li>
-<li><code>Actions</code></li>
-</ul>
-<h2 id="types" tabindex="-1">Types</h2>
-<h3 id="moveaction" tabindex="-1"><code>MoveAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">MoveAction</span>:
-    <span class="hljs-keyword">pass</span>
-</code></pre>
-<p>One hex forward in the bot’s current <strong>facing</strong>; paints the landing tile.</p>
-<p><strong>Fields</strong></p>
-<ul>
-<li>None (direction comes from game state).</li>
-</ul>
-<hr>
-<h3 id="skipaction" tabindex="-1"><code>SkipAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">SkipAction</span>:
-    <span class="hljs-keyword">pass</span>
-</code></pre>
-<p>Represents taking no action for the turn.</p>
-<p><strong>Fields</strong></p>
-<ul>
-<li>None</li>
-</ul>
-<hr>
-<h3 id="splataction" tabindex="-1"><code>SplatAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">SplatAction</span>:
-    <span class="hljs-string">&quot;&quot;&quot;Paint every in-grid neighbor of the bot&#x27;s current hex (not the hex you stand on).&quot;&quot;&quot;</span>
-</code></pre>
-<p>Paints every in-bounds neighboring hex around the bot’s current position.
-Does <strong>not</strong> paint the bot’s own hex.</p>
-<p><strong>Fields</strong></p>
-<ul>
-<li>None</li>
-</ul>
-<hr>
-<h3 id="dashaction" tabindex="-1"><code>DashAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">DashAction</span>:
-    <span class="hljs-string">&quot;&quot;&quot;Move ``distance`` hexes straight ahead (facing); paint only the destination hex.&quot;&quot;&quot;</span>
-    distance: <span class="hljs-built_in">int</span>
-</code></pre>
-<p><strong>Fields</strong></p>
-<ul>
-<li><code>distance: int</code> — Number of hexes to dash (engine expects <strong>2–6</strong>).</li>
-</ul>
-<hr>
-<h3 id="shootpaintballaction" tabindex="-1"><code>ShootPaintballAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">ShootPaintballAction</span>:
-    <span class="hljs-string">&quot;&quot;&quot;Paint a ray straight ahead until the map edge or another bot (you do not move).&quot;&quot;&quot;</span>
-    <span class="hljs-keyword">pass</span>
-</code></pre>
-<p><strong>Fields</strong></p>
-<ul>
-<li>None (ray uses current <strong>facing</strong>).</li>
-</ul>
-<hr>
-<h3 id="turnleftaction" tabindex="-1"><code>TurnLeftAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">TurnLeftAction</span>:
-    steps: <span class="hljs-built_in">int</span> = <span class="hljs-number">1</span>
-</code></pre>
-<p>Add <code>steps</code> to the direction index (mod 6), one tick — e.g. <strong>E → NE</strong> when <code>steps == 1</code> (pivots <strong>left</strong> on the default map view).</p>
-<hr>
-<h3 id="turnrightaction" tabindex="-1"><code>TurnRightAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">TurnRightAction</span>:
-    steps: <span class="hljs-built_in">int</span> = <span class="hljs-number">1</span>
-</code></pre>
-<p>Subtract <code>steps</code> from the direction index (mod 6), one tick — e.g. <strong>E → SE</strong> when <code>steps == 1</code> (pivots <strong>right</strong> on the default map view).</p>
-<hr>
-<h3 id="facedirectionaction" tabindex="-1"><code>FaceDirectionAction</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">FaceDirectionAction</span>:
-    direction: HexDirection
-</code></pre>
-<p>Set <strong>facing</strong> to an absolute direction, one tick.</p>
-<hr>
-<h3 id="turn180action" tabindex="-1"><code>Turn180Action</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
-<span class="hljs-keyword">class</span> <span class="hljs-title class_">Turn180Action</span>:
-    <span class="hljs-keyword">pass</span>
-</code></pre>
-<p>Turn <strong>facing</strong> 180° (opposite direction), one tick.</p>
-<hr>
-<h3 id="action" tabindex="-1"><code>Action</code></h3>
-<pre><code data-docs-code-lang="python" class="language-python">Action = (
-    MoveAction
-    | SkipAction
-    | SplatAction
-    | DashAction
-    | ShootPaintballAction
-    | TurnLeftAction
-    | TurnRightAction
-    | FaceDirectionAction
-    | Turn180Action
-)
-</code></pre>
-<p>Union type for all legal bot actions.</p>
-<h2 id="factory-api-actions" tabindex="-1">Factory API: <code>Actions</code></h2>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Actions</span>:
-    <span class="hljs-string">&quot;&quot;&quot;Factories for :class:`Action` values (use from bot scripts / ``Bot.decide``).&quot;&quot;&quot;</span>
-</code></pre>
-<p>Static helpers to construct valid action objects.</p>
-<h3 id="actionsmove---moveaction" tabindex="-1"><code>Actions.move() -&gt; MoveAction</code></h3>
-<p>Step one hex forward (current facing).</p>
-<h3 id="actionsskip---skipaction" tabindex="-1"><code>Actions.skip() -&gt; SkipAction</code></h3>
-<p>Create a <code>SkipAction</code>.</p>
-<h3 id="actionssplat---splataction" tabindex="-1"><code>Actions.splat() -&gt; SplatAction</code></h3>
-<p>Create a <code>SplatAction</code>.</p>
-<h3 id="actionsdashdistance-int---dashaction" tabindex="-1"><code>Actions.dash(distance: int) -&gt; DashAction</code></h3>
-<p>Dash straight ahead for <code>int(distance)</code> hexes (engine validates <strong>2–6</strong>).</p>
-<h3 id="actionsshoot_paintball---shootpaintballaction" tabindex="-1"><code>Actions.shoot_paintball() -&gt; ShootPaintballAction</code></h3>
-<p>Fire a paintball ray along current <strong>facing</strong>.</p>
-<h3 id="actionsturn_leftsteps-int--1---turnleftaction" tabindex="-1"><code>Actions.turn_left(steps: int = 1) -&gt; TurnLeftAction</code></h3>
-<h3 id="actionsturn_rightsteps-int--1---turnrightaction" tabindex="-1"><code>Actions.turn_right(steps: int = 1) -&gt; TurnRightAction</code></h3>
-<h3 id="actionsface_directiondirection-int--hexdirection---facedirectionaction" tabindex="-1"><code>Actions.face_direction(direction: int | HexDirection) -&gt; FaceDirectionAction</code></h3>
-<p>If <code>direction</code> is an <code>int</code>, it is normalized with <code>direction % 6</code> and converted to <code>HexDirection</code>.</p>
-<h3 id="actionsturn_180---turn180action" tabindex="-1"><code>Actions.turn_180() -&gt; Turn180Action</code></h3>
-<p>Flip <strong>facing</strong> to the opposite direction.</p>
+<h1 id="actions" tabindex="-1">actions</h1>
+<p>Use the <a href="#actions">Actions</a> static methods to construct <a href="#action">Action</a>-type objects.</p>
+<p><strong>Exports:</strong> Actions, Action, MoveAction, SkipAction, SplatAction, DashAction, ShootPaintballAction, TurnLeftAction, TurnRightAction, FaceDirectionAction, Turn180Action</p>
+<h2 id="actions-1" tabindex="-1">Actions</h2>
+<p>Static factories (immutable results).</p>
+<h3 id="methods" tabindex="-1">Methods</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>move()</td>
+<td><a href="#moveaction">MoveAction</a></td>
+<td>Move one hex forward.</td>
+</tr>
+<tr>
+<td>skip()</td>
+<td><a href="#skipaction">SkipAction</a></td>
+<td>Do nothing.</td>
+</tr>
+<tr>
+<td>splat()</td>
+<td><a href="#splataction">SplatAction</a></td>
+<td>Paint in-grid neighbors of current cell.</td>
+</tr>
+<tr>
+<td>dash(distance)</td>
+<td><a href="#dashaction">DashAction</a></td>
+<td>Move distance hexes forward; paints only the destination.</td>
+</tr>
+<tr>
+<td>shoot_paintball()</td>
+<td><a href="#shootpaintballaction">ShootPaintballAction</a></td>
+<td>Paint along ray in facing until edge or another bot.</td>
+</tr>
+<tr>
+<td>turn_left(steps=1)</td>
+<td><a href="#turnleftaction">TurnLeftAction</a></td>
+<td>Rotate left by steps.</td>
+</tr>
+<tr>
+<td>turn_right(steps=1)</td>
+<td><a href="#turnrightaction">TurnRightAction</a></td>
+<td>Rotate right by steps.</td>
+</tr>
+<tr>
+<td>face_direction(direction)</td>
+<td><a href="#facedirectionaction">FaceDirectionAction</a></td>
+<td>direction is int or <a href="../hex_grid/index.html#hexdirection">HexDirection</a></td>
+</tr>
+<tr>
+<td>turn_180()</td>
+<td><a href="#turn180action">Turn180Action</a></td>
+<td>Face opposite direction.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="action" tabindex="-1">Action</h2>
+<p>Type alias (union) for any legal return value from decide: <a href="#moveaction">MoveAction</a>, <a href="#skipaction">SkipAction</a>, <a href="#splataction">SplatAction</a>, <a href="#dashaction">DashAction</a>, <a href="#shootpaintballaction">ShootPaintballAction</a>, <a href="#turnleftaction">TurnLeftAction</a>, <a href="#turnrightaction">TurnRightAction</a>, <a href="#facedirectionaction">FaceDirectionAction</a>, <a href="#turn180action">Turn180Action</a>.</p>
+<h2 id="moveaction" tabindex="-1">MoveAction</h2>
+<p><em>No instance attributes.</em></p>
+<h2 id="skipaction" tabindex="-1">SkipAction</h2>
+<p><em>No instance attributes.</em></p>
+<h2 id="splataction" tabindex="-1">SplatAction</h2>
+<p><em>No instance attributes.</em></p>
+<h2 id="dashaction" tabindex="-1">DashAction</h2>
+<h3 id="attributes" tabindex="-1">Attributes</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>distance</td>
+<td>int</td>
+<td>Steps straight ahead (facing); engine expects range 2–6.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="shootpaintballaction" tabindex="-1">ShootPaintballAction</h2>
+<p><em>No instance attributes.</em></p>
+<h2 id="turnleftaction" tabindex="-1">TurnLeftAction</h2>
+<h3 id="attributes-1" tabindex="-1">Attributes</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>steps</td>
+<td>int</td>
+<td>Add to direction index mod 6 (default 1).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="turnrightaction" tabindex="-1">TurnRightAction</h2>
+<h3 id="attributes-2" tabindex="-1">Attributes</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>steps</td>
+<td>int</td>
+<td>Subtract from direction index mod 6 (default 1).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="facedirectionaction" tabindex="-1">FaceDirectionAction</h2>
+<h3 id="attributes-3" tabindex="-1">Attributes</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>direction</td>
+<td><a href="../hex_grid/index.html#hexdirection">HexDirection</a></td>
+<td>Absolute facing.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="turn180action" tabindex="-1">Turn180Action</h2>
+<p><em>No instance attributes.</em></p>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../../bot_info/index.html">&larr; Back: Bot info API Reference</a><a class="docs-pager-link docs-pager-link--next" href="../hex_grid/index.html">Next: `utils.hex_grid` API Reference &rarr;</a></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../../index.html">&larr; Back: Python API reference</a><a class="docs-pager-link docs-pager-link--next" href="../hex_grid/index.html">Next: hex_grid &rarr;</a></nav>
     </main>
   </div>
   <script src="../../../../js/bot-runnable.js" defer></script>
