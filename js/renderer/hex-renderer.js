@@ -24,8 +24,19 @@ function arrowTrianglePoints(cx, cy, a0, hexSize) {
   ];
 }
 
-export function renderHexGrid(state, hexSize) {
+/**
+ * @param {import('../engine/game-state.js').GameState} state
+ * @param {number} [hexSize]
+ * @param {{ hidePlayerIds?: number[] }} [options] If set, those players’ ink and bot markers are not drawn (e.g. docs try preview).
+ */
+export function renderHexGrid(state, hexSize, options) {
   hexSize = hexSize ?? 26;
+  const hiddenPids = new Set(options?.hidePlayerIds ?? []);
+
+  function effectivePid(pid) {
+    if (!pid) return 0;
+    return hiddenPids.has(pid) ? 0 : pid;
+  }
 
   const tileFill = {
     0: config.TILE_NONE_COLOR,
@@ -79,7 +90,8 @@ export function renderHexGrid(state, hexSize) {
   for (const h of state.grid.values()) {
     const [rawCx, rawCy] = centers.get(h.key);
     const cx = rawCx + ox, cy = rawCy + oy;
-    const paintPid = h.controller ? h.controller.pid : 0;
+    const rawPaintPid = h.controller ? h.controller.pid : 0;
+    const paintPid = effectivePid(rawPaintPid);
     const isOccupied = occupied.has(h.key);
 
     let fill, stroke, sw;
@@ -88,9 +100,15 @@ export function renderHexGrid(state, hexSize) {
       for (const [p, posKey] of botHexes) {
         if (posKey === h.key) { pid = p; break; }
       }
-      fill = botBright[pid];
-      stroke = tileStroke[paintPid];
-      sw = 2.0;
+      if (hiddenPids.has(pid)) {
+        fill = tileFill[paintPid];
+        stroke = tileStroke[paintPid];
+        sw = 1.2;
+      } else {
+        fill = botBright[pid];
+        stroke = tileStroke[paintPid];
+        sw = 2.0;
+      }
     } else {
       fill = tileFill[paintPid];
       stroke = tileStroke[paintPid];
@@ -105,6 +123,7 @@ export function renderHexGrid(state, hexSize) {
   // Bot markers
   const display = config.BOT_DISPLAY_TYPE;
   for (const bot of state.bots.values()) {
+    if (hiddenPids.has(bot.pid)) continue;
     if (!centers.has(bot.position.key)) continue;
     const [rawCx, rawCy] = centers.get(bot.position.key);
     const cx = rawCx + ox, cy = rawCy + oy;
