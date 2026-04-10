@@ -161,7 +161,6 @@ class Bot:
             if not tile.is_controlled_by(game_state.me):
                 count += 1
         # only splat if at least 3 neighbors aren't controlled by this bot
-        print(count)
         return count >= 3
 ```
 
