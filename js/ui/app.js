@@ -306,6 +306,12 @@ function showMatchEndModal() {
   if (els.matchEndStats) {
     const s1 = matchStats[1];
     const s2 = matchStats[2];
+    const t1 = runners[1]?.getTimingStats?.();
+    const t2 = runners[2]?.getTimingStats?.();
+    const avgDecision = (timing) => {
+      if (!timing || timing.decisionCount <= 0) return '0.00000s/dec';
+      return `${(timing.totalDecisionSeconds / timing.decisionCount).toFixed(5)}s/dec`;
+    };
     const rows = [
       ['Tiles painted', s1.tilesPainted, s2.tilesPainted],
       ['Tiles moved', s1.tilesMoved, s2.tilesMoved],
@@ -315,6 +321,7 @@ function showMatchEndModal() {
       ['Splat uses', s1.splats, s2.splats],
       ['Paintball uses', s1.paintballs, s2.paintballs],
       ['Blocked actions', s1.blockedActions, s2.blockedActions],
+      ['Avg decision', avgDecision(t1), avgDecision(t2)],
     ];
     els.matchEndStats.innerHTML = `
       <table class="match-end-stats-table" aria-label="Player match stats">
@@ -431,7 +438,6 @@ function setEventLogExpanded(expanded) {
   const app = document.getElementById('app');
   const panel = document.getElementById('event-log-panel');
   const expandBtn = document.getElementById('btn-event-log-expand');
-  const hideBtn = document.getElementById('btn-event-log-hide');
   if (!panel) return;
 
   /* Attribute + CSS `#event-log-panel[hidden]` — property alone can desync in some cases. */
@@ -445,18 +451,9 @@ function setEventLogExpanded(expanded) {
   else app?.classList.remove('event-log-expanded');
 
   if (expandBtn) {
-    if (expanded) {
-      expandBtn.setAttribute('hidden', '');
-    } else {
-      expandBtn.removeAttribute('hidden');
-    }
-    expandBtn.setAttribute('aria-expanded', 'false');
+    expandBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     expandBtn.textContent = 'EVENT LOG';
-    expandBtn.setAttribute('aria-label', 'Show event log');
-  }
-
-  if (hideBtn) {
-    hideBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    expandBtn.setAttribute('aria-label', expanded ? 'Collapse event log' : 'Expand event log');
   }
 }
 
@@ -846,8 +843,6 @@ export function initApp() {
   els.score2 = document.getElementById('score-2');
   els.pct1 = document.getElementById('pct-1');
   els.pct2 = document.getElementById('pct-2');
-  els.decisionTime1 = document.getElementById('decision-time-1');
-  els.decisionTime2 = document.getElementById('decision-time-2');
   els.turnNum = document.getElementById('turn-num');
   els.maxTurns = document.getElementById('max-turns');
   els.progressFill = document.getElementById('progress-fill');
@@ -898,15 +893,9 @@ export function initApp() {
     btnEventLogExpand.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setEventLogExpanded(true);
-    });
-  }
-  const btnEventLogHide = document.getElementById('btn-event-log-hide');
-  if (btnEventLogHide) {
-    btnEventLogHide.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setEventLogExpanded(false);
+      const panel = document.getElementById('event-log-panel');
+      const expanded = panel ? !panel.hasAttribute('hidden') : false;
+      setEventLogExpanded(!expanded);
     });
   }
   const btnEventLogClear = document.getElementById('btn-event-log-clear');
@@ -1029,20 +1018,6 @@ function push() {
   els.maxTurns.textContent = `/ ${state.maxTurns}`;
   els.progressFill.style.width = `${(pct * 100).toFixed(1)}%`;
 
-  for (const pid of [1, 2]) {
-    const runner = runners[pid];
-    const el = pid === 1 ? els.decisionTime1 : els.decisionTime2;
-    if (runner) {
-      const stats = runner.getTimingStats();
-      const avg = stats.decisionCount > 0
-        ? stats.totalDecisionSeconds / stats.decisionCount
-        : 0;
-      el.textContent = `${avg.toFixed(5)}s/dec`;
-    } else {
-      el.textContent = '0.00000s/dec';
-    }
-  }
-
   if (state.isOver) {
     const w = state.winner();
     if (w === 1) {
@@ -1055,11 +1030,8 @@ function push() {
       els.status.textContent = 'DRAW';
       els.status.style.color = '#8899aa';
     }
-  } else if (running) {
-    els.status.textContent = '● LIVE';
-    els.status.style.color = '#22cc66';
   } else {
-    els.status.textContent = '● PAUSED';
+    els.status.textContent = '';
     els.status.style.color = '#4a6080';
   }
 

@@ -6,6 +6,8 @@ html {
 }
 
 :root {
+  /* Side panels: player cards, header brand, header docs CTA — keep in sync. */
+  --sb-side-panel-width: clamp(228px, 19vw, 320px);
   /* Match js/config.js derivePlayerPalette + app applyPlayerThemeVars defaults (#ff6b2b / #00d4ff). */
   --player1-base: #ff6b2b;
   --player1-bright: #ff8651;
@@ -53,6 +55,12 @@ body {
   transition: border-color 0.15s, color 0.15s, background-color 0.15s;
   white-space: nowrap;
 }
+
+a.sb-btn:link,
+a.sb-btn:visited {
+  color: #a8b8cc;
+}
+
 .sb-btn:hover {
   background: #223048;
   border-color: #4a6490;
@@ -91,6 +99,7 @@ body {
   background: #070d1a;
   border-radius: 6px;
   overflow: auto;
+  scrollbar-gutter: stable;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -151,23 +160,22 @@ body {
   text-decoration: underline;
 }
 
-.header-row {
-  width: 100%;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-.header-row .title {
+.header-brand-title {
   font-size: clamp(1.85rem, 3.6vw, 2.85rem);
   font-weight: 700;
   letter-spacing: 0.2em;
   color: #dde8f0;
+  flex: 0 0 auto;
 }
-.header-row .status {
+.header-row-status {
+  min-width: 0;
+  text-align: right;
+  width: 100%;
+}
+.header-docs-btn {
+  text-decoration: none;
+}
+.game-layout .main-row-gutter--actions .status {
   color: #6d8299;
   font-family: 'Share Tech Mono', monospace;
   font-size: 1.12rem;
@@ -180,10 +188,46 @@ body {
   flex-wrap: wrap;
 }
 
-.header-row .button-group > .sb-btn,
-.header-row .button-group .sb-step-wrap > .sb-btn {
+.hex-control-bar {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 14px;
+  margin-bottom: 0;
+  background: #0a101c;
+  border: 2px solid #2a3f5c;
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 212, 255, 0.08),
+    0 2px 12px rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+}
+
+.hex-control-bar .button-group {
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.hex-control-bar > .sb-btn,
+.hex-control-bar .button-group > .sb-btn,
+.hex-control-bar .button-group .sb-step-wrap > .sb-btn {
   padding-top: 2px;
   padding-bottom: 0;
+}
+
+.hex-control-bar--cta {
+  width: var(--sb-side-panel-width);
+  max-width: 100%;
+  align-self: flex-end;
+  min-height: 0;
+}
+
+.hex-control-bar--cta .header-docs-btn {
+  width: fit-content;
+  max-width: 100%;
 }
 
 .sb-step-wrap {
@@ -274,17 +318,65 @@ body {
   min-height: 44px;
 }
 
-.main-row {
+/* Header row + map row share one grid so the center column lines up with the hex area. */
+.game-layout {
   width: 100%;
   flex: 1 1 0;
   min-height: 0;
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
   min-width: 0;
+  display: grid;
+  grid-template-columns: var(--sb-side-panel-width) minmax(0, 1fr) var(--sb-side-panel-width);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.main-row-gutter {
+  flex-shrink: 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.main-row-gutter--brand {
+  width: var(--sb-side-panel-width);
+  display: flex;
+  align-items: center;
+  min-height: 0;
+}
+
+.main-row-gutter--actions {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 6px;
+  min-height: 0;
+}
+
+.main-row-gutter--actions .header-row-status {
+  align-self: flex-end;
+  width: auto;
+}
+
+.hex-column--controls-only {
+  min-width: 0;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* Full width of center column so it matches .hex-wrap below. */
+.game-layout .hex-column--controls-only > .hex-control-bar {
+  width: 100%;
+  max-width: 100%;
 }
 .player-card {
-  width: clamp(228px, 19vw, 320px);
+  width: var(--sb-side-panel-width);
   min-width: 0;
   flex-shrink: 0;
   min-height: 0;
@@ -320,13 +412,11 @@ body {
   color: var(--player2-base);
 }
 
-#pct-1,
-#decision-time-1 {
+#pct-1 {
   color: var(--player1-bright);
 }
 
-#pct-2,
-#decision-time-2 {
+#pct-2 {
   color: var(--player2-bright);
 }
 
@@ -420,6 +510,7 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
 }
 
 .turn-row {
@@ -433,6 +524,17 @@ body {
 }
 .turn-row-event-log-btn {
   margin-left: auto;
+}
+
+.turn-row-event-log-btn::after {
+  content: " \25BE";
+  font-size: 0.78em;
+  line-height: 1;
+  margin-left: 0.35rem;
+}
+
+.turn-row-event-log-btn[aria-expanded="true"]::after {
+  content: " \25B4";
 }
 .turn-num {
   font-family: 'Share Tech Mono', monospace;
@@ -1046,8 +1148,36 @@ body {
 /* ── Narrow / small viewports ──────────────────────────────────────────── */
 
 @media (max-width: 840px) {
-  .main-row {
+  .game-layout {
+    display: flex;
     flex-direction: column;
+  }
+
+  .game-layout .main-row-gutter--brand,
+  .game-layout .main-row-gutter--actions {
+    width: 100%;
+  }
+
+  .game-layout .hex-control-bar--cta {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .game-layout .main-row-gutter--actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .game-layout .main-row-gutter--actions .header-row-status {
+    align-self: flex-end;
+    text-align: right;
+    width: 100%;
+  }
+
+  .hex-column--controls-only {
+    width: 100%;
+    flex: 0 0 auto;
   }
 
   .player-card {
@@ -1059,13 +1189,13 @@ body {
     min-height: min(42dvh, 380px);
   }
 
-  .header-row .title {
+  .header-brand-title {
     font-size: clamp(1.55rem, 5.8vw, 2.85rem);
   }
 
-  .button-group {
+  .hex-control-bar .button-group {
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: center;
   }
 }
 
