@@ -7,20 +7,20 @@ _This tutorial assumes that the reader is familiar with basic scripting (if/for/
 A _bot_ is a Python script run inside the Splatbot game. The game will run it to decide what action should be taken. Here is a simple template of a bot:
 
 ```python title="Splatbot Template"
-from utils.actions import Actions # Use this to create the Action that the decide method returns
-from utils.hex_grid import * # This contains helpful functions for working with a hexagonal grid
+from utils.actions import Actions  # Use this to create the Action that the decide method returns
+from utils.hex_grid import Hex, HexDirection, HexUtils  # Hex grid types; use HexUtils(game_state) for helpers
 
 class Bot:
     def decide(self, game_state) -> Action:
         """ This function will use the values provided in `game_state` to return what action it believes it should take."""
-        return Actions.skip() # Template, so do nothing.
+        return Actions.skip()  # Template, so do nothing.
 ```
 
-This may look complicated, but each part of this template is explained in more detail below. _[Actions](../actions/index.md)_ are explained in greater detail on their own page.
+This may look complicated, but each part of this template is explained in more detail below. _[Actions](../actions/index.md)_ are explained in even greater detail on their own page.
 
 ## Imports
 
-Two custom imports are provided to players wanting to create their own splatbot: `utils.actions` and `utils.hex_grid`. The first contains the `Actions` class, which provides a template for the [actions](../actions/index.md) a bot may take. The second import provides useful utilities for working with a [hexagonal grid](../hex-grid/). Details on the functions inside these imports can be found in the [API Docs](../api-docs/): see [_utils.actions_](../api-docs/utils/actions.md) and [_utils.hex_grid_](../api-docs/utils/hex_grid.md).
+Three custom imports are provided to players wanting to create their own splatbot: `utils.actions`, `utils.hex_grid`, and `utils.splatbot_data_types`. `utils.actions` contains the `Actions` class, which provides a template for the [actions](../actions/index.md) a bot may take. `utils.hex_grid` provides assorted grid utilities (`Hex`, `HexDirection`, `HexVector`, and `HexUtils`). `utils.splatbot_data_types` provides optional typing templates (`BotInfo` and `GameState`) for editor hints and static checking. Details are in the [API Docs](../api-docs/): see [_utils.actions_](../api-docs/utils/actions.md), [_utils.hex_grid_](../api-docs/utils/hex_grid.md), and [_utils.splatbot_data_types_](../api-docs/utils/splatbot_data_types.md).
 
 ## Deciding on an Action
 
@@ -48,8 +48,6 @@ This bot moves forwards.
 
 ```python title="Forward Bot"
 from utils.actions import Actions
-from utils.hex_grid import *
-
 
 class Bot:
     def decide(self, game_state):
@@ -67,7 +65,6 @@ To set starting values of these instance variables, add a constructor to the `Bo
 
 ```python title="Counting Bot"
 from utils.actions import Actions
-from utils.hex_grid import *
 
 class Bot:
     """ This Bot will count by incrementing a saved instance variable. """
@@ -123,49 +120,54 @@ _Note: There are also `Hex` classes, explained [here](../hex-grid/index.md)_
 
 ## Putting It All Together
 
-This bot moves east until the next east step would leave the grid, when it instead turns around and moves west until it hits the other edge, and repeats - making a "ping-pong" pattern. It utilizes all of the bot-writing strategies discussed on this page.
+This bot moves forward until the next step would leave the grid, then turns 180° and repeats—bouncing between opposite edges like a "ping-pong" along whatever axis it started on. That uses **relative** heading (`facing` + `turn_180`) instead of forcing a fixed compass direction, so it behaves the same for player 1 and player 2. It utilizes all of the bot-writing strategies discussed on this page.
 
 ```python title="Ping-Pong Bot"
 from utils.actions import Actions
-from utils.hex_grid import HexDirection, hex_neighbor
-
+from utils.hex_grid import HexUtils
 
 class Bot:
-    """This bot will ping-pong between moving east and west."""
+    """Sweep the board in a hexagonal patrol; splat to claim large amounts of tiles."""
 
     def __init__(self):
-        """Start the match going east. """
-        self.going_east = True
+        # used to count moves over the edges of the larger ring shape
+        self.steps = 0
 
-    def get_current_direction(self):
-        """ Return the HexDirection that the bot is currently moving in."""
-        if self.going_east:
-            return HexDirection.E
-        else:
-            return HexDirection.W
+    def should_splat(self, game_state):
+        """True if at least 3 neighboring tiles are not under this bot's control"""
+        hx = HexUtils(game_state)
+        # count the number of neighbors not controlled by this bot
+        count = 0
+        neighbors = set(hx.hex_neighbors(game_state.me.position))
+        for tile in neighbors:
+            if not tile.is_controlled_by(game_state.me):
+                count += 1
+        # only splat if at least 3 neighbors aren't controlled by this bot
+        print(count)
+        return count >= 3
 
     def decide(self, game_state):
-        """ Keep going a direction until an edge is found, then turn around."""
-
-        # Find the next position the bot will be in if it continues moving in the same direction
-        direction = self.get_current_direction()
-        next_position = hex_neighbor(game_state.me.position, direction)
-
-        # If the anticipated position falls outside of the grid, turn around instead
-        if next_position not in game_state.grid:
-            self.going_east = not self.going_east
-            direction = self.get_current_direction()
-
-        # If the bot is not currently facing the desired direction, turn to do so
-        if game_state.me.facing != direction:
-            return Actions.face_direction(direction)
-
-        # Keep on movin'
+        me = game_state.me
+        hx = HexUtils(game_state)
+        # skip if stunned
+        if me.stun > 0:
+            return Actions.skip()
+        # If splat is off cooldown and the bot is in a good position to splat, then do so
+        if me.splat_cooldown == 0 and self.should_splat(game_state):
+            print("SPLAT!")
+            return Actions.splat()
+        # if moving forward would leave the grid, or if finished with this side of the hexagon, then turn
+        forward = hx.hex_neighbor(me.position, me.facing)
+        if forward not in game_state.grid or self.steps >= 5:
+            self.steps = 0
+            return Actions.turn_right()
+        # move forwards, and count the move
+        self.steps += 1
         return Actions.move()
 ```
 
-- This bot implements the necessary template to be a game-recognized bot (and even implements a custom helper method!)
-- This bot uses some of the utilities provided in `utils.hex_grid`
+- This bot implements the necessary template to be a game-recognized bot
+- This bot uses `HexUtils.hex_neighbor` from `utils.hex_grid` with `me.facing` (not an absolute `HexDirection` constant)
 - This bot can return different actions depending on what it thinks is a good next move
 - This bot looks into data classes like `GameState` and `BotInfo` to see data about the game
 

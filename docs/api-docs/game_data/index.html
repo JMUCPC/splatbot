@@ -31,7 +31,8 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../bot_info/index.html">Bot info API Reference</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../utils/actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../utils/splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
@@ -62,9 +63,12 @@
 <p>All <strong>other</strong> players in the match, keyed by their player id. Read-only (<code>types.MappingProxyType</code>). In a two-player match this contains exactly one entry.</p>
 <h3 id="opponent-botinfo--none" tabindex="-1"><code>opponent: BotInfo | None</code></h3>
 <p>Convenience shortcut: the <strong>single</strong> opponent’s <code>BotInfo</code> when there is exactly one opponent (the standard 1v1 case). <code>None</code> if there are zero or more than one opponents.</p>
-<pre><code data-docs-code-lang="python" class="language-python">opp = game_state.opponent
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexUtils
+
+opp = game_state.opponent
 <span class="hljs-keyword">if</span> opp <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
-    dist = hex_distance(game_state.me.position, opp.position)
+    hx = HexUtils(game_state)
+    dist = hx.hex_distance(game_state.me.position, opp.position)
 </code></pre>
 <h3 id="grid-frozensethex" tabindex="-1"><code>grid: frozenset[Hex]</code></h3>
 <p>All hex cells on the map. Each <code>Hex</code> has a <code>controller</code> attribute (<code>BotInfo | None</code>) indicating who currently paints that tile (<code>None</code> = unpainted). Use <code>hex.controller</code> or <code>hex.is_controlled_by(...)</code> to check ownership.</p>
@@ -72,7 +76,7 @@
     <span class="hljs-keyword">if</span> <span class="hljs-built_in">hex</span>.is_controlled_by(game_state.me):
         ...  <span class="hljs-comment"># this tile is mine</span>
 </code></pre>
-<p>Position checks like <code>hex_neighbor(pos, d) in game_state.grid</code> still work — <code>Hex</code> equality uses only <code>(q, r)</code>, not <code>controller</code>.</p>
+<p>Position checks like <code>HexUtils(game_state).hex_neighbor(pos, d) in game_state.grid</code> still work — <code>Hex</code> equality uses only <code>(q, r)</code>, not <code>controller</code>.</p>
 <h3 id="get_grid_as_2d_list---listlisthex" tabindex="-1"><code>get_grid_as_2D_list() -&gt; list[list[Hex]]</code></h3>
 <p>Returns the same tiles as <code>game_state.grid</code>, laid out as a nested list using axial coordinates:</p>
 <ul>

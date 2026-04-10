@@ -31,7 +31,8 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../bot_info/index.html">Bot info API Reference</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">`utils.hex_grid` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
@@ -44,9 +45,7 @@
 <li><code>HexVector</code></li>
 <li><code>HexDirection</code></li>
 <li><code>HEX_DIRECTIONS</code></li>
-<li><code>hex_neighbors</code></li>
-<li><code>hex_neighbor</code></li>
-<li><code>hex_distance</code></li>
+<li><code>HexUtils</code></li>
 </ul>
 <hr>
 <h2 id="hex" tabindex="-1"><code>Hex</code></h2>
@@ -60,9 +59,9 @@
 <ul>
 <li><code>q: int</code> — axial q component.</li>
 <li><code>r: int</code> — axial r component.</li>
-<li><code>controller: BotInfo | None</code> — the bot that controls (paints) this tile, or <code>None</code> if unpainted. Set automatically in <code>game_state.grid</code>; defaults to <code>None</code> for hexes created by arithmetic or helper functions.</li>
+<li><code>controller: BotInfo | None</code> — the bot that controls (paints) this tile, or <code>None</code> if unpainted. Set automatically in <code>game_state.grid</code>; defaults to <code>None</code> for hexes created by arithmetic or helper methods.</li>
 </ul>
-<p><strong>Equality and hashing</strong> use <strong>only <code>(q, r)</code></strong> — <code>controller</code> is excluded. This means <code>hex_neighbor(pos, d) in game_state.grid</code> works regardless of controller state, and <code>Hex</code> is suitable for use in sets and as dict keys.</p>
+<p><strong>Equality and hashing</strong> use <strong>only <code>(q, r)</code></strong> — <code>controller</code> is excluded. This means <code>HexUtils(game_state).hex_neighbor(pos, d) in game_state.grid</code> works regardless of controller state, and <code>Hex</code> is suitable for use in sets and as dict keys.</p>
 <p><strong>Methods</strong></p>
 <ul>
 <li><code>__add__(other: Hex | HexVector) -&gt; Hex</code> — component-wise sum; supports adding either a position (<code>Hex</code>) or offset (<code>HexVector</code>); returns a new <code>Hex</code> (controller is <code>None</code>).</li>
@@ -106,7 +105,7 @@
     SW = <span class="hljs-number">4</span>
     SE = <span class="hljs-number">5</span>
 </code></pre>
-<p>Integer enum values match indices into <code>HEX_DIRECTIONS</code> and are accepted wherever a direction is passed as <code>int | HexDirection</code> (for example <code>Actions.face_direction</code>, <code>hex_neighbor</code> — typically normalized with <code>% 6</code>).</p>
+<p>Integer enum values match indices into <code>HEX_DIRECTIONS</code> and are accepted wherever a direction is passed as <code>int | HexDirection</code> (for example <code>Actions.face_direction</code>, <code>HexUtils.hex_neighbor</code> — typically normalized with <code>% 6</code>).</p>
 <hr>
 <h2 id="hex_directions" tabindex="-1"><code>HEX_DIRECTIONS</code></h2>
 <pre><code data-docs-code-lang="python" class="language-python">HEX_DIRECTIONS: <span class="hljs-built_in">list</span>[HexVector] = [
@@ -120,25 +119,37 @@
 </code></pre>
 <p>Axial step vector for each <code>HexDirection</code> value (same order as the enum).</p>
 <hr>
-<h2 id="hex_neighbors" tabindex="-1"><code>hex_neighbors</code></h2>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_neighbors</span>(<span class="hljs-params">h: Hex</span>) -&gt; <span class="hljs-built_in">list</span>[Hex]
+<h2 id="hexutils" tabindex="-1"><code>HexUtils</code></h2>
+<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">HexUtils</span>:
+    game_state: GameState  <span class="hljs-comment"># read-only snapshot passed to Bot.decide</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, game_state: GameState</span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_neighbor</span>(<span class="hljs-params">self, h: Hex, direction: <span class="hljs-built_in">int</span> | HexDirection</span>) -&gt; Hex: ...
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_neighbors</span>(<span class="hljs-params">self, h: Hex</span>) -&gt; <span class="hljs-built_in">list</span>[Hex]: ...
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">in_grid_neighbors</span>(<span class="hljs-params">self, h: Hex</span>) -&gt; <span class="hljs-built_in">list</span>[Hex]: ...
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_at</span>(<span class="hljs-params">self, h: Hex</span>) -&gt; Hex | <span class="hljs-literal">None</span>: ...
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_controller</span>(<span class="hljs-params">self, h: Hex</span>) -&gt; BotInfo | <span class="hljs-literal">None</span>: ...
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_distance</span>(<span class="hljs-params">self, a: Hex, b: Hex</span>) -&gt; <span class="hljs-built_in">int</span>: ...
 </code></pre>
+<p>Construct once per call to <code>decide</code> (or whenever you have a current snapshot). The <code>game_state</code> argument is the same object the sandbox passes to <code>decide</code>; it is stored on <code>HexUtils.game_state</code> for helpers that need map or player context.</p>
+<h3 id="hex_neighbors" tabindex="-1"><code>hex_neighbors</code></h3>
 <p>Returns the six neighboring hexes of <code>h</code>, one per <code>HexDirection</code>, in enum order (<code>E</code> through <code>SE</code>).</p>
-<hr>
-<h2 id="hex_neighbor" tabindex="-1"><code>hex_neighbor</code></h2>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_neighbor</span>(<span class="hljs-params">h: Hex, direction: <span class="hljs-built_in">int</span> | HexDirection</span>) -&gt; Hex
-</code></pre>
+<h3 id="hex_neighbor" tabindex="-1"><code>hex_neighbor</code></h3>
 <p>Returns the neighbor of <code>h</code> in the given direction. The direction is taken as <code>int(direction) % 6</code>, so integer values wrap modulo 6.</p>
-<hr>
-<h2 id="hex_distance" tabindex="-1"><code>hex_distance</code></h2>
-<pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">hex_distance</span>(<span class="hljs-params">a: Hex, b: Hex</span>) -&gt; <span class="hljs-built_in">int</span>
-</code></pre>
+<h3 id="in_grid_neighbors" tabindex="-1"><code>in_grid_neighbors</code></h3>
+<p>Returns only the neighbors of <code>h</code> that exist in <code>game_state.grid</code>.</p>
+<h3 id="hex_at" tabindex="-1"><code>hex_at</code></h3>
+<p>Returns the matching tile object from <code>game_state.grid</code> for coordinate <code>h</code>, or <code>None</code> if <code>h</code> is outside the map.</p>
+<h3 id="hex_controller" tabindex="-1"><code>hex_controller</code></h3>
+<p>Returns the controlling <code>BotInfo</code> for tile <code>h</code>, or <code>None</code> if the tile is unpainted or not in the map.</p>
+<h3 id="hex_distance" tabindex="-1"><code>hex_distance</code></h3>
 <p>Returns the <strong>axial cube distance</strong> between two hexes (integer steps on the hex grid).</p>
 <hr>
 <h2 id="commented-out-helpers-source-only" tabindex="-1">Commented-out helpers (source only)</h2>
 <p>The shipped <code>utils/hex_grid.py</code> file also contains commented definitions for <code>generate_hex_grid</code>, <code>axial_to_pixel</code>, and <code>hex_corners</code>. They are <strong>not</strong> part of the live module API in the sandbox; do not rely on them unless your project enables that code.</p>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../actions/index.html">&larr; Back: `utils.actions` API Reference</a><span class="docs-pager-spacer" aria-hidden="true"></span></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../actions/index.html">&larr; Back: `utils.actions` API Reference</a><a class="docs-pager-link docs-pager-link--next" href="../splatbot_data_types/index.html">Next: `utils.splatbot_data_types` API Reference &rarr;</a></nav>
     </main>
   </div>
   <script src="../../../../js/bot-runnable.js" defer></script>

@@ -94,12 +94,9 @@ def _parse_bot(bd):
     )
 
 class _Snapshot:
-    __slots__ = ('pid', 'me', 'opponents', 'opponent', 'grid', 'turn', 'max_turns')
+    __slots__ = ('me', 'opponents', 'opponent', 'grid', 'turn', 'max_turns')
     def __init__(self, d):
         me = _parse_bot(d['me'])
-        # Canonical id source is me.pid; keep self.pid for compatibility with older bots.
-        pid = int(d.get('pid', me.pid))
-        object.__setattr__(self, 'pid', pid)
         object.__setattr__(self, 'me', me)
 
         opps = {}
@@ -110,7 +107,7 @@ class _Snapshot:
         object.__setattr__(self, 'opponent', next(iter(opps.values())) if len(opps) == 1 else None)
 
         # Build pid -> BotInfo lookup for grid tile controllers
-        _by_pid = {pid: me}
+        _by_pid = {me.pid: me}
         for p, bi in opps.items():
             _by_pid[p] = bi
 

@@ -31,7 +31,8 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
@@ -53,7 +54,6 @@
 <p class="action-demo-caption">Player 1 faces east. Play applies <code>Actions.move()</code> - step one hex east and paint the landing tile.</p>
 </div>
 <pre><code data-docs-code-lang="python" data-docs-code-title="First Steps for Botkind" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
-<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
@@ -148,7 +148,6 @@
 <p class="action-demo-caption">Play applies <code>Actions.splat()</code> - all tiles neighboring the bot are painted.</p>
 </div>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Splat Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
-<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
@@ -189,7 +188,6 @@
 <p class="action-demo-caption">Play applies <code>Actions.shoot_paintball()</code> - all tiles in front of the bot are painted until the paintball hits another bot.</p>
 </div>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Paintball Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
-<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
@@ -221,7 +219,6 @@
 <p class="action-demo-caption">Play applies <code>Actions.dash(4)</code> - the bot moves 4 and paints the tile it lands on.</p>
 </div>
 <pre><code data-docs-code-lang="python" data-docs-code-title="The Flash" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
-<span class="hljs-keyword">from</span> utils.hex_grid <span class="hljs-keyword">import</span> HexDirection
 
 
 <span class="hljs-keyword">class</span> <span class="hljs-title class_">Bot</span>:
