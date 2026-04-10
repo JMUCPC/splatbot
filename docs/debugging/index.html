@@ -28,11 +28,9 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
@@ -74,7 +72,7 @@
 <p>Timeout behavior is two-tier when the page is cross-origin isolated (COOP/COEP headers): Splatbot signals a Python interrupt first, then hard-terminates only if needed. Without that environment support, it falls back to direct hard termination at timeout.</p>
 <p><strong>Important:</strong> A successful <strong>move</strong> or <strong>skip</strong> often writes <strong>nothing</strong> to the log. No new line does <strong>not</strong> mean your bot failed — it may have moved quietly. Use <strong>Step</strong>, <strong>print</strong>, or watch the board to confirm behavior.</p>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../hex-grid/index.html">&larr; Back: Hexagonal Grids</a><a class="docs-pager-link docs-pager-link--next" href="../api-docs/index.html">Next: Python API Reference &rarr;</a></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../hex-grid/index.html">&larr; Back: Hexagonal Grids</a><a class="docs-pager-link docs-pager-link--next" href="../api-docs/index.html">Next: Python API reference &rarr;</a></nav>
     </main>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>

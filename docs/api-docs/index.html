@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Python API Reference · Splatbot</title>
+  <title>Python API reference · Splatbot</title>
   <link rel="icon" href="../../images/splat.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
@@ -28,31 +28,40 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./game_data/index.html">Game state (`game_state`) API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./bot_info/index.html">Bot info API Reference</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./utils/actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./utils/splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./utils/actions/index.html">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./utils/hex_grid/index.html">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./utils/splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
     <main class="docs-main markdown-body">
-<h1 id="python-api-reference" tabindex="-1">Python API Reference</h1>
-<p>These pages describe the types and helpers available to bot scripts in the Splatbot sandbox (<code>Bot.decide(self, game_state)</code>).</p>
-<h2 id="modules-utils" tabindex="-1">Modules (<code>utils</code>)</h2>
-<ul>
-<li><a href="./utils/actions/index.html"><code>utils.actions</code></a> — action datatypes and the <code>Actions</code> factory.</li>
-<li><a href="./utils/hex_grid/index.html"><code>utils.hex_grid</code></a> — axial hex coordinates, directions, and grid helpers.</li>
-<li><a href="./utils/splatbot_data_types/index.html"><code>utils.splatbot_data_types</code></a> — typing templates for <code>BotInfo</code> and <code>GameState</code>.</li>
-</ul>
-<h2 id="runtime-snapshot-types" tabindex="-1">Runtime snapshot types</h2>
-<p>The following are not <code>.py</code> files in the repo; they are constructed inside the Pyodide worker and passed into <code>decide</code> as <code>game_state</code>. They are read-only (assigning attributes raises).</p>
-<ul>
-<li><a href="./game_data/index.html">Game state (<code>game_state</code>)</a> — board, turn metadata, and references to your bot and opponents.</li>
-<li><a href="./bot_info/index.html">Bot info (<code>game_state.me</code>, <code>game_state.opponent</code>)</a> — per-player position, facing, and timers.</li>
-</ul>
+<h1 id="python-api-reference" tabindex="-1">Python API reference</h1>
+<p>Custom types and helpers available in the Splatbot sandbox (Bot.decide(self, game_state)). All of this code is provided in the <a href="../../index.html#download-starter-code">downloadable starter code</a>.</p>
+<h2 id="modules-utils" tabindex="-1">Modules (utils)</h2>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="./utils/actions/index.html">utils.actions</a></td>
+<td>Action datatypes and the <a href="./utils/actions/index.html#actions">Actions</a> factory.</td>
+</tr>
+<tr>
+<td><a href="./utils/hex_grid/index.html">utils.hex_grid</a></td>
+<td>Axial <a href="./utils/hex_grid/index.html#hex">Hex</a>, <a href="./utils/hex_grid/index.html#hexdirection">HexDirection</a>, <a href="./utils/hex_grid/index.html#hexvector">HexVector</a>, <a href="./utils/hex_grid/index.html#hexutils">HexUtils</a>.</td>
+</tr>
+<tr>
+<td><a href="./utils/splatbot_data_types/index.html">utils.splatbot_data_types</a></td>
+<td>Optional typing templates for <a href="./utils/splatbot_data_types/index.html#botinfo">BotInfo</a> and <a href="./utils/splatbot_data_types/index.html#gamestate">GameState</a>.</td>
+</tr>
+</tbody>
+</table>
 
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../debugging/index.html">&larr; Back: Advanced Debugging</a><a class="docs-pager-link docs-pager-link--next" href="./game_data/index.html">Next: Game state (`game_state`) API Reference &rarr;</a></nav>
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../debugging/index.html">&larr; Back: Advanced Debugging</a><a class="docs-pager-link docs-pager-link--next" href="./utils/actions/index.html">Next: actions &rarr;</a></nav>
     </main>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>

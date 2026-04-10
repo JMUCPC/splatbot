@@ -606,6 +606,7 @@ span.docs-sidebar-section-link {
 
 .markdown-body table th {
   background: #111c2e;
+  text-align: left;
 }
 
 .markdown-body abbr[title] {

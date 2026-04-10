@@ -28,11 +28,9 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API Reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/game_data/index.html">Game state (`game_state`) API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/bot_info/index.html">Bot info API Reference</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">Utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">`utils.actions` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">`utils.hex_grid` API Reference</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/splatbot_data_types/index.html">`utils.splatbot_data_types` API Reference</a></li></ul></li></ul></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
@@ -164,31 +162,8 @@
 </tr>
 </tbody>
 </table>
-<h3 id="botinfo" tabindex="-1">BotInfo</h3>
-<p><code>BotInfo</code> is a class meant to encapsulate all of the data pertaining to some bot.</p>
-<p>It can be found anywhere a bot is referenced:</p>
-<table>
-<thead>
-<tr>
-<th>Expression</th>
-<th>What it gives you</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>game_state.me</code></td>
-<td>Your bot’s <code>BotInfo</code>.</td>
-</tr>
-<tr>
-<td><code>game_state.opponent</code></td>
-<td>The single opponent in 1v1 (<code>None</code> otherwise).</td>
-</tr>
-<tr>
-<td><code>hex.controller</code></td>
-<td>The <code>BotInfo</code> that controls this tile, or <code>None</code>.</td>
-</tr>
-</tbody>
-</table>
+<h3 id="bot-info" tabindex="-1">Bot Info</h3>
+<p><code>BotInfo</code> is a class meant to encapsulate all of the data pertaining to some bot. It can be found anywhere a bot is referenced, such as in the <code>GameState</code> class.</p>
 <p>The fields of BotInfo are:</p>
 <table>
 <thead>
@@ -277,7 +252,6 @@
             <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> tile.is_controlled_by(game_state.me):
                 count += <span class="hljs-number">1</span>
         <span class="hljs-comment"># only splat if at least 3 neighbors aren&#x27;t controlled by this bot</span>
-        <span class="hljs-built_in">print</span>(count)
         <span class="hljs-keyword">return</span> count &gt;= <span class="hljs-number">3</span>
 </code></pre>
 <ul>

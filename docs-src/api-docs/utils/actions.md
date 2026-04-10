@@ -1,207 +1,79 @@
-# `utils.actions` API Reference
+# actions
 
-Bot scripts should return a single `Action` from `Bot.decide(self, game_state)`.
-This module defines immutable action datatypes and a factory class (`Actions`)
-used to construct them.
+Use the [Actions](#actions) static methods to construct [Action](#action)-type objects.
 
-## Exports
+**Exports:** Actions, Action, MoveAction, SkipAction, SplatAction, DashAction, ShootPaintballAction, TurnLeftAction, TurnRightAction, FaceDirectionAction, Turn180Action
 
-- `Action`
-- `MoveAction`
-- `SkipAction`
-- `SplatAction`
-- `DashAction`
-- `ShootPaintballAction`
-- `TurnLeftAction`
-- `TurnRightAction`
-- `FaceDirectionAction`
-- `Turn180Action`
-- `Actions`
+## Actions
 
-## Types
+Static factories (immutable results).
 
-### `MoveAction`
+### Methods
 
-```python
-@dataclass(frozen=True)
-class MoveAction:
-    pass
-```
+| Method                    | Returns                                       | Description                                                  |
+| ------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
+| move()                    | [MoveAction](#moveaction)                     | Move one hex forward.                                        |
+| skip()                    | [SkipAction](#skipaction)                     | Do nothing.                                                  |
+| splat()                   | [SplatAction](#splataction)                   | Paint in-grid neighbors of current cell.                     |
+| dash(distance)            | [DashAction](#dashaction)                     | Move distance hexes forward; paints only the destination.    |
+| shoot_paintball()         | [ShootPaintballAction](#shootpaintballaction) | Paint along ray in facing until edge or another bot.         |
+| turn_left(steps=1)        | [TurnLeftAction](#turnleftaction)             | Rotate left by steps.                                        |
+| turn_right(steps=1)       | [TurnRightAction](#turnrightaction)           | Rotate right by steps.                                       |
+| face_direction(direction) | [FaceDirectionAction](#facedirectionaction)   | direction is int or [HexDirection](hex_grid.md#hexdirection) |
+| turn_180()                | [Turn180Action](#turn180action)               | Face opposite direction.                                     |
 
-One hex forward in the bot’s current **facing**; paints the landing tile.
+## Action
 
-**Fields**
+Type alias (union) for any legal return value from decide: [MoveAction](#moveaction), [SkipAction](#skipaction), [SplatAction](#splataction), [DashAction](#dashaction), [ShootPaintballAction](#shootpaintballaction), [TurnLeftAction](#turnleftaction), [TurnRightAction](#turnrightaction), [FaceDirectionAction](#facedirectionaction), [Turn180Action](#turn180action).
 
-- None (direction comes from game state).
+## MoveAction
 
----
+_No instance attributes._
 
-### `SkipAction`
+## SkipAction
 
-```python
-@dataclass(frozen=True)
-class SkipAction:
-    pass
-```
+_No instance attributes._
 
-Represents taking no action for the turn.
+## SplatAction
 
-**Fields**
+_No instance attributes._
 
-- None
+## DashAction
 
----
+### Attributes
 
-### `SplatAction`
+| Attribute | Type | Description                                              |
+| --------- | ---- | -------------------------------------------------------- |
+| distance  | int  | Steps straight ahead (facing); engine expects range 2–6. |
 
-```python
-@dataclass(frozen=True)
-class SplatAction:
-    """Paint every in-grid neighbor of the bot's current hex (not the hex you stand on)."""
-```
+## ShootPaintballAction
 
-Paints every in-bounds neighboring hex around the bot's current position.
-Does **not** paint the bot's own hex.
+_No instance attributes._
 
-**Fields**
+## TurnLeftAction
 
-- None
+### Attributes
 
----
+| Attribute | Type | Description                               |
+| --------- | ---- | ----------------------------------------- |
+| steps     | int  | Add to direction index mod 6 (default 1). |
 
-### `DashAction`
+## TurnRightAction
 
-```python
-@dataclass(frozen=True)
-class DashAction:
-    """Move ``distance`` hexes straight ahead (facing); paint only the destination hex."""
-    distance: int
-```
+### Attributes
 
-**Fields**
+| Attribute | Type | Description                                      |
+| --------- | ---- | ------------------------------------------------ |
+| steps     | int  | Subtract from direction index mod 6 (default 1). |
 
-- `distance: int` — Number of hexes to dash (engine expects **2–6**).
+## FaceDirectionAction
 
----
+### Attributes
 
-### `ShootPaintballAction`
+| Attribute | Type                                     | Description      |
+| --------- | ---------------------------------------- | ---------------- |
+| direction | [HexDirection](hex_grid.md#hexdirection) | Absolute facing. |
 
-```python
-@dataclass(frozen=True)
-class ShootPaintballAction:
-    """Paint a ray straight ahead until the map edge or another bot (you do not move)."""
-    pass
-```
+## Turn180Action
 
-**Fields**
-
-- None (ray uses current **facing**).
-
----
-
-### `TurnLeftAction`
-
-```python
-@dataclass(frozen=True)
-class TurnLeftAction:
-    steps: int = 1
-```
-
-Add `steps` to the direction index (mod 6), one tick — e.g. **E → NE** when `steps == 1` (pivots **left** on the default map view).
-
----
-
-### `TurnRightAction`
-
-```python
-@dataclass(frozen=True)
-class TurnRightAction:
-    steps: int = 1
-```
-
-Subtract `steps` from the direction index (mod 6), one tick — e.g. **E → SE** when `steps == 1` (pivots **right** on the default map view).
-
----
-
-### `FaceDirectionAction`
-
-```python
-@dataclass(frozen=True)
-class FaceDirectionAction:
-    direction: HexDirection
-```
-
-Set **facing** to an absolute direction, one tick.
-
----
-
-### `Turn180Action`
-
-```python
-@dataclass(frozen=True)
-class Turn180Action:
-    pass
-```
-
-Turn **facing** 180° (opposite direction), one tick.
-
----
-
-### `Action`
-
-```python
-Action = (
-    MoveAction
-    | SkipAction
-    | SplatAction
-    | DashAction
-    | ShootPaintballAction
-    | TurnLeftAction
-    | TurnRightAction
-    | FaceDirectionAction
-    | Turn180Action
-)
-```
-
-Union type for all legal bot actions.
-
-## Factory API: `Actions`
-
-```python
-class Actions:
-    """Factories for :class:`Action` values (use from bot scripts / ``Bot.decide``)."""
-```
-
-Static helpers to construct valid action objects.
-
-### `Actions.move() -> MoveAction`
-
-Step one hex forward (current facing).
-
-### `Actions.skip() -> SkipAction`
-
-Create a `SkipAction`.
-
-### `Actions.splat() -> SplatAction`
-
-Create a `SplatAction`.
-
-### `Actions.dash(distance: int) -> DashAction`
-
-Dash straight ahead for `int(distance)` hexes (engine validates **2–6**).
-
-### `Actions.shoot_paintball() -> ShootPaintballAction`
-
-Fire a paintball ray along current **facing**.
-
-### `Actions.turn_left(steps: int = 1) -> TurnLeftAction`
-
-### `Actions.turn_right(steps: int = 1) -> TurnRightAction`
-
-### `Actions.face_direction(direction: int | HexDirection) -> FaceDirectionAction`
-
-If `direction` is an `int`, it is normalized with `direction % 6` and converted to `HexDirection`.
-
-### `Actions.turn_180() -> Turn180Action`
-
-Flip **facing** to the opposite direction.
+_No instance attributes._

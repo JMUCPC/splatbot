@@ -1,16 +1,11 @@
-# Python API Reference
+# Python API reference
 
-These pages describe the types and helpers available to bot scripts in the Splatbot sandbox (`Bot.decide(self, game_state)`).
+Custom types and helpers available in the Splatbot sandbox (Bot.decide(self, game_state)). All of this code is provided in the [downloadable starter code](../../index.html#download-starter-code).
 
-## Modules (`utils`)
+## Modules (utils)
 
-- [`utils.actions`](utils/actions.md) — action datatypes and the `Actions` factory.
-- [`utils.hex_grid`](utils/hex_grid.md) — axial hex coordinates, directions, and grid helpers.
-- [`utils.splatbot_data_types`](utils/splatbot_data_types.md) — typing templates for `BotInfo` and `GameState`.
-
-## Runtime snapshot types
-
-The following are not `.py` files in the repo; they are constructed inside the Pyodide worker and passed into `decide` as `game_state`. They are read-only (assigning attributes raises).
-
-- [Game state (`game_state`)](game_data.md) — board, turn metadata, and references to your bot and opponents.
-- [Bot info (`game_state.me`, `game_state.opponent`)](bot_info.md) — per-player position, facing, and timers.
+| Module                                                    | Summary                                                                                                                                                               |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [utils.actions](utils/actions.md)                         | Action datatypes and the [Actions](utils/actions.md#actions) factory.                                                                                                 |
+| [utils.hex_grid](utils/hex_grid.md)                       | Axial [Hex](utils/hex_grid.md#hex), [HexDirection](utils/hex_grid.md#hexdirection), [HexVector](utils/hex_grid.md#hexvector), [HexUtils](utils/hex_grid.md#hexutils). |
+| [utils.splatbot_data_types](utils/splatbot_data_types.md) | Optional typing templates for [BotInfo](utils/splatbot_data_types.md#botinfo) and [GameState](utils/splatbot_data_types.md#gamestate).                                |

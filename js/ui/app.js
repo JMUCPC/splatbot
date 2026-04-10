@@ -384,6 +384,13 @@ async function downloadStarterCodeZip() {
   logEvent(`Downloaded ${STARTER_ZIP_NAME}.`);
 }
 
+/** Docs link target: open `index.html#download-starter-code` to fetch the same zip as the UI button. */
+export async function consumeStarterDownloadHash() {
+  if (location.hash !== '#download-starter-code') return;
+  history.replaceState(null, '', `${location.pathname}${location.search}`);
+  await downloadStarterCodeZip();
+}
+
 function makeInitialMatchStats() {
   return {
     1: {
