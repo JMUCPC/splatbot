@@ -277,6 +277,20 @@
     </div>
   </div>
 
+  <div id="welcome-modal" class="modal-overlay welcome-modal-overlay" aria-hidden="true">
+    <div class="sb-card welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-body">
+      <div id="welcome-title" class="sb-cond welcome-title">WELCOME</div>
+      <p id="welcome-body" class="welcome-body">
+        Splatbot is a browser-based coding game that pits two Python-controlled bots against each other in the ultimate battle of area control.
+      </p>
+      <div class="welcome-actions">
+        <button type="button" id="btn-welcome-build-bot" class="sb-btn welcome-actions-primary">CODE A BOT</button>
+        <button type="button" id="btn-welcome-watch-game" class="sb-btn">WATCH A GAME</button>
+        <button type="button" id="btn-welcome-skip" class="sb-btn welcome-actions-skip">SKIP FOR NOW</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1727,6 +1727,83 @@ a.sb-btn:visited {
   display: flex;
   justify-content: center;
 }
+
+/* ── First-visit welcome onboarding ───────────────────────────────────── */
+
+.welcome-modal-overlay {
+  z-index: 1100;
+}
+
+.welcome-card {
+  width: min(520px, 92vw);
+  padding: 26px 22px 22px;
+  text-align: center;
+}
+
+.welcome-title {
+  font-size: clamp(1.85rem, 4vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #dde8f0;
+}
+
+.welcome-body {
+  margin: 14px 0 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(0.92rem, 2.2vw, 1.02rem);
+  line-height: 1.55;
+  color: #9fb1c6;
+  text-align: left;
+}
+
+.welcome-inline-code {
+  font-size: 0.95em;
+  color: #c6d8ea;
+  background: #0e1525;
+  padding: 0.08em 0.35em;
+  border-radius: 4px;
+  border: 1px solid #1a2a40;
+}
+
+.welcome-kbd {
+  font-weight: 600;
+  color: #dde8f0;
+  letter-spacing: 0.04em;
+}
+
+.welcome-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.welcome-actions-primary {
+  font-weight: 700;
+}
+
+.welcome-actions-skip {
+  margin-top: 2px;
+  background: transparent;
+  border-color: #334a6e;
+  color: #8a9db4;
+}
+
+.welcome-actions-skip:hover {
+  background: #121b2c;
+  border-color: #4a6490;
+  color: #c8d6e6;
+}
+
+@media (min-width: 480px) {
+  .welcome-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .welcome-actions-skip {
+    grid-column: 1 / -1;
+  }
+}
+
 .settings-fields {
   width: 100%;
   max-height: 55vh;

@@ -1,4 +1,10 @@
-import { initApp, preloadWorkers, hideLoading, consumeStarterDownloadHash } from './ui/app.js';
+import {
+  initApp,
+  preloadWorkers,
+  hideLoading,
+  consumeStarterDownloadHash,
+  maybeShowWelcomeOnboarding,
+} from './ui/app.js';
 
 async function main() {
   initApp();
@@ -14,6 +20,7 @@ async function main() {
   }
   hideLoading();
   await consumeStarterDownloadHash();
+  maybeShowWelcomeOnboarding();
 }
 
 main();

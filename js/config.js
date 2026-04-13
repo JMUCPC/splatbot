@@ -118,7 +118,8 @@ const config = {
   LOAD_BUILTIN_BOTS: true,
   BUILTIN_BOTS_PATH: "python/bots/",
   BUILTIN_BOTS: {
-    random: "random_bot.py",
+    random: "random_everything_bot.py",
+    random_move: "random_move_bot.py",
     random_dash: "random_dash_bot.py",
     random_splat: "random_splat_bot.py",
     random_paintball: "random_paintball_bot.py",

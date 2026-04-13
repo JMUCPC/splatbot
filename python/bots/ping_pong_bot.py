@@ -6,9 +6,10 @@ from utils.hex_grid import HexUtils
 
 class Bot:
     def decide(self, game_state):
-        me = game_state.me
-        hx = HexUtils(game_state)
-        forward = hx.hex_neighbor(me.position, me.facing)
-        if forward not in game_state.grid:
+        player = game_state.me
+        hex_utils = HexUtils(game_state)
+
+        neighbor_ahead = hex_utils.hex_neighbor(player.position, player.facing)
+        if neighbor_ahead not in game_state.grid:
             return Actions.turn_180()
         return Actions.move()

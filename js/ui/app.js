@@ -135,6 +135,74 @@ async function applyBotSourceHighlight(rawText, seq) {
 
 const els = {};
 
+const WELCOME_LS_KEY = 'splatbot_welcome_seen_v1';
+
+function welcomeOnboardingSeen() {
+  try {
+    return localStorage.getItem(WELCOME_LS_KEY) === '1';
+  } catch {
+    return true;
+  }
+}
+
+function setWelcomeOnboardingSeen() {
+  try {
+    localStorage.setItem(WELCOME_LS_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
+function hideWelcomeOnboardingModal() {
+  if (!els.welcomeModal) return;
+  els.welcomeModal.classList.remove('open');
+  els.welcomeModal.setAttribute('aria-hidden', 'true');
+}
+
+/** @param {() => void} [afterClose] */
+function dismissWelcomeOnboarding(afterClose) {
+  if (!els.welcomeModal?.classList.contains('open')) return;
+  setWelcomeOnboardingSeen();
+  hideWelcomeOnboardingModal();
+  if (afterClose) {
+    requestAnimationFrame(() => {
+      afterClose();
+    });
+  }
+}
+
+function focusPlayer1BotControls() {
+  const app = document.getElementById('app');
+  const card = document.getElementById('player-card-1');
+  if (app?.classList.contains('app--player-cards-compact') && card) {
+    card.classList.add('player-card--expanded');
+    syncPlayerCardToggleButtons();
+    schedulePlayerCardsCompactLayout();
+  }
+  card?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (els.botSelect1 && !els.botSelect1.disabled) {
+    els.botSelect1.focus();
+  } else if (els.botFileChoose1) {
+    els.botFileChoose1.focus();
+  }
+}
+
+function startMatchFromWelcome() {
+  if (els.runToggle && !els.runToggle.disabled) {
+    els.runToggle.click();
+  }
+}
+
+/** Shows the first-visit welcome dialog after the loading overlay is gone. */
+export function maybeShowWelcomeOnboarding() {
+  if (!els.welcomeModal || welcomeOnboardingSeen()) return;
+  els.welcomeModal.classList.add('open');
+  els.welcomeModal.setAttribute('aria-hidden', 'false');
+  requestAnimationFrame(() => {
+    document.getElementById('btn-welcome-build-bot')?.focus();
+  });
+}
+
 /** Auto-collapse once the main scroll area overflows by more than this (px). Higher = full cards stay until the layout is shorter. */
 const PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX = 56;
 /** Leave compact when content fits; small slack for subpixel / scrollbar rounding. */
@@ -1609,6 +1677,7 @@ export function initApp() {
   els.btnDuplicateOverwrite = document.getElementById('btn-duplicate-overwrite');
   els.btnDuplicateAdd = document.getElementById('btn-duplicate-add');
   els.btnDuplicateCancel = document.getElementById('btn-duplicate-cancel');
+  els.welcomeModal = document.getElementById('welcome-modal');
 
   initDeleteCustomBotModal();
   renderBotPickers();
@@ -1641,8 +1710,35 @@ export function initApp() {
       if (e.target === els.botSourceModal) closeBotSourceModal();
     });
   }
+  const btnWelcomeBuild = document.getElementById('btn-welcome-build-bot');
+  const btnWelcomeWatch = document.getElementById('btn-welcome-watch-game');
+  const btnWelcomeSkip = document.getElementById('btn-welcome-skip');
+  if (btnWelcomeBuild) {
+    btnWelcomeBuild.addEventListener('click', () => {
+      window.open('./docs/index.html');
+    });
+  }
+  if (btnWelcomeWatch) {
+    btnWelcomeWatch.addEventListener('click', () => {
+      dismissWelcomeOnboarding(() => startMatchFromWelcome());
+    });
+  }
+  if (btnWelcomeSkip) {
+    btnWelcomeSkip.addEventListener('click', () => {
+      dismissWelcomeOnboarding();
+    });
+  }
+  if (els.welcomeModal) {
+    els.welcomeModal.addEventListener('click', (e) => {
+      if (e.target === els.welcomeModal) dismissWelcomeOnboarding();
+    });
+  }
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (els.welcomeModal?.classList.contains('open')) {
+      dismissWelcomeOnboarding();
+      return;
+    }
     if (els.deleteCustomBotModal?.classList.contains('open')) {
       finishDeleteCustomBotConfirm(false);
       return;
