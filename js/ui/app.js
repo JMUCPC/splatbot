@@ -136,6 +136,7 @@ async function applyBotSourceHighlight(rawText, seq) {
 const els = {};
 
 const WELCOME_LS_KEY = 'splatbot_welcome_seen_v1';
+const WELCOME_OPEN_STARTUP_LS_KEY = 'splatbot_welcome_open_on_startup';
 
 function welcomeOnboardingSeen() {
   try {
@@ -143,6 +144,27 @@ function welcomeOnboardingSeen() {
   } catch {
     return true;
   }
+}
+
+function welcomeOpenOnStartup() {
+  try {
+    return localStorage.getItem(WELCOME_OPEN_STARTUP_LS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** @param {boolean} enabled */
+function setWelcomeOpenOnStartup(enabled) {
+  try {
+    localStorage.setItem(WELCOME_OPEN_STARTUP_LS_KEY, enabled ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+}
+
+function shouldAutoShowWelcome() {
+  return welcomeOpenOnStartup() || !welcomeOnboardingSeen();
 }
 
 function setWelcomeOnboardingSeen() {
@@ -193,14 +215,21 @@ function startMatchFromWelcome() {
   }
 }
 
-/** Shows the first-visit welcome dialog after the loading overlay is gone. */
-export function maybeShowWelcomeOnboarding() {
-  if (!els.welcomeModal || welcomeOnboardingSeen()) return;
+function openWelcomeModal() {
+  if (!els.welcomeModal) return;
   els.welcomeModal.classList.add('open');
   els.welcomeModal.setAttribute('aria-hidden', 'false');
+  const cb = document.getElementById('welcome-open-on-startup');
+  if (cb) cb.checked = welcomeOpenOnStartup();
   requestAnimationFrame(() => {
-    document.getElementById('btn-welcome-build-bot')?.focus();
+    document.getElementById('btn-welcome-read-docs')?.focus();
   });
+}
+
+/** Shows the welcome dialog on load when first visit or “open on startup” is enabled. */
+export function maybeShowWelcomeOnboarding() {
+  if (!els.welcomeModal || !shouldAutoShowWelcome()) return;
+  openWelcomeModal();
 }
 
 /** Auto-collapse once the main scroll area overflows by more than this (px). Higher = full cards stay until the layout is shorter. */
@@ -1710,12 +1739,14 @@ export function initApp() {
       if (e.target === els.botSourceModal) closeBotSourceModal();
     });
   }
-  const btnWelcomeBuild = document.getElementById('btn-welcome-build-bot');
+  const btnWelcomeReadDocs = document.getElementById('btn-welcome-read-docs');
   const btnWelcomeWatch = document.getElementById('btn-welcome-watch-game');
-  const btnWelcomeSkip = document.getElementById('btn-welcome-skip');
-  if (btnWelcomeBuild) {
-    btnWelcomeBuild.addEventListener('click', () => {
-      window.open('./docs/index.html');
+  const btnWelcomeDownloadSource = document.getElementById('btn-welcome-download-source');
+  const welcomeOpenStartupCb = document.getElementById('welcome-open-on-startup');
+  const btnHeaderWelcome = document.getElementById('btn-header-welcome');
+  if (btnWelcomeReadDocs) {
+    btnWelcomeReadDocs.addEventListener('click', () => {
+      window.open('docs/', '_blank');
     });
   }
   if (btnWelcomeWatch) {
@@ -1723,9 +1754,19 @@ export function initApp() {
       dismissWelcomeOnboarding(() => startMatchFromWelcome());
     });
   }
-  if (btnWelcomeSkip) {
-    btnWelcomeSkip.addEventListener('click', () => {
-      dismissWelcomeOnboarding();
+  if (btnWelcomeDownloadSource) {
+    btnWelcomeDownloadSource.addEventListener('click', () => {
+      void downloadStarterCodeZip();
+    });
+  }
+  if (welcomeOpenStartupCb) {
+    welcomeOpenStartupCb.addEventListener('change', () => {
+      setWelcomeOpenOnStartup(welcomeOpenStartupCb.checked);
+    });
+  }
+  if (btnHeaderWelcome) {
+    btnHeaderWelcome.addEventListener('click', () => {
+      openWelcomeModal();
     });
   }
   if (els.welcomeModal) {

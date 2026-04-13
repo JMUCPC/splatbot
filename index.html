@@ -55,13 +55,16 @@
       </div>
       <div class="main-row-gutter main-row-gutter--actions">
         <div id="status" class="status header-row-status"></div>
-        <a
-          href="docs/"
-          class="header-docs-link"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Open documentation: code a bot (opens in new tab)"
-        >Code a bot<span class="header-docs-link__ext" aria-hidden="true"> ↗</span></a>
+        <div class="header-links-actions">
+          <button type="button" id="btn-header-welcome" class="header-welcome-btn" aria-label="Open welcome">Welcome</button>
+          <a
+            href="docs/"
+            class="header-docs-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open documentation: read the docs (opens in new tab)"
+          >Read the docs<span class="header-docs-link__ext" aria-hidden="true"> ↗</span></a>
+        </div>
       </div>
       <div class="sb-card player-card" id="player-card-1">
         <div class="player-card-summary">
@@ -283,10 +286,14 @@
       <p id="welcome-body" class="welcome-body">
         Splatbot is a browser-based coding game that pits two Python-controlled bots against each other in the ultimate battle of area control.
       </p>
+      <div class="welcome-open-startup">
+        <input type="checkbox" id="welcome-open-on-startup" />
+        <label for="welcome-open-on-startup">Open on startup</label>
+      </div>
       <div class="welcome-actions">
-        <button type="button" id="btn-welcome-build-bot" class="sb-btn welcome-actions-primary">CODE A BOT</button>
+        <button type="button" id="btn-welcome-read-docs" class="sb-btn welcome-actions-primary">READ THE DOCS</button>
         <button type="button" id="btn-welcome-watch-game" class="sb-btn">WATCH A GAME</button>
-        <button type="button" id="btn-welcome-skip" class="sb-btn welcome-actions-skip">SKIP FOR NOW</button>
+        <button type="button" id="btn-welcome-download-source" class="sb-btn">DOWNLOAD SOURCE CODE</button>
       </div>
     </div>
   </div>
