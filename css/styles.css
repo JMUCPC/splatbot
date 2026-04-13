@@ -70,6 +70,18 @@ a.sb-btn:visited {
   color: #d8e4f0;
 }
 
+.sb-btn--danger {
+  border-color: #8a3a3a;
+  color: #f0b0b0;
+  background: #2a1518;
+}
+
+.sb-btn--danger:hover:not(:disabled) {
+  border-color: #c05050;
+  color: #ffe0e0;
+  background: #3a1a20;
+}
+
 .sb-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -662,18 +674,26 @@ a.sb-btn:visited {
   animation: player-card-log-highlight 0.48s ease-out forwards;
 }
 
-.player-card .sb-select {
+.player-card .sb-select,
+.player-card .sb-bot-picker {
   margin-top: 0;
 }
 
 .sb-bot-source-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   width: 100%;
   margin-top: 8px;
 }
 
+.sb-bot-source-actions .sb-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: center;
+}
+
 .sb-bot-source-view-btn {
-  width: 100%;
   justify-content: center;
 }
 
@@ -1005,6 +1025,178 @@ a.sb-btn:visited {
   font-size: 1.05rem;
   background: #0e1525;
   color: #8899aa;
+}
+
+/* ── Custom bot picker (replaces native select) ───────────────────────── */
+
+.sb-bot-picker {
+  position: relative;
+  margin-top: 4px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.sb-bot-picker-trigger {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  color: #8899aa;
+  background: #070d1a;
+  border: 1px solid #1a2a40;
+  border-radius: 4px;
+  padding: 9px 12px;
+  width: 100%;
+  max-width: 100%;
+  cursor: pointer;
+  outline: none;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  box-sizing: border-box;
+}
+
+.sb-bot-picker-trigger::after {
+  content: '\25BE';
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: #5a6a7a;
+}
+
+.sb-bot-picker--open .sb-bot-picker-trigger::after {
+  content: '\25B4';
+}
+
+.sb-bot-picker-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sb-bot-picker-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 50;
+  max-height: min(320px, 50vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #0a101c;
+  border: 1px solid #1a2a40;
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  padding: 6px 0;
+  /* Match docs scrollbars (css/docs.css — .docs-sidebar-list et al.) */
+  scrollbar-width: thin;
+  scrollbar-color: #3f5875 #0e1525;
+}
+
+.sb-bot-picker-panel::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.sb-bot-picker-panel::-webkit-scrollbar-track {
+  background: #0e1525;
+  border-radius: 4px;
+}
+
+.sb-bot-picker-panel::-webkit-scrollbar-thumb {
+  background: #334a6e;
+  border-radius: 4px;
+}
+
+.sb-bot-picker-panel::-webkit-scrollbar-thumb:hover {
+  background: #4a6490;
+}
+
+.sb-bot-picker-group-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5a6d82;
+  padding: 8px 12px 4px;
+  margin: 0;
+}
+
+.sb-bot-picker-placeholder {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.92rem;
+  color: #5a6d82;
+  padding: 8px 12px 10px;
+  font-style: italic;
+}
+
+.sb-bot-picker-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-top: 1px solid #121b2c;
+}
+
+.sb-bot-picker-row:first-of-type {
+  border-top: none;
+}
+
+.sb-bot-picker-option {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.95rem;
+  color: #9aacbf;
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  border-radius: 0;
+}
+
+.sb-bot-picker-option:hover,
+.sb-bot-picker-option:focus-visible {
+  background: #121b2c;
+  color: #dde8f0;
+}
+
+.sb-bot-picker-option--selected {
+  background: #151f32;
+  color: #dde8f0;
+}
+
+.sb-bot-picker-row--custom .sb-bot-picker-option {
+  padding-right: 6px;
+}
+
+.sb-bot-picker-delete {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 40px;
+  margin: 2px 6px 2px 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #5a6d82;
+  cursor: pointer;
+  outline: none;
+  align-self: center;
+}
+
+.sb-bot-picker-delete:hover,
+.sb-bot-picker-delete:focus-visible {
+  color: #e07070;
+  background: #1a1518;
+}
+
+.sb-bot-picker-delete-icon {
+  display: block;
 }
 
 /* ── Bot file upload (player cards) ───────────────────────────────────── */
@@ -1369,6 +1561,101 @@ a.sb-btn:visited {
 
 .bot-source-card .bot-source-code-pre code:not(.hljs) {
   color: #8899aa;
+}
+
+.delete-custom-bot-card {
+  width: min(480px, 92vw);
+  padding: 22px 20px 18px;
+  text-align: center;
+}
+
+.delete-custom-bot-title {
+  font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #dde8f0;
+}
+
+.delete-custom-bot-message {
+  margin: 14px 0 18px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.98rem;
+  color: #a8b8cc;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.duplicate-upload-card {
+  width: min(480px, 92vw);
+  padding: 22px 20px 18px;
+  text-align: center;
+}
+
+.duplicate-upload-title {
+  font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #dde8f0;
+}
+
+.duplicate-upload-message {
+  margin: 12px 0 8px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.98rem;
+  color: #a8b8cc;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.duplicate-upload-add-label {
+  display: block;
+  margin: 10px 0 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7a8a9a;
+  text-align: left;
+}
+
+.duplicate-upload-add-name-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+
+.duplicate-upload-add-name-input.duplicate-upload-name-input--invalid {
+  border-color: #c44a4a;
+}
+
+.duplicate-upload-add-name-input.duplicate-upload-name-input--invalid:focus-visible {
+  outline-color: #e07070;
+  border-color: #d85a5a;
+}
+
+.duplicate-upload-name-error {
+  margin: 0 0 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: #e88888;
+  text-align: left;
+}
+
+.duplicate-upload-name-error[hidden] {
+  display: none !important;
+}
+
+.duplicate-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.duplicate-upload-actions .sb-btn {
+  flex: 1 1 auto;
+  min-width: 120px;
 }
 
 .match-end-card {
