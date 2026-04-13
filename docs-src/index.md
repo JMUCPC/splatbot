@@ -1,4 +1,4 @@
-# Splatbot Documentation
+# Quick Start
 
 ## What is Splatbot?
 
@@ -14,10 +14,52 @@ Example of a tick:
 
 Example bots are provided, but it is easy to upload custom bots as well! Simply go to the home page, select the "Choose File" under whichever side the bot should play for. Then press the start button to begin the match!
 
+## How To Write A Bot
+
+A bot is a Python script: define a `class Bot` with `decide(self, game_state)` that returns **one** action each tick. The full walkthrough (template, memory, printing, edge cases) is in **[Writing bots](writing-bots/index.md)**.
+
+<p><a href="../index.html#download-starter-code" class="docs-try-btn">Download starter code</a></p>
+
+### Actions
+
+On each tick, `decide` must return a single action. Interactive demos for each one are on the **[Actions](actions/index.md)** page.
+
+| Action | Description |
+| ------ | ----------- |
+| [move](actions/index.md#move) | Step one hex forward and paint it. |
+| [turn_left](actions/index.md#turn-left) | Turn left 1–5 steps. |
+| [turn_right](actions/index.md#turn-right) | Turn right 1–5 steps. |
+| [turn_180](actions/index.md#turn-around) | Turn around. |
+| [face_direction](actions/index.md#face-direction) | Turn to face a specified direction. |
+| [skip](actions/index.md#skip) | Do nothing. |
+| [splat](actions/index.md#splat) | Paint all neighboring tiles. |
+| [shoot_paintball](actions/index.md#shoot-paintball) | Paint a straight line forward without moving. |
+| [dash](actions/index.md#dash) | Move 2–6 hexes forward; paint only the destination. |
+
+### Utils
+
+There are helper functions available to make writing a Bot even easier. They are desccribed in the **[Python API reference](api-docs/index.md)**.
+
+### Reading Game State
+
+The `game_state` passed into `decide` is **read-only**; you change the match only by **returning** an action. Field meanings (and `BotInfo` details) are documented under **[Game State in Writing bots](writing-bots/index.md#game-state)**. Hex layout and coordinates are covered on the **[Hex Grid](hex-grid/index.md)** page.
+
+| Field | Meaning |
+| ----- | ------- |
+| `game_state.me` | Your `BotInfo` — `position`, `facing`, `stun`, cooldowns. |
+| `game_state.opponents` | Other players' `BotInfo`, keyed by player id. |
+| `game_state.opponent` | The single opponent in 1v1, or `None` in other modes. |
+| `game_state.grid` | All hexes on the map ([`Hex`](hex-grid/index.md)); each tile has a `controller` (`BotInfo` or `None`). |
+| `game_state.turn` | Current turn index. |
+| `game_state.max_turns` | Match length. |
+
+For static typing against these shapes, use **[utils.splatbot_data_types](api-docs/utils/splatbot_data_types.md)**. Larger sample bots are in **[Examples](examples/index.md)**.
+
 ## Pages
 
-1. **[Actions](actions/)** — What each action does, with interactive examples
-2. **[Writing bots](writing-bots/)** — An overview of everything that goes into creating a bot
-3. **[Examples](examples/)** — Larger bot examples
-4. **[Hex Grid](hex-grid/)** — How the game represents the map and hexes
-5. **[Debugging](debugging/)** — Tips and tools useful for debugging your bots
+1. **[Quick Start](./index.md)** — For people who don't want to read the entire documentation
+2. **[Actions](actions/)** — What each action does, with interactive examples
+3. **[Writing bots](writing-bots/)** — An overview of everything that goes into creating a bot
+4. **[Examples](examples/)** — Larger bot examples
+5. **[Hex Grid](hex-grid/)** — How the game represents the map and hexes
+6. **[Debugging](debugging/)** — Tips and tools useful for debugging your bots
