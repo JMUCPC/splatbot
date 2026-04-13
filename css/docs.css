@@ -92,6 +92,41 @@
   scrollbar-gutter: stable;
 }
 
+/* Thin dark scrollbars (sidebar, search, in-page preview) — same tokens as app bot picker */
+.docs-sidebar-list,
+.docs-search-results,
+.docs-try-preview-mount {
+  scrollbar-width: thin;
+  scrollbar-color: #3f5875 #0e1525;
+}
+
+.docs-sidebar-list::-webkit-scrollbar,
+.docs-search-results::-webkit-scrollbar,
+.docs-try-preview-mount::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.docs-sidebar-list::-webkit-scrollbar-track,
+.docs-search-results::-webkit-scrollbar-track,
+.docs-try-preview-mount::-webkit-scrollbar-track {
+  background: #0e1525;
+  border-radius: 4px;
+}
+
+.docs-sidebar-list::-webkit-scrollbar-thumb,
+.docs-search-results::-webkit-scrollbar-thumb,
+.docs-try-preview-mount::-webkit-scrollbar-thumb {
+  background: #334a6e;
+  border-radius: 4px;
+}
+
+.docs-sidebar-list::-webkit-scrollbar-thumb:hover,
+.docs-search-results::-webkit-scrollbar-thumb:hover,
+.docs-try-preview-mount::-webkit-scrollbar-thumb:hover {
+  background: #4a6490;
+}
+
 .docs-sidebar-list--nested {
   margin-left: 0.7rem;
   margin-top: 0.25rem;

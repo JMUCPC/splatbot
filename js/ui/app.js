@@ -32,6 +32,21 @@ import {
   getDefaultBotId,
   STUB_BOT_CODE,
 } from '../bots/catalog.js';
+import {
+  loadCustomBotEntries,
+  appendCustomBotUpload,
+  appendCustomBotWithDisplayName,
+  upsertDocsImportBot,
+  getCustomBotSource,
+  getCustomBotDisplayName,
+  removeCustomBotById,
+  baseDisplayName,
+  familyCountForBase,
+  hasDuplicateFamily,
+  overwriteCustomBotFamilyMember,
+  setCustomBotEntrySource,
+  customBotDisplayNameCollides,
+} from '../bots/custom-bots-store.js';
 import { describeBotScriptShapeIssues } from '../bot-script-shape.js';
 
 let state = null;
@@ -76,8 +91,12 @@ let botCatalog = [];
 /** @type {Map<string, { id: string, group: string, label: string, path: string }>} */
 let catalogById = new Map();
 const playerBotId = { 1: null, 2: null };
-/** Shown under CHOOSE FILE after a successful upload or docs import. */
-const uploadDisplayName = { 1: null, 2: null };
+/** @type {1|2|null} */
+let botPickerOpenPid = null;
+let botPickerDelegationBound = false;
+let botPickerOutsideBound = false;
+/** @type {((value: boolean) => void) | null} */
+let deleteCustomBotConfirmResolve = null;
 let botControlsReady = false;
 /** Player + bot id for the open source modal (copy / download). */
 let botSourceModalContext = null;
@@ -811,15 +830,17 @@ async function consumeDocsBotImportForPlayerOne() {
       setEventLogExpanded(true);
       return;
     }
-    botSourceCache.set('upload:1', source);
-    uploadDisplayName[1] = 'From docs';
+    const importId = upsertDocsImportBot('From docs', source);
+    botSourceCache.set(importId, source);
+    renderBotPickers();
     setBotApplyBusy(1, true);
     try {
-      await applyBotForPlayer(1, 'upload:1', { isInitialLoad: false });
+      await applyBotForPlayer(1, importId, { isInitialLoad: false });
       syncFileUploadRow(1);
       logEvent('P1 loaded bot from docs example.');
     } finally {
       setBotApplyBusy(1, false);
+      syncBotPickerTriggersDisabledFromState();
     }
   } catch (err) {
     const detail = err?.message ?? String(err);
@@ -842,42 +863,267 @@ function rebuildCatalogMaps() {
   catalogById = new Map(botCatalog.map((e) => [e.id, e]));
 }
 
-function populateBotSelects() {
-  rebuildCatalogMaps();
+function displayLabelForBotId(botId) {
+  if (botId == null || botId === '') return '—';
+  const id = String(botId);
+  if (id.startsWith('custom:')) return getCustomBotDisplayName(id);
+  return catalogById.get(id)?.label ?? id;
+}
+
+function closeBotPickerPanels() {
+  if (botPickerOpenPid == null) return;
+  const pid = botPickerOpenPid;
+  botPickerOpenPid = null;
+  const panel = els[`botPickerPanel${pid}`];
+  const trigger = els[`botPickerTrigger${pid}`];
+  const root = els[`botPicker${pid}`];
+  if (panel) panel.hidden = true;
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  if (root) root.classList.remove('sb-bot-picker--open');
+}
+
+function syncBotPickerTriggersDisabledFromState() {
+  const noBots = botCatalog.length === 0 && loadCustomBotEntries().length === 0;
+  const dis = !botControlsReady || noBots;
   for (const pid of [1, 2]) {
-    const sel = els[`botSelect${pid}`];
-    if (!sel) continue;
-    sel.innerHTML = '';
-    const byGroup = new Map();
-    for (const e of botCatalog) {
-      if (!byGroup.has(e.group)) byGroup.set(e.group, []);
-      byGroup.get(e.group).push(e);
+    const t = els[`botPickerTrigger${pid}`];
+    if (t) t.disabled = dis;
+  }
+}
+
+function finishDeleteCustomBotConfirm(value) {
+  if (deleteCustomBotConfirmResolve) {
+    const r = deleteCustomBotConfirmResolve;
+    deleteCustomBotConfirmResolve = null;
+    r(value);
+  }
+  if (els.deleteCustomBotModal) {
+    els.deleteCustomBotModal.classList.remove('open');
+    els.deleteCustomBotModal.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function openDeleteCustomBotConfirm(displayName) {
+  return new Promise((resolve) => {
+    if (!els.deleteCustomBotModal || !els.deleteCustomBotMessage) {
+      resolve(false);
+      return;
     }
+    if (deleteCustomBotConfirmResolve) {
+      deleteCustomBotConfirmResolve(false);
+      deleteCustomBotConfirmResolve = null;
+    }
+    deleteCustomBotConfirmResolve = resolve;
+    els.deleteCustomBotMessage.textContent = `Remove “${displayName}” from saved custom bots? This cannot be undone.`;
+    els.deleteCustomBotModal.classList.add('open');
+    els.deleteCustomBotModal.setAttribute('aria-hidden', 'false');
+  });
+}
+
+function initDeleteCustomBotModal() {
+  const modal = els.deleteCustomBotModal;
+  if (!modal || modal.dataset.deleteModalInit) return;
+  modal.dataset.deleteModalInit = '1';
+  const onCancel = () => finishDeleteCustomBotConfirm(false);
+  const onConfirm = () => finishDeleteCustomBotConfirm(true);
+  els.btnDeleteCustomBotCancel?.addEventListener('click', onCancel);
+  els.btnDeleteCustomBotConfirm?.addEventListener('click', onConfirm);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) onCancel();
+  });
+}
+
+function makeBuiltinBotPickerRow(botId, label, pid, isSelected) {
+  const row = document.createElement('div');
+  row.className = 'sb-bot-picker-row';
+  const opt = document.createElement('button');
+  opt.type = 'button';
+  opt.className = `sb-bot-picker-option${isSelected ? ' sb-bot-picker-option--selected' : ''}`;
+  opt.setAttribute('role', 'option');
+  opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+  opt.dataset.botId = botId;
+  opt.dataset.player = String(pid);
+  opt.textContent = label;
+  row.appendChild(opt);
+  return row;
+}
+
+const BOT_PICKER_TRASH_SVG =
+  '<svg class="sb-bot-picker-delete-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M9 3v1H5v2h14V4h-4V3H9zm-4 5v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8H5zm3 3h2v8H8v-8zm4 0h2v8h-2v-8z"/></svg>';
+
+function makeCustomBotPickerRow(botId, name, pid, isSelected) {
+  const row = document.createElement('div');
+  row.className = 'sb-bot-picker-row sb-bot-picker-row--custom';
+  const opt = document.createElement('button');
+  opt.type = 'button';
+  opt.className = `sb-bot-picker-option${isSelected ? ' sb-bot-picker-option--selected' : ''}`;
+  opt.setAttribute('role', 'option');
+  opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+  opt.dataset.botId = botId;
+  opt.dataset.player = String(pid);
+  opt.textContent = name;
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'sb-bot-picker-delete';
+  del.setAttribute('aria-label', `Delete saved bot ${name}`);
+  del.dataset.botId = botId;
+  del.innerHTML = BOT_PICKER_TRASH_SVG;
+  row.appendChild(opt);
+  row.appendChild(del);
+  return row;
+}
+
+function onBotPickerPanelClick(e) {
+  const delBtn = e.target.closest?.('.sb-bot-picker-delete');
+  if (delBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = delBtn.dataset.botId;
+    if (id) void deleteCustomBotById(id);
+    return;
+  }
+  const opt = e.target.closest?.('.sb-bot-picker-option');
+  if (!opt) return;
+  e.preventDefault();
+  const id = opt.dataset.botId;
+  const p = Number(opt.dataset.player);
+  if (id && p) void onBotPickerOptionChosen(p, id);
+}
+
+function onDocumentPointerDownCloseBotPicker(e) {
+  if (botPickerOpenPid == null) return;
+  const root = els[`botPicker${botPickerOpenPid}`];
+  if (root && root.contains(e.target)) return;
+  closeBotPickerPanels();
+}
+
+function onBotPickerTriggerClick(pid) {
+  const t = els[`botPickerTrigger${pid}`];
+  if (!t || t.disabled) return;
+  const panel = els[`botPickerPanel${pid}`];
+  if (!panel) return;
+  if (botPickerOpenPid === pid) {
+    closeBotPickerPanels();
+    return;
+  }
+  closeBotPickerPanels();
+  botPickerOpenPid = pid;
+  const root = els[`botPicker${pid}`];
+  panel.hidden = false;
+  t.setAttribute('aria-expanded', 'true');
+  if (root) root.classList.add('sb-bot-picker--open');
+}
+
+function initBotPickerUi() {
+  if (!botPickerDelegationBound) {
+    botPickerDelegationBound = true;
+    for (const pid of [1, 2]) {
+      const panel = els[`botPickerPanel${pid}`];
+      panel?.addEventListener('click', onBotPickerPanelClick);
+      const trigger = els[`botPickerTrigger${pid}`];
+      trigger?.addEventListener('click', () => onBotPickerTriggerClick(pid));
+    }
+  }
+  if (!botPickerOutsideBound) {
+    botPickerOutsideBound = true;
+    document.addEventListener('pointerdown', onDocumentPointerDownCloseBotPicker, true);
+  }
+}
+
+function renderBotPickers() {
+  rebuildCatalogMaps();
+  const customEntries = loadCustomBotEntries();
+  const byGroup = new Map();
+  for (const e of botCatalog) {
+    if (!byGroup.has(e.group)) byGroup.set(e.group, []);
+    byGroup.get(e.group).push(e);
+  }
+
+  for (const pid of [1, 2]) {
+    const panel = els[`botPickerPanel${pid}`];
+    const trigger = els[`botPickerTrigger${pid}`];
+    if (!panel || !trigger) continue;
+
+    const selectedId = playerBotId[pid];
+    trigger.textContent = displayLabelForBotId(selectedId);
+
+    panel.innerHTML = '';
     for (const [groupName, items] of byGroup) {
-      const og = document.createElement('optgroup');
-      og.label = groupName;
+      const gl = document.createElement('div');
+      gl.className = 'sb-bot-picker-group-label';
+      gl.textContent = groupName;
+      panel.appendChild(gl);
       for (const e of items) {
-        const opt = document.createElement('option');
-        opt.value = e.id;
-        opt.textContent = e.label;
-        og.appendChild(opt);
+        panel.appendChild(makeBuiltinBotPickerRow(e.id, e.label, pid, selectedId === e.id));
       }
-      sel.appendChild(og);
     }
-    const customOg = document.createElement('optgroup');
-    customOg.label = 'Custom';
-    const customOpt = document.createElement('option');
-    customOpt.value = `upload:${pid}`;
-    customOpt.textContent = 'Uploaded file';
-    customOg.appendChild(customOpt);
-    sel.appendChild(customOg);
+    const customGl = document.createElement('div');
+    customGl.className = 'sb-bot-picker-group-label';
+    customGl.textContent = 'Custom';
+    panel.appendChild(customGl);
+    if (customEntries.length === 0) {
+      const ph = document.createElement('div');
+      ph.className = 'sb-bot-picker-placeholder';
+      ph.textContent = 'Upload a .py below to save…';
+      panel.appendChild(ph);
+    } else {
+      for (const c of customEntries) {
+        panel.appendChild(makeCustomBotPickerRow(c.id, c.name, pid, selectedId === c.id));
+      }
+    }
+  }
+}
+
+async function deleteCustomBotById(botId) {
+  if (!botControlsReady || !botId || !String(botId).startsWith('custom:')) return;
+  const label = getCustomBotDisplayName(botId);
+  initDeleteCustomBotModal();
+  closeBotPickerPanels();
+  const ok = await openDeleteCustomBotConfirm(label);
+  if (!ok) return;
+
+  const affected = [1, 2].filter((p) => playerBotId[p] === botId);
+  removeCustomBotById(botId);
+  botSourceCache.delete(botId);
+  renderBotPickers();
+
+  const fallback = getDefaultBotId(botCatalog) ?? loadCustomBotEntries()[0]?.id ?? null;
+  if (!fallback) {
+    logEvent('No bot available after removal — enable built-in bots or upload a new script.');
+    syncFileUploadRow(1);
+    syncFileUploadRow(2);
+    syncBotPickerTriggersDisabledFromState();
+    return;
+  }
+
+  const locks = [els.botPickerTrigger1, els.botPickerTrigger2].filter(Boolean);
+  for (const t of locks) t.disabled = true;
+  for (const p of affected) setBotApplyBusy(p, true);
+  try {
+    for (const p of affected) {
+      await applyBotForPlayer(p, fallback, { isInitialLoad: false });
+    }
+    logEvent(`Removed saved custom bot: ${label}`);
+  } catch (err) {
+    logPythonLoadFailure(affected[0] ?? 1, err);
+  } finally {
+    for (const t of locks) t.disabled = false;
+    for (const p of affected) setBotApplyBusy(p, false);
+    syncBotPickerTriggersDisabledFromState();
+    syncFileUploadRow(1);
+    syncFileUploadRow(2);
   }
 }
 
 async function fetchBotSource(botId) {
-  if (botId.startsWith('upload:')) {
+  if (botId.startsWith('custom:')) {
     if (botSourceCache.has(botId)) return botSourceCache.get(botId);
-    throw new Error('Upload a .py bot file first.');
+    const src = getCustomBotSource(botId);
+    if (src) {
+      botSourceCache.set(botId, src);
+      return src;
+    }
+    throw new Error('Saved bot not found — it may have been removed from browser storage.');
   }
   if (botSourceCache.has(botId)) return botSourceCache.get(botId);
   if (botFetchPending.has(botId)) return botFetchPending.get(botId);
@@ -899,22 +1145,13 @@ async function fetchBotSource(botId) {
 }
 
 function suggestBotDownloadFilename(pid, botId) {
-  if (botId.startsWith('upload:')) {
-    const name = uploadDisplayName[pid];
-    if (name) {
-      const trimmed = name.trim();
-      if (trimmed.toLowerCase().endsWith('.py')) return trimmed;
-      const dot = trimmed.lastIndexOf('.');
-      const base = dot > 0 ? trimmed.slice(0, dot) : trimmed;
-      return `${base || 'bot'}.py`;
-    }
-    const input = els[`botFile${pid}`];
-    const f = input?.files?.[0];
-    if (f?.name) {
-      const n = f.name.trim();
-      return n.toLowerCase().endsWith('.py') ? n : `${n.replace(/\.[^/.]+$/, '') || 'bot'}.py`;
-    }
-    return 'bot.py';
+  if (botId.startsWith('custom:')) {
+    const name = getCustomBotDisplayName(botId);
+    const trimmed = name.trim();
+    if (trimmed.toLowerCase().endsWith('.py')) return trimmed;
+    const dot = trimmed.lastIndexOf('.');
+    const base = dot > 0 ? trimmed.slice(0, dot) : trimmed;
+    return `${base || 'bot'}.py`;
   }
   const entry = catalogById.get(botId);
   if (entry?.path) {
@@ -925,8 +1162,8 @@ function suggestBotDownloadFilename(pid, botId) {
 }
 
 function botSourceModalTitleFor(pid, botId) {
-  if (botId.startsWith('upload:')) {
-    return uploadDisplayName[pid] || 'Uploaded file';
+  if (botId.startsWith('custom:')) {
+    return getCustomBotDisplayName(botId);
   }
   return catalogById.get(botId)?.label ?? botId;
 }
@@ -965,7 +1202,8 @@ function openBotSourceModal(title, text, ctx) {
 }
 
 function syncBotSourceActionButtons() {
-  const disabled = !botControlsReady || botCatalog.length === 0;
+  const disabled =
+    !botControlsReady || (botCatalog.length === 0 && loadCustomBotEntries().length === 0);
   for (const pid of [1, 2]) {
     const v = document.getElementById(`btn-bot-source-view-${pid}`);
     if (v) v.disabled = disabled;
@@ -974,9 +1212,8 @@ function syncBotSourceActionButtons() {
 
 async function viewBotSourceForPlayer(pid) {
   if (!botControlsReady) return;
-  const sel = els[`botSelect${pid}`];
-  if (!sel) return;
-  const botId = sel.value;
+  const botId = playerBotId[pid];
+  if (!botId) return;
   try {
     const code = await fetchBotSource(botId);
     const subtitle = botSourceModalTitleFor(pid, botId);
@@ -1057,14 +1294,16 @@ function downloadBotSourceFromModal() {
 function syncFileUploadRow(pid) {
   const input = els[`botFile${pid}`];
   const statusEl = els[`botFileStatus${pid}`];
-  const botId = `upload:${pid}`;
-  const hasCache = botSourceCache.has(botId);
+  const curId = playerBotId[pid];
   const hasPickedFile = Boolean(input?.files?.length);
   if (statusEl) {
-    if (uploadDisplayName[pid]) statusEl.textContent = uploadDisplayName[pid];
-    else if (hasPickedFile && input?.files?.[0]) statusEl.textContent = input.files[0].name;
-    else if (hasCache) statusEl.textContent = 'Uploaded — in memory (pick "Uploaded file" in list, or CHOOSE FILE to replace)';
-    else statusEl.textContent = 'No file chosen';
+    if (curId && String(curId).startsWith('custom:')) {
+      statusEl.textContent = `Saved bot: ${getCustomBotDisplayName(curId)}`;
+    } else if (hasPickedFile && input?.files?.[0]) {
+      statusEl.textContent = input.files[0].name;
+    } else {
+      statusEl.textContent = 'No file chosen';
+    }
   }
 }
 
@@ -1094,8 +1333,6 @@ async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
   const code = await fetchBotSource(botId);
   await runners[pid].setBotCode(code);
   playerBotId[pid] = botId;
-  const sel = els[`botSelect${pid}`];
-  if (sel) sel.value = botId;
   syncFileUploadRow(pid);
   if (!isInitialLoad) {
     running = false;
@@ -1109,6 +1346,125 @@ async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
     push();
     logEvent(`P${pid} bot changed — match reset.`);
   }
+  renderBotPickers();
+}
+
+function openDuplicateUploadModal({ base, familyCount, fileName }) {
+  return new Promise((resolve) => {
+    const modal = els.duplicateUploadModal;
+    const msg = els.duplicateUploadMessage;
+    const nameInput = els.duplicateUploadAddName;
+    const errEl = els.duplicateUploadNameError;
+    const btnOw = els.btnDuplicateOverwrite;
+    const btnAdd = els.btnDuplicateAdd;
+    const btnCan = els.btnDuplicateCancel;
+    if (!modal || !msg || !btnOw || !btnAdd || !btnCan) {
+      resolve({ choice: 'cancel' });
+      return;
+    }
+
+    const addLabel = `${base} (${familyCount})`;
+    msg.textContent = `A bot named “${base}” is already saved in this name group.`;
+    if (nameInput) {
+      nameInput.value = addLabel;
+      nameInput.placeholder = addLabel;
+    }
+
+    const clearNameError = () => {
+      if (nameInput) {
+        nameInput.classList.remove('duplicate-upload-name-input--invalid');
+        nameInput.setAttribute('aria-invalid', 'false');
+      }
+      if (errEl) {
+        errEl.textContent = '';
+        errEl.hidden = true;
+      }
+    };
+
+    const refreshNameCollisionUI = () => {
+      const raw = (nameInput?.value ?? '').trim();
+      const displayName = raw || addLabel;
+      const bad = customBotDisplayNameCollides(displayName);
+      btnAdd.disabled = bad;
+      if (bad) {
+        if (nameInput) {
+          nameInput.classList.add('duplicate-upload-name-input--invalid');
+          nameInput.setAttribute('aria-invalid', 'true');
+        }
+        if (errEl) {
+          errEl.textContent =
+            'That name matches a bot already saved. Pick a different name.';
+          errEl.hidden = false;
+        }
+      } else {
+        clearNameError();
+      }
+      return !bad;
+    };
+
+    const cleanup = (result) => {
+      if (nameInput) nameInput.removeEventListener('input', onNameInput);
+      clearNameError();
+      btnAdd.disabled = false;
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      window.removeEventListener('keydown', onKey);
+      btnOw.removeEventListener('click', onOw);
+      btnAdd.removeEventListener('click', onAdd);
+      btnCan.removeEventListener('click', onCan);
+      modal.removeEventListener('click', onBackdrop);
+      if (nameInput) nameInput.removeEventListener('keydown', onAddNameKey);
+      resolve(result);
+    };
+
+    const onOw = () => cleanup({ choice: 'overwrite' });
+    const onAdd = () => {
+      if (!refreshNameCollisionUI()) return;
+      const raw = (nameInput?.value ?? '').trim();
+      const displayName = raw || addLabel;
+      cleanup({ choice: 'add', displayName });
+    };
+    const onCan = () => cleanup({ choice: 'cancel' });
+    const onNameInput = () => {
+      refreshNameCollisionUI();
+    };
+    const onAddNameKey = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onAdd();
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cleanup({ choice: 'cancel' });
+      }
+    };
+    const onBackdrop = (e) => {
+      if (e.target === modal) cleanup({ choice: 'cancel' });
+    };
+
+    clearNameError();
+    refreshNameCollisionUI();
+
+    btnOw.addEventListener('click', onOw);
+    btnAdd.addEventListener('click', onAdd);
+    btnCan.addEventListener('click', onCan);
+    if (nameInput) nameInput.addEventListener('input', onNameInput);
+    if (nameInput) nameInput.addEventListener('keydown', onAddNameKey);
+    window.addEventListener('keydown', onKey);
+    modal.addEventListener('click', onBackdrop);
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    (nameInput || btnOw).focus();
+    if (nameInput) {
+      try {
+        nameInput.select();
+      } catch {
+        // ignore
+      }
+    }
+  });
 }
 
 async function onBotFileChange(pid, input) {
@@ -1121,7 +1477,6 @@ async function onBotFileChange(pid, input) {
 
   setBotFileUploadLoading(pid, true);
   try {
-    const botId = `upload:${pid}`;
     let text;
     try {
       text = await file.text();
@@ -1136,23 +1491,96 @@ async function onBotFileChange(pid, input) {
       logUploadShapeFailure(pid, shapeIssues);
       return;
     }
-    const prevUpload = botSourceCache.get(botId);
-    const prevLabel = uploadDisplayName[pid];
-    botSourceCache.set(botId, text);
-    uploadDisplayName[pid] = file.name;
-    const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
-    for (const s of locks) s.disabled = true;
+
+    const base = baseDisplayName(file.name);
+    const familyCount = familyCountForBase(base);
+
+    setBotFileUploadLoading(pid, false);
+    /** @type {{ choice: 'overwrite'|'add'|'cancel', displayName?: string }|null} */
+    let modalResult = null;
+    if (hasDuplicateFamily(base)) {
+      modalResult = await openDuplicateUploadModal({ base, familyCount, fileName: file.name });
+      if (modalResult.choice === 'cancel') {
+        input.value = '';
+        return;
+      }
+    }
+
+    if (modalResult?.choice === 'overwrite') {
+      setBotFileUploadLoading(pid, true);
+      let owId;
+      let prevSource;
+      try {
+        ({ id: owId, previousSource: prevSource } = overwriteCustomBotFamilyMember(base, text));
+      } catch (err) {
+        input.value = '';
+        const detail = err?.message ?? String(err);
+        logEvent(`P${pid} — overwrite failed\n${detail}`);
+        return;
+      }
+      botSourceCache.delete(owId);
+      botSourceCache.set(owId, text);
+      renderBotPickers();
+      const locks = [els.botPickerTrigger1, els.botPickerTrigger2].filter(Boolean);
+      for (const t of locks) t.disabled = true;
+      try {
+        await applyBotForPlayer(pid, owId, { isInitialLoad: false });
+        logEvent(`P${pid} overwrote saved bot: ${base}`);
+        input.value = '';
+      } catch (err) {
+        setCustomBotEntrySource(owId, prevSource);
+        botSourceCache.delete(owId);
+        botSourceCache.set(owId, prevSource);
+        renderBotPickers();
+        input.value = '';
+        logPythonLoadFailure(pid, err);
+      } finally {
+        for (const t of locks) t.disabled = false;
+        syncBotPickerTriggersDisabledFromState();
+      }
+      return;
+    }
+
+    setBotFileUploadLoading(pid, true);
+    let newId;
     try {
-      await applyBotForPlayer(pid, botId, { isInitialLoad: false });
-      logEvent(`P${pid} using uploaded bot: ${file.name}`);
+      if (modalResult?.choice === 'add') {
+        const displayName =
+          (modalResult.displayName && String(modalResult.displayName).trim()) ||
+          `${base} (${familyCount})`;
+        newId = appendCustomBotWithDisplayName(displayName, text);
+      } else {
+        newId = appendCustomBotUpload(file.name, text);
+      }
     } catch (err) {
-      if (prevUpload !== undefined) botSourceCache.set(botId, prevUpload);
-      else botSourceCache.delete(botId);
-      uploadDisplayName[pid] = prevLabel ?? null;
+      input.value = '';
+      const detail = err?.message ?? String(err);
+      logEvent(`P${pid} — could not save bot to browser storage\n${detail}`);
+      setPlayerCardFeedForPlayer(pid, `Could not save bot\n${detail}`, { error: true });
+      setEventLogExpanded(true);
+      return;
+    }
+
+    botSourceCache.set(newId, text);
+    renderBotPickers();
+
+    const locks = [els.botPickerTrigger1, els.botPickerTrigger2].filter(Boolean);
+    for (const t of locks) t.disabled = true;
+    try {
+      await applyBotForPlayer(pid, newId, { isInitialLoad: false });
+      const loadedLabel =
+        modalResult?.choice === 'add' ? getCustomBotDisplayName(newId) : file.name;
+      logEvent(`P${pid} saved and loaded: ${loadedLabel}`);
+      input.value = '';
+    } catch (err) {
+      removeCustomBotById(newId);
+      botSourceCache.delete(newId);
+      renderBotPickers();
       input.value = '';
       logPythonLoadFailure(pid, err);
     } finally {
-      for (const s of locks) s.disabled = false;
+      for (const t of locks) t.disabled = false;
+      syncBotPickerTriggersDisabledFromState();
     }
   } finally {
     setBotFileUploadLoading(pid, false);
@@ -1161,34 +1589,13 @@ async function onBotFileChange(pid, input) {
 }
 
 /**
- * Clears cached upload for this player, resets the native file input, and reverts
- * to the catalog default bot if they were actively using the upload slot.
- * Used before opening the file picker so the same file can be chosen again.
+ * Resets the native file input so the same file can be chosen again.
  */
 async function prepareBotFilePicker(pid) {
   if (!botControlsReady) return;
-  setBotApplyBusy(pid, true);
-  const botId = `upload:${pid}`;
   const input = els[`botFile${pid}`];
-  uploadDisplayName[pid] = null;
-  botSourceCache.delete(botId);
   if (input) input.value = '';
-  const usingUpload = playerBotId[pid] === botId;
-  const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
-  for (const s of locks) s.disabled = true;
-  try {
-    if (usingUpload) {
-      const fallback = getDefaultBotId(botCatalog);
-      if (fallback) await applyBotForPlayer(pid, fallback, { isInitialLoad: false });
-      else syncFileUploadRow(pid);
-    } else {
-      syncFileUploadRow(pid);
-    }
-  } finally {
-    for (const s of locks) s.disabled = false;
-    setBotApplyBusy(pid, false);
-    syncFileUploadRow(pid);
-  }
+  syncFileUploadRow(pid);
 }
 
 async function openBotFilePicker(pid) {
@@ -1196,24 +1603,26 @@ async function openBotFilePicker(pid) {
   els[`botFile${pid}`]?.click();
 }
 
-async function onBotSelectChange(pid) {
+async function onBotPickerOptionChosen(pid, nextBotId) {
   if (!botControlsReady) return;
-  const sel = els[`botSelect${pid}`];
-  if (!sel) return;
-  const next = sel.value;
   const prev = playerBotId[pid];
-  if (next === prev) return;
+  if (nextBotId === prev) {
+    closeBotPickerPanels();
+    return;
+  }
+  closeBotPickerPanels();
   setBotApplyBusy(pid, true);
-  const locks = [els.botSelect1, els.botSelect2].filter(Boolean);
-  for (const s of locks) s.disabled = true;
+  const locks = [els.botPickerTrigger1, els.botPickerTrigger2].filter(Boolean);
+  for (const t of locks) t.disabled = true;
   try {
-    await applyBotForPlayer(pid, next, { isInitialLoad: false });
+    await applyBotForPlayer(pid, nextBotId, { isInitialLoad: false });
   } catch (err) {
-    if (prev != null) sel.value = prev;
     logPythonLoadFailure(pid, err);
+    renderBotPickers();
   } finally {
-    for (const s of locks) s.disabled = false;
+    for (const t of locks) t.disabled = false;
     setBotApplyBusy(pid, false);
+    syncBotPickerTriggersDisabledFromState();
   }
 }
 
@@ -1238,8 +1647,16 @@ export function initApp() {
   els.matchEndStats = document.getElementById('match-end-stats');
   els.matchEndClose = document.getElementById('btn-match-end-close');
   els.runToggle = document.getElementById('btn-run');
-  els.botSelect1 = document.getElementById('bot-select-1');
-  els.botSelect2 = document.getElementById('bot-select-2');
+  els.botPicker1 = document.getElementById('bot-picker-1');
+  els.botPicker2 = document.getElementById('bot-picker-2');
+  els.botPickerTrigger1 = document.getElementById('bot-picker-trigger-1');
+  els.botPickerTrigger2 = document.getElementById('bot-picker-trigger-2');
+  els.botPickerPanel1 = document.getElementById('bot-picker-panel-1');
+  els.botPickerPanel2 = document.getElementById('bot-picker-panel-2');
+  els.deleteCustomBotModal = document.getElementById('delete-custom-bot-modal');
+  els.deleteCustomBotMessage = document.getElementById('delete-custom-bot-message');
+  els.btnDeleteCustomBotCancel = document.getElementById('btn-delete-custom-bot-cancel');
+  els.btnDeleteCustomBotConfirm = document.getElementById('btn-delete-custom-bot-confirm');
   els.botFile1 = document.getElementById('bot-file-1');
   els.botFile2 = document.getElementById('bot-file-2');
   els.botFileChoose1 = document.getElementById('bot-file-choose-1');
@@ -1253,13 +1670,19 @@ export function initApp() {
   els.botSourceCopy = document.getElementById('btn-bot-source-copy');
   els.botSourceDownload = document.getElementById('btn-bot-source-download');
   els.botSourceClose = document.getElementById('btn-bot-source-close');
+  els.duplicateUploadModal = document.getElementById('duplicate-upload-modal');
+  els.duplicateUploadMessage = document.getElementById('duplicate-upload-message');
+  els.duplicateUploadAddName = document.getElementById('duplicate-upload-add-name');
+  els.duplicateUploadNameError = document.getElementById('duplicate-upload-name-error');
+  els.btnDuplicateOverwrite = document.getElementById('btn-duplicate-overwrite');
+  els.btnDuplicateAdd = document.getElementById('btn-duplicate-add');
+  els.btnDuplicateCancel = document.getElementById('btn-duplicate-cancel');
   els.welcomeModal = document.getElementById('welcome-modal');
 
-  populateBotSelects();
-  if (els.botSelect1) els.botSelect1.disabled = true;
-  if (els.botSelect2) els.botSelect2.disabled = true;
-  if (els.botSelect1) els.botSelect1.addEventListener('change', () => onBotSelectChange(1));
-  if (els.botSelect2) els.botSelect2.addEventListener('change', () => onBotSelectChange(2));
+  initDeleteCustomBotModal();
+  renderBotPickers();
+  initBotPickerUi();
+  syncBotPickerTriggersDisabledFromState();
   if (els.botFile1) els.botFile1.addEventListener('change', () => onBotFileChange(1, els.botFile1));
   if (els.botFile2) els.botFile2.addEventListener('change', () => onBotFileChange(2, els.botFile2));
   if (els.botFileChoose1) els.botFileChoose1.addEventListener('click', () => { void openBotFilePicker(1); });
@@ -1314,6 +1737,14 @@ export function initApp() {
     if (e.key !== 'Escape') return;
     if (els.welcomeModal?.classList.contains('open')) {
       dismissWelcomeOnboarding();
+      return;
+    }
+    if (els.deleteCustomBotModal?.classList.contains('open')) {
+      finishDeleteCustomBotConfirm(false);
+      return;
+    }
+    if (botPickerOpenPid != null) {
+      closeBotPickerPanels();
       return;
     }
     if (els.botSourceModal?.classList.contains('open')) closeBotSourceModal();
@@ -1426,7 +1857,7 @@ export async function preloadWorkers() {
     await runners[pid].init(hexGridPy, actionsPy, splatbotDataTypesPy);
   }
 
-  const defaultId = getDefaultBotId(botCatalog);
+  const defaultId = getDefaultBotId(botCatalog) ?? loadCustomBotEntries()[0]?.id ?? null;
   if (defaultId) {
     updateLoadingStatus('Loading default bot...');
     await Promise.all([
@@ -1437,14 +1868,11 @@ export async function preloadWorkers() {
 
   await consumeDocsBotImportForPlayerOne();
 
-  const noBots = botCatalog.length === 0;
-  if (els.botSelect1) els.botSelect1.disabled = noBots;
-  if (els.botSelect2) els.botSelect2.disabled = noBots;
-
   botControlsReady = true;
   syncFileUploadRow(1);
   syncFileUploadRow(2);
   syncBotSourceActionButtons();
+  syncBotPickerTriggersDisabledFromState();
   syncStepControls();
   updateLoadingStatus('Ready.');
 }

@@ -77,7 +77,10 @@
         <div class="player-card-details" id="player-card-details-1">
           <hr class="sb-divider">
           <div class="sb-label-xs">BOT SCRIPT</div>
-          <select id="bot-select-1" class="sb-select" aria-label="Player 1 bot script"></select>
+          <div id="bot-picker-1" class="sb-bot-picker" data-player="1">
+            <button type="button" id="bot-picker-trigger-1" class="sb-bot-picker-trigger" aria-label="Player 1 bot script" aria-haspopup="listbox" aria-expanded="false" aria-controls="bot-picker-panel-1"></button>
+            <div id="bot-picker-panel-1" class="sb-bot-picker-panel" role="listbox" hidden aria-label="Player 1 bot choices"></div>
+          </div>
           <div class="sb-bot-source-actions">
             <button type="button" id="btn-bot-source-view-1" class="sb-btn sb-btn--compact sb-bot-source-view-btn" aria-label="View source code for player 1 bot">VIEW SOURCE</button>
           </div>
@@ -114,7 +117,10 @@
         <div class="player-card-details" id="player-card-details-2">
           <hr class="sb-divider">
           <div class="sb-label-xs">BOT SCRIPT</div>
-          <select id="bot-select-2" class="sb-select" aria-label="Player 2 bot script"></select>
+          <div id="bot-picker-2" class="sb-bot-picker" data-player="2">
+            <button type="button" id="bot-picker-trigger-2" class="sb-bot-picker-trigger" aria-label="Player 2 bot script" aria-haspopup="listbox" aria-expanded="false" aria-controls="bot-picker-panel-2"></button>
+            <div id="bot-picker-panel-2" class="sb-bot-picker-panel" role="listbox" hidden aria-label="Player 2 bot choices"></div>
+          </div>
           <div class="sb-bot-source-actions">
             <button type="button" id="btn-bot-source-view-2" class="sb-btn sb-btn--compact sb-bot-source-view-btn" aria-label="View source code for player 2 bot">VIEW SOURCE</button>
           </div>
@@ -230,6 +236,32 @@
           </div>
         </div>
         <pre class="bot-source-code-pre"><code id="bot-source-code" class="language-python"></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-custom-bot-modal" class="modal-overlay" aria-hidden="true">
+    <div class="sb-card delete-custom-bot-card" role="dialog" aria-modal="true" aria-labelledby="delete-custom-bot-title">
+      <div id="delete-custom-bot-title" class="sb-cond delete-custom-bot-title">DELETE SAVED BOT</div>
+      <p id="delete-custom-bot-message" class="delete-custom-bot-message"></p>
+      <div class="delete-custom-bot-actions duplicate-upload-actions">
+        <button type="button" id="btn-delete-custom-bot-cancel" class="sb-btn">CANCEL</button>
+        <button type="button" id="btn-delete-custom-bot-confirm" class="sb-btn sb-btn--danger">DELETE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="duplicate-upload-modal" class="modal-overlay" aria-hidden="true">
+    <div class="sb-card duplicate-upload-card" role="dialog" aria-modal="true" aria-labelledby="duplicate-upload-title">
+      <div id="duplicate-upload-title" class="sb-cond duplicate-upload-title">NAME ALREADY SAVED</div>
+      <p id="duplicate-upload-message" class="duplicate-upload-message"></p>
+      <label for="duplicate-upload-add-name" class="duplicate-upload-add-label">Add as new — name in list</label>
+      <input type="text" id="duplicate-upload-add-name" class="sb-input duplicate-upload-add-name-input" autocomplete="off" spellcheck="false" aria-describedby="duplicate-upload-message duplicate-upload-name-error">
+      <p id="duplicate-upload-name-error" class="duplicate-upload-name-error" hidden aria-live="polite"></p>
+      <div class="duplicate-upload-actions">
+        <button type="button" id="btn-duplicate-overwrite" class="sb-btn">OVERWRITE</button>
+        <button type="button" id="btn-duplicate-add" class="sb-btn">ADD AS NEW</button>
+        <button type="button" id="btn-duplicate-cancel" class="sb-btn">CANCEL</button>
       </div>
     </div>
   </div>
