@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Splatbot Documentation · Splatbot</title>
+  <title>Quick Start · Splatbot</title>
   <link rel="icon" href="../images/splat.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
       </div>
       <ul class="docs-sidebar-list">
         <li class="docs-sidebar-title">Articles</li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Splatbot Documentation</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Quick Start</a></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./actions/index.html">Actions</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./writing-bots/index.html">Writing Bots</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./examples/index.html">Example Bots</a></div></li>
@@ -35,7 +35,7 @@
     </div>
   </aside>
     <main class="docs-main markdown-body">
-<h1 id="splatbot-documentation" tabindex="-1">Splatbot Documentation</h1>
+<h1 id="quick-start" tabindex="-1">Quick Start</h1>
 <h2 id="what-is-splatbot" tabindex="-1">What is Splatbot?</h2>
 <p>Splatbot is a game made for programmers, where players compete to color the most number of tiles in a given time frame by creating, well… <strong>splatbots!</strong> The game is divided up into a series of turns, also referred to as <em>ticks</em>. Each tick, the splatbots will be prompted to make a decision about what action they would like to perform. Then, the game will apply those actions to the bots.</p>
 <p>Example of a tick:</p>
@@ -47,8 +47,99 @@
 <li>The game continues on to the next tick.</li>
 </ul>
 <p>Example bots are provided, but it is easy to upload custom bots as well! Simply go to the home page, select the “Choose File” under whichever side the bot should play for. Then press the start button to begin the match!</p>
+<h2 id="how-to-write-a-bot" tabindex="-1">How To Write A Bot</h2>
+<p>A bot is a Python script: define a <code>class Bot</code> with <code>decide(self, game_state)</code> that returns <strong>one</strong> action each tick. The full walkthrough (template, memory, printing, edge cases) is in <strong><a href="./writing-bots/index.html">Writing bots</a></strong>.</p>
+<p><a href="../index.html#download-starter-code" class="docs-try-btn">Download starter code</a></p>
+<h3 id="actions" tabindex="-1">Actions</h3>
+<p>On each tick, <code>decide</code> must return a single action. Interactive demos for each one are on the <strong><a href="./actions/index.html">Actions</a></strong> page.</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="./actions/index.html#move">move</a></td>
+<td>Step one hex forward and paint it.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#turn-left">turn_left</a></td>
+<td>Turn left 1–5 steps.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#turn-right">turn_right</a></td>
+<td>Turn right 1–5 steps.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#turn-around">turn_180</a></td>
+<td>Turn around.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#face-direction">face_direction</a></td>
+<td>Turn to face a specified direction.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#skip">skip</a></td>
+<td>Do nothing.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#splat">splat</a></td>
+<td>Paint all neighboring tiles.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#shoot-paintball">shoot_paintball</a></td>
+<td>Paint a straight line forward without moving.</td>
+</tr>
+<tr>
+<td><a href="./actions/index.html#dash">dash</a></td>
+<td>Move 2–6 hexes forward; paint only the destination.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="utils" tabindex="-1">Utils</h3>
+<p>There are helper functions available to make writing a Bot even easier. They are desccribed in the <strong><a href="./api-docs/index.html">Python API reference</a></strong>.</p>
+<h3 id="reading-game-state" tabindex="-1">Reading Game State</h3>
+<p>The <code>game_state</code> passed into <code>decide</code> is <strong>read-only</strong>; you change the match only by <strong>returning</strong> an action. Field meanings (and <code>BotInfo</code> details) are documented under <strong><a href="./writing-bots/index.html#game-state">Game State in Writing bots</a></strong>. Hex layout and coordinates are covered on the <strong><a href="./hex-grid/index.html">Hex Grid</a></strong> page.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>game_state.me</code></td>
+<td>Your <code>BotInfo</code> — <code>position</code>, <code>facing</code>, <code>stun</code>, cooldowns.</td>
+</tr>
+<tr>
+<td><code>game_state.opponents</code></td>
+<td>Other players’ <code>BotInfo</code>, keyed by player id.</td>
+</tr>
+<tr>
+<td><code>game_state.opponent</code></td>
+<td>The single opponent in 1v1, or <code>None</code> in other modes.</td>
+</tr>
+<tr>
+<td><code>game_state.grid</code></td>
+<td>All hexes on the map (<a href="./hex-grid/index.html"><code>Hex</code></a>); each tile has a <code>controller</code> (<code>BotInfo</code> or <code>None</code>).</td>
+</tr>
+<tr>
+<td><code>game_state.turn</code></td>
+<td>Current turn index.</td>
+</tr>
+<tr>
+<td><code>game_state.max_turns</code></td>
+<td>Match length.</td>
+</tr>
+</tbody>
+</table>
+<p>For static typing against these shapes, use <strong><a href="./api-docs/utils/splatbot_data_types/index.html">utils.splatbot_data_types</a></strong>. Larger sample bots are in <strong><a href="./examples/index.html">Examples</a></strong>.</p>
 <h2 id="pages" tabindex="-1">Pages</h2>
 <ol>
+<li><strong><a href="./index.html">Quick Start</a></strong> — Summary of Splatbot and how to write a bot</li>
 <li><strong><a href="actions/">Actions</a></strong> — What each action does, with interactive examples</li>
 <li><strong><a href="writing-bots/">Writing bots</a></strong> — An overview of everything that goes into creating a bot</li>
 <li><strong><a href="examples/">Examples</a></strong> — Larger bot examples</li>

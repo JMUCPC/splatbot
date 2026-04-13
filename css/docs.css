@@ -382,6 +382,19 @@ span.docs-sidebar-section-link {
   transition: border-color 0.15s, color 0.15s;
 }
 
+/* Starter download etc.: beat .markdown-body a link color / underline */
+.markdown-body a.docs-try-btn {
+  color: #9aacbf;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.markdown-body a.docs-try-btn:hover {
+  border-color: #3a5070;
+  color: #c0d0e0;
+  text-decoration: none;
+}
+
 .markdown-body pre code {
   background: none;
   border: none;
