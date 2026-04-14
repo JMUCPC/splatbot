@@ -127,9 +127,23 @@
         <span class="hljs-keyword">return</span> Actions.skip()
 </code></pre>
 <h2 id="special-actions" tabindex="-1">Special Actions</h2>
-<p>Special actions are more powerful than basic actions. However, these actions have a cooldown that must finish before the action is allowed to be performed again. Especially powerful special actions will also stun the user for a few turns, preventing them from taking any actions at all until the stun expires. The exact values of these penalties are configurable in the settings menu of the game.</p>
-<p><strong>Stun:</strong> A number of turns a bot cannot perform any action</p>
-<p><strong>Cooldown:</strong> A number of turns before a bot can repeat the action “cooling down”</p>
+<p>Special actions are more powerful than basic actions. However, these actions have a cooldown that must finish before the action is allowed to be performed again.</p>
+<p>Especially powerful special actions will also stun the user for a few turns, preventing them from taking any actions at all until the stun expires. The exact values of these penalties are configurable in the settings menu of the game.</p>
+<table>
+<thead>
+<tr>
+<th>Definitions:</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Stun:</strong> A number of turns a bot cannot perform any action</td>
+</tr>
+<tr>
+<td><strong>Cooldown:</strong> A number of turns before a bot can repeat the action “cooling down”</td>
+</tr>
+</tbody>
+</table>
 <h3 id="splat" tabindex="-1">Splat</h3>
 <p><code>Actions.splat()</code> paints every neighbor of a bot’s current hex.</p>
 <p>Default settings:</p>

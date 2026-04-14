@@ -15,7 +15,7 @@ class Bot:
     def __init__(self):
         """Initialize bot state here (called once at the start of the match)."""
         # Optional Strategy: use instance variables to store data between turns
-        self.persistent_data = None
+        self.some_variable = None
 
     def decide(self, game_state: GameState):
         """Quick Start Guide:
@@ -25,7 +25,8 @@ class Bot:
         
         This bot is functionally identical to the game's default random bot.
         """
-        # use the game_state argument to see everything happening in the game
+        # Use the game_state argument to see everything happening in the game
+        # For more info, explore the GameState and BotInfo classes in splatbot_data_types.py or visit the docs
         player = game_state.me
 
         # Skip this turn if stunned
@@ -33,6 +34,7 @@ class Bot:
             return Actions.skip()
 
         # Optional Strategy: provided utilities for hex grid operations
+        # For more info, explore hex_grid.py or visit the docs
         hex_utils = HexUtils(game_state)
 
         # Create a list of actions this bot may take
@@ -60,4 +62,8 @@ class Bot:
 
         # randomly choose one of the valid actions
         chosen_action = random.choice(action_choices)
+        
+        # This will print the chosen action to the browser console (open with F12 or ctrl+shift+I)
+        print(chosen_action)
+        
         return chosen_action

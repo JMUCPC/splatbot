@@ -120,11 +120,14 @@ class Bot:
 
 ## Special Actions
 
-Special actions are more powerful than basic actions. However, these actions have a cooldown that must finish before the action is allowed to be performed again. Especially powerful special actions will also stun the user for a few turns, preventing them from taking any actions at all until the stun expires. The exact values of these penalties are configurable in the settings menu of the game.
+Special actions are more powerful than basic actions. However, these actions have a cooldown that must finish before the action is allowed to be performed again.
 
-**Stun:** A number of turns a bot cannot perform any action
+Especially powerful special actions will also stun the user for a few turns, preventing them from taking any actions at all until the stun expires. The exact values of these penalties are configurable in the settings menu of the game.
 
-**Cooldown:** A number of turns before a bot can repeat the action "cooling down"
+| Definitions:                                                                      |
+| --------------------------------------------------------------------------------- |
+| **Stun:** A number of turns a bot cannot perform any action                       |
+| **Cooldown:** A number of turns before a bot can repeat the action "cooling down" |
 
 ### Splat
 
