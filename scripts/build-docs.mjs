@@ -225,6 +225,7 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml, pagerHtml }) {
   const hexDistanceDemosHref = path.join(toRoot, 'js', 'docs', 'hex-distance-demos.js').split(path.sep).join('/');
   const minisearchHref = path.join(toRoot, 'js', 'vendor', 'minisearch.js').split(path.sep).join('/');
   const docsSearchHref = path.join(toRoot, 'js', 'docs-search.js').split(path.sep).join('/');
+  const docsTocHref = path.join(toRoot, 'js', 'docs-toc.js').split(path.sep).join('/');
   const iconHref = path.join(toRoot, 'images', 'splat.ico').split(path.sep).join('/');
 
   return `<!DOCTYPE html>
@@ -242,15 +243,18 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml, pagerHtml }) {
 <body class="docs-body">
   <div class="docs-layout">
 ${sidebarHtml}
+    <div class="docs-main-wrap">
     <main class="docs-main markdown-body">
 ${bodyHtml}
 ${pagerHtml}
     </main>
+    </div>
   </div>
   <script src="${botRunnableHref}" defer></script>
   <script src="${copyJsHref}" defer></script>
   <script src="${minisearchHref}" defer></script>
   <script src="${docsSearchHref}" defer></script>
+  <script src="${docsTocHref}" defer></script>
   <script type="module" src="${actionDemosHref}"></script>
   <script type="module" src="${hexHoverDemosHref}"></script>
   <script type="module" src="${hexDistanceDemosHref}"></script>

@@ -28,12 +28,13 @@
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../hex-grid/index.html">Hexagonal Grids</a></div></li>
 <li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../debugging/index.html">Advanced Debugging</a></div></li>
 <li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><span class="docs-sidebar-section-link">utils</span></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">actions</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../api-docs/utils/index.html">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/actions/index.html">actions</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/hex_grid/index.html">hex_grid</a></li>
 <li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../api-docs/utils/splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
       </ul>
     </div>
   </aside>
+    <div class="docs-main-wrap">
     <main class="docs-main markdown-body">
 <h1 id="example-bots" tabindex="-1">Example Bots</h1>
 <p>Full scripts below, then a short <strong>how it works</strong> list. Assumes you have read <a href="../writing-bots/">Writing bots</a> and skimmed <a href="../actions/">Actions</a>.</p>
@@ -64,8 +65,8 @@
 <li>If that hex is <strong>not</strong> on the map (<code>not in game_state.grid</code>), <strong>turn 180°</strong>; otherwise <strong>move</strong> forward.</li>
 </ol>
 <p><strong>Takeaways:</strong> <code>HexUtils</code>, <code>game_state.grid</code>, <code>Actions.turn_180()</code>, and moving relative to <code>facing</code> (works for both players).</p>
-<h2 id="random-move-turn-and-specials-cooldown-aware" tabindex="-1">Random move, turn, and specials (cooldown-aware)</h2>
-<p>Each turn, pick <strong>uniformly at random</strong> among <strong>move</strong>, a <strong>random <code>turn_left</code></strong> (1–5 steps), and each <strong>special</strong> whose cooldown is <strong>0</strong> (<code>splat</code>, <code>dash</code>, <code>shoot_paintball</code>). Skips while stunned. Full script: <code>python/bots/random_everything_bot.py</code>.</p>
+<h2 id="random-move-turn-and-specials" tabindex="-1">Random move, turn, and specials</h2>
+<p>Each turn, pick <strong>uniformly at random</strong> among <strong>move</strong>, a <strong>random <code>turn_left</code></strong> (1–5 steps), and each <strong>special</strong> whose cooldown is <strong>0</strong> (<code>splat</code>, <code>dash</code>, <code>shoot_paintball</code>). Skips while stunned.</p>
 <pre><code data-docs-code-lang="python" class="language-python"><span class="hljs-string">&quot;&quot;&quot;Pick splat, dash, or paintball at random when each cooldown allows; otherwise move.&quot;&quot;&quot;</span>
 
 <span class="hljs-keyword">import</span> random
@@ -157,11 +158,13 @@
 
 <nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../writing-bots/index.html">&larr; Back: Writing Bots</a><a class="docs-pager-link docs-pager-link--next" href="../hex-grid/index.html">Next: Hexagonal Grids &rarr;</a></nav>
     </main>
+    </div>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>
   <script src="../../js/docs-copy-code.js" defer></script>
   <script src="../../js/vendor/minisearch.js" defer></script>
   <script src="../../js/docs-search.js" defer></script>
+  <script src="../../js/docs-toc.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
   <script type="module" src="../../js/docs/hex-hover-demos.js"></script>
   <script type="module" src="../../js/docs/hex-distance-demos.js"></script>

@@ -18,7 +18,7 @@ Example bots are provided, but it is easy to upload custom bots as well! Simply 
 
 A bot is a Python script: define a `class Bot` with `decide(self, game_state)` that returns **one** action each tick. The full walkthrough (template, memory, printing, edge cases) is in **[Writing bots](writing-bots/index.md)**.
 
-<p><a href="../index.html#download-starter-code" class="docs-try-btn">Download starter code</a></p>
+<p><a href="../index.html#download-starter-code" class="docs-try-btn docs-try-btn--starter-download">Download starter code</a></p>
 
 ### Actions
 

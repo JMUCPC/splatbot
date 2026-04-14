@@ -24,6 +24,115 @@
   align-items: start;
 }
 
+/* Main column + right “On this page” subnav (second column added when JS sets --with-toc) */
+.docs-main-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem 1.75rem;
+  align-items: start;
+  min-width: 0;
+}
+
+.docs-main-wrap--with-toc {
+  grid-template-columns: minmax(0, 1fr) minmax(11.5rem, 14rem);
+}
+
+.docs-toc {
+  position: sticky;
+  top: 1.25rem;
+  align-self: start;
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #1a2a40;
+  background: #0a101c;
+  scrollbar-width: thin;
+  scrollbar-color: #3f5875 #0e1525;
+}
+
+.docs-toc::-webkit-scrollbar {
+  width: 8px;
+}
+
+.docs-toc::-webkit-scrollbar-track {
+  background: #0e1525;
+  border-radius: 4px;
+}
+
+.docs-toc::-webkit-scrollbar-thumb {
+  background: #334a6e;
+  border-radius: 4px;
+}
+
+.docs-toc-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9aacbf;
+  margin: 0 0 0.65rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #1a2a40;
+}
+
+.docs-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.docs-toc-link {
+  display: block;
+  color: #8a9db4;
+  text-decoration: none;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  padding: 0.28rem 0;
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+  padding-left: 0.35rem;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.docs-toc-link[data-level="3"] {
+  padding-left: 0.95rem;
+  font-size: 0.84rem;
+}
+
+.docs-toc-link[data-level="4"] {
+  padding-left: 1.45rem;
+  font-size: 0.8rem;
+  color: #6f8196;
+}
+
+.docs-toc-link:hover {
+  color: #d8e3ed;
+  text-decoration: none;
+}
+
+.docs-toc-link--active {
+  color: #00d4ff;
+  border-left-color: #00d4ff;
+}
+
+@media (max-width: 72rem) {
+  .docs-main-wrap--with-toc {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-main-wrap--with-toc .docs-toc {
+    position: static;
+    max-height: none;
+    order: 2;
+  }
+
+  .docs-main-wrap--with-toc .docs-main {
+    order: 1;
+  }
+}
+
 .docs-sidebar {
   position: sticky;
   top: 0;
@@ -285,6 +394,34 @@ span.docs-sidebar-section-link {
   font-size: 1.25rem;
 }
 
+@keyframes docs-heading-jump-flash {
+  0% {
+    background-color: rgba(0, 212, 255, 0.16);
+    box-shadow: inset 3px 0 0 0 #00d4ff;
+  }
+  55% {
+    background-color: rgba(0, 212, 255, 0.1);
+    box-shadow: inset 3px 0 0 0 #00d4ff;
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.markdown-body h2.docs-heading-jump-flash,
+.markdown-body h3.docs-heading-jump-flash,
+.markdown-body h4.docs-heading-jump-flash {
+  animation: docs-heading-jump-flash 0.85s ease-out forwards;
+}
+
+.markdown-body h2.docs-heading-jump-flash--reduced,
+.markdown-body h3.docs-heading-jump-flash--reduced,
+.markdown-body h4.docs-heading-jump-flash--reduced {
+  background-color: rgba(0, 212, 255, 0.12);
+  box-shadow: inset 3px 0 0 0 #00d4ff;
+}
+
 .markdown-body p {
   margin-bottom: 1em;
 }
@@ -430,6 +567,24 @@ span.docs-sidebar-section-link {
   text-decoration: none;
 }
 
+/* Match app “Download starter code” buttons (see .sb-btn--starter-download in styles.css). */
+.docs-try-btn.docs-try-btn--starter-download {
+  border: 2px solid #41ff8f;
+  box-shadow: 0 0 0 1px rgba(65, 255, 143, 0.45);
+}
+
+.markdown-body a.docs-try-btn.docs-try-btn--starter-download:hover {
+  border-color: #7dffc0;
+  box-shadow: 0 0 0 1px rgba(125, 255, 192, 0.55);
+  color: #c0d0e0;
+  text-decoration: none;
+}
+
+.docs-try-btn.docs-try-btn--starter-download:focus-visible {
+  outline: 2px solid #7dffc0;
+  outline-offset: 2px;
+}
+
 .markdown-body pre code {
   background: none;
   border: none;
@@ -520,6 +675,18 @@ span.docs-sidebar-section-link {
 
 .action-demo-btn--secondary {
   color: #8a9db4;
+}
+
+/* Primary run control in interactive doc widgets (Play / Start) */
+.action-demo-btn[data-demo-play],
+.action-demo-btn[data-try-run] {
+  outline: 2px solid #38d97a;
+  outline-offset: 2px;
+}
+
+.action-demo-btn[data-demo-play]:hover:not(:disabled),
+.action-demo-btn[data-try-run]:hover:not(:disabled) {
+  outline-color: #52e892;
 }
 
 .action-demo-caption {

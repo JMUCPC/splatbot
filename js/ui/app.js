@@ -51,6 +51,8 @@ import { describeBotScriptShapeIssues } from '../bot-script-shape.js';
 
 let state = null;
 let running = false;
+/** After the first live run for the current match, paused (not over) shows RESUME instead of START. */
+let hadLiveRunThisMatch = false;
 let tickDelay = config.TICK_DELAY;
 let lastTick = 0;
 
@@ -82,6 +84,9 @@ let actionsPy = '';
 let starterCodePy = '';
 let splatbotDataTypesPy = '';
 const STARTER_ZIP_NAME = 'splatbot_starter_code.zip';
+
+/** @type {{ path: string, content: string }[] | null} Cached built-in bots for starter zip (`examples/`). Null until first successful load. */
+let exampleBotsZipEntries = null;
 
 /** @type {Map<string, string>} */
 const botSourceCache = new Map();
@@ -221,9 +226,6 @@ function openWelcomeModal() {
   els.welcomeModal.setAttribute('aria-hidden', 'false');
   const cb = document.getElementById('welcome-open-on-startup');
   if (cb) cb.checked = welcomeOpenOnStartup();
-  requestAnimationFrame(() => {
-    document.getElementById('btn-welcome-read-docs')?.focus();
-  });
 }
 
 /** Shows the welcome dialog on load when first visit or “open on startup” is enabled. */
@@ -447,6 +449,11 @@ function downloadBlob(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
+/** Starter zip only: built-in examples are under `examples/` next to `utils/`. */
+function rewriteExampleBotImportsForStarterZip(source) {
+  return source.replace(/^from utils\./gm, 'from ..utils.');
+}
+
 async function ensureStarterCodeSourcesLoaded() {
   if (actionsPy && hexGridPy && starterCodePy && splatbotDataTypesPy) return;
   const [hg, ac, starter, dataTypes] = await Promise.all([
@@ -481,9 +488,32 @@ async function ensureStarterCodeSourcesLoaded() {
   splatbotDataTypesPy = dataTypes;
 }
 
+async function ensureExampleBotsForZipLoaded() {
+  if (exampleBotsZipEntries !== null) return;
+  if (!config.LOAD_BUILTIN_BOTS) {
+    exampleBotsZipEntries = [];
+    return;
+  }
+  const files = Object.values(config.BUILTIN_BOTS);
+  const texts = await Promise.all(
+    files.map((file) => {
+      const url = `${config.BUILTIN_BOTS_PATH}${file}`;
+      return fetch(url).then((r) => {
+        if (!r.ok) throw new Error(`${url} (${r.status})`);
+        return r.text();
+      });
+    }),
+  );
+  exampleBotsZipEntries = files.map((file, i) => ({
+    path: `examples/${file}`,
+    content: rewriteExampleBotImportsForStarterZip(texts[i]),
+  }));
+}
+
 async function downloadStarterCodeZip() {
   try {
     await ensureStarterCodeSourcesLoaded();
+    await ensureExampleBotsForZipLoaded();
   } catch (err) {
     const detail = err?.message ?? String(err);
     logEvent(`Starter code download failed\n${detail}`);
@@ -495,6 +525,7 @@ async function downloadStarterCodeZip() {
     { path: 'utils/hex_grid.py', content: hexGridPy },
     { path: 'utils/splatbot_data_types.py', content: splatbotDataTypesPy },
     { path: 'starter_code.py', content: starterCodePy },
+    ...exampleBotsZipEntries,
   ]);
   downloadBlob(zip, STARTER_ZIP_NAME);
   logEvent(`Downloaded ${STARTER_ZIP_NAME}.`);
@@ -1365,6 +1396,7 @@ async function applyBotForPlayer(pid, botId, { isInitialLoad = false } = {}) {
   syncFileUploadRow(pid);
   if (!isInitialLoad) {
     running = false;
+    hadLiveRunThisMatch = false;
     for (const p of [1, 2]) {
       if (runners[p]) runners[p].resetTimingStats();
     }
@@ -1674,7 +1706,7 @@ export function initApp() {
   els.matchEndModal = document.getElementById('match-end-modal');
   els.matchEndMessage = document.getElementById('match-end-message');
   els.matchEndStats = document.getElementById('match-end-stats');
-  els.matchEndClose = document.getElementById('btn-match-end-close');
+  els.matchEndDismiss = document.getElementById('btn-match-end-dismiss');
   els.runToggle = document.getElementById('btn-run');
   els.botPicker1 = document.getElementById('bot-picker-1');
   els.botPicker2 = document.getElementById('bot-picker-2');
@@ -1769,9 +1801,10 @@ export function initApp() {
       openWelcomeModal();
     });
   }
-  if (els.welcomeModal) {
-    els.welcomeModal.addEventListener('click', (e) => {
-      if (e.target === els.welcomeModal) dismissWelcomeOnboarding();
+  const btnWelcomeClose = document.getElementById('btn-welcome-close');
+  if (btnWelcomeClose) {
+    btnWelcomeClose.addEventListener('click', () => {
+      dismissWelcomeOnboarding();
     });
   }
   document.addEventListener('keydown', (e) => {
@@ -1856,14 +1889,15 @@ export function initApp() {
     settingsProfileFile.addEventListener('change', onSettingsProfileFileChange);
   }
   els.speedSlider.addEventListener('input', (e) => setSpeed(Number(e.target.value)));
-  if (els.matchEndClose) {
-    els.matchEndClose.addEventListener('click', hideMatchEndModal);
+  if (els.matchEndDismiss) {
+    els.matchEndDismiss.addEventListener('click', hideMatchEndModal);
   }
-  if (els.matchEndModal) {
-    els.matchEndModal.addEventListener('click', (e) => {
-      if (e.target === els.matchEndModal) hideMatchEndModal();
+  document.querySelectorAll('.player-card-match-stats-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!state?.isOver) return;
+      showMatchEndModal();
     });
-  }
+  });
 
   initPlayerCardsCompactLayout();
 
@@ -1959,13 +1993,25 @@ function push() {
   }
 
   if (els.runToggle) {
-    els.runToggle.textContent = running ? '\u23F8  PAUSE' : '\u25B6  START';
+    const showResume = !running && !state.isOver && hadLiveRunThisMatch;
+    if (running) {
+      els.runToggle.textContent = '\u23F8  PAUSE';
+      els.runToggle.setAttribute('aria-label', 'Pause match');
+    } else if (showResume) {
+      els.runToggle.textContent = '\u25B6  RESUME';
+      els.runToggle.setAttribute('aria-label', 'Resume match');
+    } else {
+      els.runToggle.textContent = '\u25B6  START';
+      els.runToggle.setAttribute('aria-label', 'Start match');
+    }
     els.runToggle.setAttribute('aria-pressed', running ? 'true' : 'false');
-    els.runToggle.setAttribute('aria-label', running ? 'Pause match' : 'Start match');
     syncRunToggleDisabled();
   }
 
   syncStepControls();
+  document.querySelectorAll('.player-card-match-stats-btn').forEach((btn) => {
+    btn.disabled = !state?.isOver;
+  });
   schedulePlayerCardsCompactLayout();
 }
 
@@ -1984,6 +2030,7 @@ async function startGame() {
   }
   hideMatchEndModal();
   running = true;
+  hadLiveRunThisMatch = true;
   lastTick = performance.now();
   push();
   logEvent('Match started.');
@@ -1998,6 +2045,7 @@ function pauseGame() {
 async function resetGame(options = {}) {
   const { clearEventLog = false } = options;
   running = false;
+  hadLiveRunThisMatch = false;
   hideMatchEndModal();
   if (clearEventLog) clearLog();
   for (const pid of Object.keys(runners)) {

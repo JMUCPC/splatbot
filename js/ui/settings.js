@@ -489,7 +489,7 @@ function appendRulesMatrix(panel, currentValues, controls) {
 
   const header = document.createElement('div');
   header.className = 'settings-rules-matrix-row settings-rules-matrix-row--header';
-  for (const text of ['Ability', 'Allow', 'Stun', 'Cooldown']) {
+  for (const text of ['Allow', 'Ability', 'Stun', 'Cooldown']) {
     const cell = document.createElement('div');
     cell.className = 'settings-rules-matrix-cell';
     if (text === 'Ability') cell.classList.add('settings-rules-matrix-cell--name');
@@ -502,11 +502,6 @@ function appendRulesMatrix(panel, currentValues, controls) {
     const r = document.createElement('div');
     r.className = 'settings-rules-matrix-row';
 
-    const nameCell = document.createElement('div');
-    nameCell.className = 'settings-rules-matrix-cell settings-rules-matrix-cell--name';
-    nameCell.textContent = row.label;
-    r.appendChild(nameCell);
-
     const allowCb = document.createElement('input');
     allowCb.type = 'checkbox';
     allowCb.className = 'settings-input settings-input--checkbox';
@@ -514,9 +509,14 @@ function appendRulesMatrix(panel, currentValues, controls) {
     allowCb.setAttribute('aria-label', `Allow ${row.label}`);
     controls[row.allowKey] = allowCb;
     const allowCell = document.createElement('div');
-    allowCell.className = 'settings-rules-matrix-cell settings-rules-matrix-cell--center';
+    allowCell.className = 'settings-rules-matrix-cell';
     allowCell.appendChild(allowCb);
     r.appendChild(allowCell);
+
+    const nameCell = document.createElement('div');
+    nameCell.className = 'settings-rules-matrix-cell settings-rules-matrix-cell--name';
+    nameCell.textContent = row.label;
+    r.appendChild(nameCell);
 
     const stunSpec = SPEC_BY_KEY[row.stunKey];
     const stunInput = document.createElement('input');

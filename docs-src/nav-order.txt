@@ -12,6 +12,7 @@ debugging/index.md
 
 *API Docs*
 api-docs/index.md
+api-docs/utils/index.md
 api-docs/utils/actions.md
 api-docs/utils/hex_grid.md
 api-docs/utils/splatbot_data_types.md

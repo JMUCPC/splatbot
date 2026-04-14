@@ -87,6 +87,21 @@ a.sb-btn:visited {
   cursor: not-allowed;
 }
 
+.sb-btn--starter-download {
+  border: 2px solid #41ff8f;
+  box-shadow: 0 0 0 1px rgba(65, 255, 143, 0.45);
+}
+
+.sb-btn--starter-download:hover:not(:disabled) {
+  border-color: #7dffc0;
+  box-shadow: 0 0 0 1px rgba(125, 255, 192, 0.55);
+}
+
+.sb-btn--starter-download:focus-visible {
+  outline: 2px solid #7dffc0;
+  outline-offset: 2px;
+}
+
 .sb-label-xs {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.92rem;
@@ -539,6 +554,47 @@ a.sb-btn:visited {
   gap: 0.4rem;
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.player-card-summary-trailing {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.player-card-match-stats-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0 6px;
+  border: 1px solid #334a6e;
+  border-radius: 5px;
+  background: #1a2638;
+  color: #a8b8cc;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.player-card-match-stats-btn:hover:not(:disabled) {
+  background: #223048;
+  border-color: #4a6490;
+  color: #d8e4f0;
+}
+
+.player-card-match-stats-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
 }
 
 .player-card-expand-btn {
@@ -1702,11 +1758,41 @@ a.sb-btn:visited {
   text-align: center;
 }
 
+.match-end-header {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.match-end-header-corner {
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.match-end-header .match-end-title {
+  margin: 0;
+  text-align: center;
+}
+
 .match-end-title {
   font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 700;
   letter-spacing: 0.14em;
   color: #dde8f0;
+}
+
+/* Optical center of × in top-right close control. */
+.match-end-header .match-end-dismiss-x {
+  line-height: 1;
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2px;
 }
 
 .match-end-message {
@@ -1761,11 +1847,6 @@ a.sb-btn:visited {
   color: #b4c5d8;
 }
 
-.match-end-actions {
-  display: flex;
-  justify-content: center;
-}
-
 /* ── First-visit welcome onboarding ───────────────────────────────────── */
 
 .welcome-modal-overlay {
@@ -1776,6 +1857,36 @@ a.sb-btn:visited {
   width: min(520px, 92vw);
   padding: 26px 22px 22px;
   text-align: center;
+}
+
+.welcome-header {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.welcome-header-corner {
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.welcome-header .welcome-title {
+  margin: 0;
+  text-align: center;
+}
+
+/* × reads high with shared .bot-source-close-x line-height: 0; center it in the hit target. */
+.welcome-header .bot-source-close-x {
+  line-height: 1;
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 1px;
 }
 
 .welcome-title {
@@ -1845,10 +1956,6 @@ a.sb-btn:visited {
   box-sizing: border-box;
 }
 
-.welcome-actions-primary {
-  font-weight: 700;
-}
-
 .settings-fields {
   width: 100%;
   max-height: 55vh;
@@ -1907,18 +2014,15 @@ a.sb-btn:visited {
 .settings-rules-matrix {
   width: 100%;
   margin-bottom: 4px;
+  /* One grid so column widths match every row; ability is max-content so stun/cooldown sit beside it. */
+  display: grid;
+  grid-template-columns: 48px max-content 5.5rem 5.5rem;
+  justify-content: start;
+  align-items: center;
+  gap: 12px;
 }
 .settings-rules-matrix-row {
-  display: grid;
-  grid-template-columns: minmax(88px, 1.1fr) 72px minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 10px 12px;
-  margin-bottom: 10px;
-}
-.settings-rules-matrix-row--header {
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #1a2a40;
+  display: contents;
 }
 .settings-rules-matrix-row--header .settings-rules-matrix-cell {
   font-family: 'Barlow Condensed', sans-serif;
@@ -1927,14 +2031,21 @@ a.sb-btn:visited {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #6a7a92;
+  text-align: left;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1a2a40;
 }
 .settings-rules-matrix-cell--name {
   color: #c8d4e0;
   font-size: 1.02rem;
+  min-width: 0;
 }
-.settings-rules-matrix-cell--center {
-  display: flex;
-  justify-content: center;
+.settings-rules-matrix-cell:not(.settings-rules-matrix-cell--name) {
+  min-width: 0;
+}
+.settings-rules-matrix .settings-input--number {
+  width: 100%;
+  text-align: left;
 }
 .settings-input--checkbox {
   width: 1.15rem;

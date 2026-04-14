@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>utils · Splatbot</title>
+  <link rel="icon" href="../../../images/splat.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../css/docs.css">
+  <link rel="stylesheet" href="../../../css/docs-hljs.css">
+</head>
+<body class="docs-body">
+  <div class="docs-layout">
+<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <a class="docs-sidebar-brand" href="../../../index.html">Splatbot</a>
+      <div class="docs-search" role="search">
+        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
+        <ul class="docs-search-results" role="listbox" hidden></ul>
+      </div>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-title">Articles</li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../index.html">Quick Start</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../writing-bots/index.html">Writing Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../hex-grid/index.html">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../debugging/index.html">Advanced Debugging</a></div></li>
+<li class="docs-sidebar-title">API Docs</li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link docs-sidebar-link--active" href="./index.html" aria-current="page">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./actions/index.html">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./hex_grid/index.html">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
+      </ul>
+    </div>
+  </aside>
+    <div class="docs-main-wrap">
+    <main class="docs-main markdown-body">
+<h1 id="utils" tabindex="-1">utils</h1>
+<p>Python helpers bundled with the Splatbot sandbox. Import them as <code>utils.&lt;module&gt;</code> from your bot code.</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>What it is for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="./actions/index.html">utils.actions</a></td>
+<td>Build the <code>Action</code> objects your <code>decide</code> method returns (<code>Actions.move()</code>, <code>splat()</code>, and the rest).</td>
+</tr>
+<tr>
+<td><a href="./hex_grid/index.html">utils.hex_grid</a></td>
+<td>Axial hex coordinates, directions, vectors, and <code>HexUtils(game_state)</code> helpers.</td>
+</tr>
+<tr>
+<td><a href="./splatbot_data_types/index.html">utils.splatbot_data_types</a></td>
+<td>Optional <code>BotInfo</code> / <code>GameState</code> typing templates for editors and static checks.</td>
+</tr>
+</tbody>
+</table>
+<p>The full API reference index is at <a href="../index.html">Python API reference</a>.</p>
+
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../index.html">&larr; Back: Python API reference</a><a class="docs-pager-link docs-pager-link--next" href="./actions/index.html">Next: actions &rarr;</a></nav>
+    </main>
+    </div>
+  </div>
+  <script src="../../../js/bot-runnable.js" defer></script>
+  <script src="../../../js/docs-copy-code.js" defer></script>
+  <script src="../../../js/vendor/minisearch.js" defer></script>
+  <script src="../../../js/docs-search.js" defer></script>
+  <script src="../../../js/docs-toc.js" defer></script>
+  <script type="module" src="../../../js/docs/action-demos.js"></script>
+  <script type="module" src="../../../js/docs/hex-hover-demos.js"></script>
+  <script type="module" src="../../../js/docs/hex-distance-demos.js"></script>
+</body>
+</html>

@@ -73,9 +73,12 @@
             <div id="score-1" class="sb-score">0</div>
             <div id="pct-1" class="sb-label-xs">0.0%</div>
           </div>
-          <button type="button" class="player-card-expand-btn" id="player-card-expand-1" hidden aria-expanded="false" aria-controls="player-card-details-1" aria-label="Show player 1 bot controls">
-            <span class="player-card-expand-icon" aria-hidden="true">&#9660;</span>
-          </button>
+          <div class="player-card-summary-trailing">
+            <button type="button" class="player-card-match-stats-btn" id="player-card-match-stats-1" disabled aria-label="Show match results and stats">STATS</button>
+            <button type="button" class="player-card-expand-btn" id="player-card-expand-1" hidden aria-expanded="false" aria-controls="player-card-details-1" aria-label="Show player 1 bot controls">
+              <span class="player-card-expand-icon" aria-hidden="true">&#9660;</span>
+            </button>
+          </div>
         </div>
         <div class="player-card-details" id="player-card-details-1">
           <hr class="sb-divider">
@@ -91,7 +94,7 @@
           <div class="sb-file-upload-wrap">
             <input type="file" id="bot-file-1" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 1 bot Python file">
             <div class="sb-file-upload-actions">
-              <button type="button" id="bot-file-choose-1" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Choose or replace player 1 bot Python file">CHOOSE FILE</button>
+              <button type="button" id="bot-file-choose-1" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Load or replace player 1 bot Python file">LOAD FILE</button>
             </div>
             <div id="bot-file-status-1" class="sb-file-status" aria-live="polite"></div>
           </div>
@@ -113,9 +116,12 @@
             <div id="score-2" class="sb-score">0</div>
             <div id="pct-2" class="sb-label-xs">0.0%</div>
           </div>
-          <button type="button" class="player-card-expand-btn" id="player-card-expand-2" hidden aria-expanded="false" aria-controls="player-card-details-2" aria-label="Show player 2 bot controls">
-            <span class="player-card-expand-icon" aria-hidden="true">&#9660;</span>
-          </button>
+          <div class="player-card-summary-trailing">
+            <button type="button" class="player-card-match-stats-btn" id="player-card-match-stats-2" disabled aria-label="Show match results and stats">STATS</button>
+            <button type="button" class="player-card-expand-btn" id="player-card-expand-2" hidden aria-expanded="false" aria-controls="player-card-details-2" aria-label="Show player 2 bot controls">
+              <span class="player-card-expand-icon" aria-hidden="true">&#9660;</span>
+            </button>
+          </div>
         </div>
         <div class="player-card-details" id="player-card-details-2">
           <hr class="sb-divider">
@@ -131,7 +137,7 @@
           <div class="sb-file-upload-wrap">
             <input type="file" id="bot-file-2" class="sb-file-input-native" accept=".py,text/plain" aria-label="Upload player 2 bot Python file">
             <div class="sb-file-upload-actions">
-              <button type="button" id="bot-file-choose-2" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Choose or replace player 2 bot Python file">CHOOSE FILE</button>
+              <button type="button" id="bot-file-choose-2" class="sb-btn sb-btn--compact sb-file-choose-btn" aria-label="Load or replace player 2 bot Python file">LOAD FILE</button>
             </div>
             <div id="bot-file-status-2" class="sb-file-status" aria-live="polite"></div>
           </div>
@@ -146,7 +152,7 @@
 
     <div class="app-dock">
     <div class="turn-row">
-      <button type="button" id="btn-download-starter-code" class="sb-btn sb-btn--compact" aria-label="Download starter bot code zip" disabled>DOWNLOAD STARTER CODE</button>
+      <button type="button" id="btn-download-starter-code" class="sb-btn sb-btn--compact sb-btn--starter-download" aria-label="Download starter bot code zip" disabled>DOWNLOAD STARTER CODE</button>
       <div class="sb-label-xs" style="flex-shrink:0">TURN</div>
       <div id="turn-num" class="turn-num">0</div>
       <div id="max-turns" class="max-turns">/ 500</div>
@@ -271,18 +277,23 @@
 
   <div id="match-end-modal" class="modal-overlay" aria-hidden="true">
     <div class="sb-card match-end-card" role="dialog" aria-modal="true" aria-labelledby="match-end-title">
-      <div id="match-end-title" class="sb-cond match-end-title">MATCH OVER</div>
+      <div class="match-end-header">
+        <div class="match-end-header-corner" aria-hidden="true"></div>
+        <div id="match-end-title" class="sb-cond match-end-title">MATCH OVER</div>
+        <button type="button" id="btn-match-end-dismiss" class="bot-source-close-x match-end-dismiss-x" aria-label="Close match results">&times;</button>
+      </div>
       <div id="match-end-message" class="match-end-message">Player 1 wins!</div>
       <div id="match-end-stats" class="match-end-stats-wrap"></div>
-      <div class="match-end-actions">
-        <button id="btn-match-end-close" class="sb-btn">OK</button>
-      </div>
     </div>
   </div>
 
   <div id="welcome-modal" class="modal-overlay welcome-modal-overlay" aria-hidden="true">
     <div class="sb-card welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-body">
-      <div id="welcome-title" class="sb-cond welcome-title">WELCOME</div>
+      <div class="welcome-header">
+        <div class="welcome-header-corner" aria-hidden="true"></div>
+        <div id="welcome-title" class="sb-cond welcome-title">WELCOME</div>
+        <button type="button" id="btn-welcome-close" class="bot-source-close-x" aria-label="Close welcome">&times;</button>
+      </div>
       <p id="welcome-body" class="welcome-body">
         Splatbot is a browser-based coding game that pits two Python-controlled bots against each other in the ultimate battle of area control.
       </p>
@@ -291,9 +302,9 @@
         <label for="welcome-open-on-startup">Open on startup</label>
       </div>
       <div class="welcome-actions">
-        <button type="button" id="btn-welcome-read-docs" class="sb-btn welcome-actions-primary">READ THE DOCS</button>
+        <button type="button" id="btn-welcome-read-docs" class="sb-btn">READ THE DOCS</button>
         <button type="button" id="btn-welcome-watch-game" class="sb-btn">WATCH A GAME</button>
-        <button type="button" id="btn-welcome-download-source" class="sb-btn">DOWNLOAD SOURCE CODE</button>
+        <button type="button" id="btn-welcome-download-source" class="sb-btn sb-btn--starter-download">DOWNLOAD STARTER CODE</button>
       </div>
     </div>
   </div>
