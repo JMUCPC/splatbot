@@ -39,6 +39,264 @@ function normTurnSteps(steps) {
   return ((n % 6) + 6) % 6;
 }
 
+/**
+ * Compute where a bot ends up this tick without mutating anything.
+ * First pass to determine opponent destinations for paintball LOS.
+ */
+function computeEndPosition(bot, action, grid) {
+  if (action.type === "move") {
+    if (bot.stun > 0) return bot.position;
+    const dir = normFacing(bot.facing);
+    const newPos = hexNeighbor(bot.position, dir);
+    return grid.has(newPos.key) ? newPos : bot.position;
+  }
+  if (action.type === "dash") {
+    if (!config.DASH_ALLOWED || bot.stun > 0 || bot.dashCooldown > 0) return bot.position;
+    const dist = Math.trunc(Number(action.distance));
+    if (!Number.isFinite(dist) || dist < DASH_MIN_DISTANCE || dist > DASH_MAX_DISTANCE) return bot.position;
+    const facDir = normFacing(bot.facing);
+    let dest = bot.position;
+    for (let i = 0; i < dist; i++) {
+      const next = hexNeighbor(dest, facDir);
+      if (!grid.has(next.key)) break;
+      dest = next;
+    }
+    return dest;
+  }
+  return bot.position;
+}
+
+/**
+ * Plan the full effect of a bot's action from frozen pre-tick state.
+ * Pure: does not mutate bot or grid.
+ * @param {number} pid
+ * @param {object} action
+ * @param {BotData} bot
+ * @param {Map<string, Hex>} grid
+ * @param {Set<string>} opponentEndKeys — hex keys where opponents will end up (paintball LOS blocking)
+ * @param {function} [logFn]
+ */
+function planAction(pid, action, bot, grid, opponentEndKeys, logFn) {
+  const report = {
+    actionType: String(action?.type || "unknown"),
+    executed: false,
+    blocked: false,
+    movedTiles: 0,
+    paintedTiles: 0,
+  };
+  const plan = {
+    report,
+    endPosition: bot.position,
+    endFacing: bot.facing,
+    stun: bot.stun,
+    splatCooldown: bot.splatCooldown,
+    dashCooldown: bot.dashCooldown,
+    paintballCooldown: bot.paintballCooldown,
+    paintIntentKeys: [],
+  };
+
+  if (action.type === "move") {
+    if (bot.stun > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot move`,
+        );
+      }
+      return plan;
+    }
+    const dir = normFacing(bot.facing);
+    const newPos = hexNeighbor(bot.position, dir);
+    if (grid.has(newPos.key)) {
+      report.executed = true;
+      report.movedTiles = 1;
+      report.paintedTiles = 1;
+      plan.endPosition = newPos;
+      plan.endFacing = dir;
+      plan.paintIntentKeys.push(newPos.key);
+    } else {
+      report.blocked = true;
+      if (logFn) {
+        logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
+      }
+    }
+  } else if (action.type === "dash") {
+    if (!config.DASH_ALLOWED) {
+      report.blocked = true;
+      if (logFn) logFn(`Bot ${pid} tried to dash but dash is disabled in match rules`);
+      return plan;
+    }
+    if (bot.stun > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot dash`,
+        );
+      }
+      return plan;
+    }
+    if (bot.dashCooldown > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} cannot dash for ${bot.dashCooldown} more turn(s) (one dash every ${config.DASH_COOLDOWN_TURNS} turns)`,
+        );
+      }
+      return plan;
+    }
+
+    const dist = Math.trunc(Number(action.distance));
+    if (!Number.isFinite(dist) || dist < DASH_MIN_DISTANCE || dist > DASH_MAX_DISTANCE) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(`Bot ${pid} tried to dash with invalid distance ${action.distance} (expected ${DASH_MIN_DISTANCE}-${DASH_MAX_DISTANCE})`);
+      }
+      return plan;
+    }
+
+    const facDir = normFacing(bot.facing);
+    let dest = bot.position;
+    let moved = 0;
+    for (let i = 0; i < dist; i++) {
+      const next = hexNeighbor(dest, facDir);
+      if (!grid.has(next.key)) break;
+      dest = next;
+      moved += 1;
+    }
+
+    report.executed = true;
+    report.movedTiles = moved;
+    plan.dashCooldown = config.DASH_COOLDOWN_TURNS;
+    plan.stun = Math.max(bot.stun, config.DASH_STUN_TURNS);
+    if (!dest.equals(bot.position)) {
+      report.paintedTiles = 1;
+      plan.endPosition = dest;
+      plan.endFacing = facDir;
+      plan.paintIntentKeys.push(dest.key);
+    }
+  } else if (action.type === "splat") {
+    if (!config.SPLAT_ALLOWED) {
+      report.blocked = true;
+      if (logFn) logFn(`Bot ${pid} tried to splat but splat is disabled in match rules`);
+      return plan;
+    }
+    if (bot.stun > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot splat`,
+        );
+      }
+      return plan;
+    }
+    if (bot.splatCooldown > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} cannot splat for ${bot.splatCooldown} more turn(s) (one splat every ${config.SPLAT_COOLDOWN_TURNS} turns)`,
+        );
+      }
+      return plan;
+    }
+    report.executed = true;
+    let painted = 0;
+    for (let d = 0; d < 6; d++) {
+      const n = hexNeighbor(bot.position, d);
+      if (grid.has(n.key)) {
+        plan.paintIntentKeys.push(n.key);
+        painted += 1;
+      }
+    }
+    report.paintedTiles = painted;
+    plan.stun = config.SPLAT_STUN_TURNS;
+    plan.splatCooldown = config.SPLAT_COOLDOWN_TURNS;
+  } else if (action.type === "shoot_paintball") {
+    if (!config.SHOOT_PAINTBALL_ALLOWED) {
+      report.blocked = true;
+      if (logFn) logFn(`Bot ${pid} tried to shoot paintball but paintball is disabled in match rules`);
+      return plan;
+    }
+    if (bot.stun > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot shoot paintball`,
+        );
+      }
+      return plan;
+    }
+    if (bot.paintballCooldown > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} cannot shoot paintball for ${bot.paintballCooldown} more turn(s) (one shot every ${config.SHOOT_PAINTBALL_COOLDOWN_TURNS} turns)`,
+        );
+      }
+      return plan;
+    }
+    report.executed = true;
+    let painted = 0;
+    const dir = normFacing(bot.facing);
+    let cur = bot.position;
+    while (true) {
+      cur = hexNeighbor(cur, dir);
+      if (!grid.has(cur.key)) break;
+      if (opponentEndKeys.has(cur.key)) break;
+      plan.paintIntentKeys.push(cur.key);
+      painted += 1;
+    }
+    report.paintedTiles = painted;
+    plan.paintballCooldown = config.SHOOT_PAINTBALL_COOLDOWN_TURNS;
+    plan.stun = config.PAINTBALL_STUN_TURNS;
+  } else if (
+    action.type === "turn_left" ||
+    action.type === "turn_right" ||
+    action.type === "face_direction" ||
+    action.type === "turn_180"
+  ) {
+    if (bot.stun > 0) {
+      report.blocked = true;
+      if (logFn) {
+        logFn(
+          `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot turn`,
+        );
+      }
+      return plan;
+    }
+    report.executed = true;
+    if (action.type === "turn_left") {
+      const s = normTurnSteps(action.steps);
+      if (s !== 0) plan.endFacing = (bot.facing + s) % 6;
+    } else if (action.type === "turn_right") {
+      const s = normTurnSteps(action.steps);
+      if (s !== 0) plan.endFacing = ((bot.facing - s) % 6 + 6) % 6;
+    } else if (action.type === "face_direction") {
+      plan.endFacing = normFacing(action.direction);
+    } else {
+      plan.endFacing = (bot.facing + 3) % 6;
+    }
+  } else if (action.type === "skip") {
+    report.executed = true;
+  } else {
+    report.blocked = true;
+    if (logFn) {
+      logFn(`Bot ${pid} tried to perform unknown action: ${action}`);
+    }
+  }
+  return plan;
+}
+
+/**
+ * When the bot's hex does not change this tick, they claim the tile underfoot if it is
+ * still neutral and this action did not already paint that hex (e.g. move/dash onto it).
+ * Covers skip, turn, splat, paintball, blocked actions, etc. Flush / collision rules still apply.
+ */
+function shouldRecordStandingPaintClaim(plan, startKey, grid) {
+  if (plan.paintIntentKeys.includes(startKey)) return false;
+  const hex = grid.get(startKey);
+  return !!(hex && hex.controller == null);
+}
+
 export class GameState {
   constructor(grid, bots, turn = 0, maxTurns = 200, radius = 8) {
     this.grid = grid; // Map<string, Hex> — Hex.controller holds owner BotData|null
@@ -161,6 +419,7 @@ export class GameState {
   }
 
   neutralizeCollidingTiles(logFn) {
+    const startKeys = this._tickStartPositionKeys;
     const byKey = new Map();
     for (const bot of this.bots.values()) {
       const k = bot.position.key;
@@ -169,225 +428,107 @@ export class GameState {
     }
     for (const [key, pids] of byKey) {
       if (pids.length > 1) {
+        if (startKeys) {
+          const movers = pids.filter(pid => startKeys.get(pid) !== key);
+          if (movers.length === 1) {
+            this._paint(key, this.bots.get(movers[0]) ?? null);
+            if (logFn) {
+              logFn(`Bot ${movers[0]} moved onto occupied hex ${key} — tile painted by mover`);
+            }
+            continue;
+          }
+        }
         this._paint(key, null);
         if (logFn) {
           logFn(`Collision on hex ${key} — tile cleared (bots ${pids.join(", ")})`);
         }
       }
     }
+    this._tickStartPositionKeys = null;
   }
 
+  /**
+   * Resolve a tick where all bots decided simultaneously from the same pre-tick state.
+   * Both bots see the same snapshot; actions are planned without mutations, then committed together.
+   * @param {Object<number, object>} actions — pid → action object
+   * @param {function} [logFn]
+   * @returns {Object<number, object>} pid → action report
+   */
+  resolveSimultaneousTick(actions, logFn) {
+    this._tickStartPositionKeys = new Map();
+    for (const [pid, bot] of this.bots) {
+      this._tickStartPositionKeys.set(pid, bot.position.key);
+    }
+
+    const endPositions = new Map();
+    for (const [pid, bot] of this.bots) {
+      const action = actions[pid] || { type: "skip" };
+      endPositions.set(pid, computeEndPosition(bot, action, this.grid));
+    }
+
+    const plans = new Map();
+    for (const [pid, bot] of this.bots) {
+      const opponentEndKeys = new Set();
+      for (const [opid, endPos] of endPositions) {
+        if (opid !== pid) opponentEndKeys.add(endPos.key);
+      }
+      const action = actions[pid] || { type: "skip" };
+      plans.set(pid, planAction(pid, action, bot, this.grid, opponentEndKeys, logFn));
+    }
+
+    for (const [pid, plan] of plans) {
+      const bot = this.bots.get(pid);
+      bot.position = plan.endPosition;
+      bot.facing = plan.endFacing;
+      bot.stun = plan.stun;
+      bot.splatCooldown = plan.splatCooldown;
+      bot.dashCooldown = plan.dashCooldown;
+      bot.paintballCooldown = plan.paintballCooldown;
+      for (const key of plan.paintIntentKeys) {
+        this._recordPaintIntent(key, pid);
+      }
+    }
+
+    for (const [pid, plan] of plans) {
+      const startKey = this._tickStartPositionKeys.get(pid);
+      const bot = this.bots.get(pid);
+      if (!bot || bot.position.key !== startKey) continue;
+      if (!shouldRecordStandingPaintClaim(plan, startKey, this.grid)) continue;
+      this._recordPaintIntent(startKey, pid);
+      plan.report.paintedTiles += 1;
+    }
+
+    const reports = {};
+    for (const [pid, plan] of plans) {
+      reports[pid] = plan.report;
+    }
+    return reports;
+  }
+
+  /** Single-bot apply used by docs/demos. Delegates to planAction then commits. */
   applyAction(pid, action, logFn) {
     const bot = this.bots.get(pid);
     if (!bot) return null;
-    const report = {
-      actionType: String(action?.type || "unknown"),
-      executed: false,
-      blocked: false,
-      movedTiles: 0,
-      paintedTiles: 0,
-    };
-
-    if (action.type === "move") {
-      if (bot.stun > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot move`,
-          );
-        }
-        return report;
-      }
-      const dir = normFacing(bot.facing);
-      const newPos = hexNeighbor(bot.position, dir);
-      if (this.grid.has(newPos.key)) {
-        report.executed = true;
-        report.movedTiles = 1;
-        report.paintedTiles = 1;
-        bot.position = newPos;
-        bot.facing = dir;
-        this._recordPaintIntent(newPos.key, pid);
-      } else {
-        report.blocked = true;
-        if (logFn) {
-          logFn(`Bot ${pid} tried to move to ${newPos}, but it's not in the grid`);
-        }
-      }
-    } else if (action.type === "dash") {
-      if (!config.DASH_ALLOWED) {
-        report.blocked = true;
-        if (logFn) logFn(`Bot ${pid} tried to dash but dash is disabled in match rules`);
-        return report;
-      }
-      if (bot.stun > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot dash`,
-          );
-        }
-        return report;
-      }
-      if (bot.dashCooldown > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} cannot dash for ${bot.dashCooldown} more turn(s) (one dash every ${config.DASH_COOLDOWN_TURNS} turns)`,
-          );
-        }
-        return report;
-      }
-
-      const dist = Math.trunc(Number(action.distance));
-      if (!Number.isFinite(dist) || dist < DASH_MIN_DISTANCE || dist > DASH_MAX_DISTANCE) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(`Bot ${pid} tried to dash with invalid distance ${action.distance} (expected ${DASH_MIN_DISTANCE}-${DASH_MAX_DISTANCE})`);
-        }
-        return report;
-      }
-
-      const facDir = normFacing(bot.facing);
-      const start = bot.position;
-      let dest = start;
-      let moved = 0;
-      for (let i = 0; i < dist; i++) {
-        const next = hexNeighbor(dest, facDir);
-        if (!this.grid.has(next.key)) break;
-        dest = next;
-        moved += 1;
-      }
-
-      report.executed = true;
-      report.movedTiles = moved;
-      bot.dashCooldown = config.DASH_COOLDOWN_TURNS;
-      bot.stun = Math.max(bot.stun, config.DASH_STUN_TURNS);
-      if (!dest.equals(start)) {
-        report.paintedTiles = 1;
-        bot.position = dest;
-        bot.facing = facDir;
-        // Dash paints only the destination hex (last hex reached, possibly short of requested distance).
-        this._recordPaintIntent(dest.key, pid);
-      }
-    } else if (action.type === "splat") {
-      if (!config.SPLAT_ALLOWED) {
-        report.blocked = true;
-        if (logFn) logFn(`Bot ${pid} tried to splat but splat is disabled in match rules`);
-        return report;
-      }
-      if (bot.stun > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot splat`,
-          );
-        }
-        return report;
-      }
-      if (bot.splatCooldown > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} cannot splat for ${bot.splatCooldown} more turn(s) (one splat every ${config.SPLAT_COOLDOWN_TURNS} turns)`,
-          );
-        }
-        return report;
-      }
-      report.executed = true;
-      let painted = 0;
-      for (let d = 0; d < 6; d++) {
-        const n = hexNeighbor(bot.position, d);
-        if (this.grid.has(n.key)) {
-          this._recordPaintIntent(n.key, pid);
-          painted += 1;
-        }
-      }
-      report.paintedTiles = painted;
-      bot.stun = config.SPLAT_STUN_TURNS;
-      bot.splatCooldown = config.SPLAT_COOLDOWN_TURNS;
-    } else if (action.type === "shoot_paintball") {
-      if (!config.SHOOT_PAINTBALL_ALLOWED) {
-        report.blocked = true;
-        if (logFn) logFn(`Bot ${pid} tried to shoot paintball but paintball is disabled in match rules`);
-        return report;
-      }
-      if (bot.stun > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot shoot paintball`,
-          );
-        }
-        return report;
-      }
-      if (bot.paintballCooldown > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} cannot shoot paintball for ${bot.paintballCooldown} more turn(s) (one shot every ${config.SHOOT_PAINTBALL_COOLDOWN_TURNS} turns)`,
-          );
-        }
-        return report;
-      }
-      report.executed = true;
-      let painted = 0;
-      const dir = normFacing(bot.facing);
-      let cur = bot.position;
-      while (true) {
-        cur = hexNeighbor(cur, dir);
-        if (!this.grid.has(cur.key)) break;
-        let blocked = false;
-        for (const [opid, other] of this.bots) {
-          if (opid !== pid && other.position.key === cur.key) {
-            blocked = true;
-            break;
-          }
-        }
-        if (blocked) break;
-        this._recordPaintIntent(cur.key, pid);
-        painted += 1;
-      }
-      report.paintedTiles = painted;
-      bot.paintballCooldown = config.SHOOT_PAINTBALL_COOLDOWN_TURNS;
-      bot.stun = config.PAINTBALL_STUN_TURNS;
-    } else if (
-      action.type === "turn_left" ||
-      action.type === "turn_right" ||
-      action.type === "face_direction" ||
-      action.type === "turn_180"
-    ) {
-      if (bot.stun > 0) {
-        report.blocked = true;
-        if (logFn) {
-          logFn(
-            `Bot ${pid} is stunned (${bot.stun} turn${bot.stun === 1 ? "" : "s"} left) — cannot turn`,
-          );
-        }
-        return report;
-      }
-      report.executed = true;
-      if (action.type === "turn_left") {
-        const s = normTurnSteps(action.steps);
-        if (s === 0) return report;
-        bot.facing = (bot.facing + s) % 6;
-      } else if (action.type === "turn_right") {
-        const s = normTurnSteps(action.steps);
-        if (s === 0) return report;
-        bot.facing = ((bot.facing - s) % 6 + 6) % 6;
-      } else if (action.type === "face_direction") {
-        bot.facing = normFacing(action.direction);
-      } else {
-        bot.facing = (bot.facing + 3) % 6;
-      }
-    } else if (action.type === "skip") {
-      report.executed = true;
-    } else {
-      report.blocked = true;
-      if (logFn) {
-        logFn(`Bot ${pid} tried to perform unknown action: ${action}`);
-      }
+    const startKey = bot.position.key;
+    const opponentEndKeys = new Set();
+    for (const [opid, other] of this.bots) {
+      if (opid !== pid) opponentEndKeys.add(other.position.key);
     }
-    return report;
+    const plan = planAction(pid, action, bot, this.grid, opponentEndKeys, logFn);
+    bot.position = plan.endPosition;
+    bot.facing = plan.endFacing;
+    bot.stun = plan.stun;
+    bot.splatCooldown = plan.splatCooldown;
+    bot.dashCooldown = plan.dashCooldown;
+    bot.paintballCooldown = plan.paintballCooldown;
+    for (const key of plan.paintIntentKeys) {
+      this._recordPaintIntent(key, pid);
+    }
+    if (bot.position.key === startKey && shouldRecordStandingPaintClaim(plan, startKey, this.grid)) {
+      this._recordPaintIntent(startKey, pid);
+      plan.report.paintedTiles += 1;
+    }
+    return plan.report;
   }
 
   /** Serialize to a plain object suitable for JSON / Web Worker transfer. */

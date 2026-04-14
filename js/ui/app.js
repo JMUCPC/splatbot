@@ -2071,29 +2071,49 @@ async function advanceSingleTick() {
   if (!allReady) return;
 
   state.advanceTurn();
-
   state.resetPaintClaims();
+
+  // Snapshot both bots from the same pre-action state
+  const snapshots = {};
+  for (const pid of [1, 2]) {
+    if (runners[pid]?.ready) snapshots[pid] = state.toSnapshot(pid);
+  }
+
+  // Collect decisions — both bots see the same state
+  const actions = {};
+  const decidePromises = [];
   for (const pid of [1, 2]) {
     const runner = runners[pid];
-    if (!runner || !runner.ready) continue;
-    try {
-      const snapshot = state.toSnapshot(pid);
-      const action = await runner.decide(snapshot);
-      const report = state.applyAction(pid, action, logEvent);
-      const stats = matchStats[pid];
-      const actionType = String(action?.type || 'unknown');
-      if (actionType === 'skip') stats.skips += 1;
-      if (actionType === 'move') stats.moves += 1;
-      if (actionType === 'dash') stats.dashes += 1;
-      if (actionType === 'splat') stats.splats += 1;
-      if (actionType === 'shoot_paintball') stats.paintballs += 1;
-      if (report) {
-        stats.tilesMoved += Number(report.movedTiles || 0);
-        stats.tilesPainted += Number(report.paintedTiles || 0);
-        if (report.blocked) stats.blockedActions += 1;
-      }
-    } catch (err) {
-      logEvent(`Error in bot ${pid}: ${err}`);
+    if (!runner?.ready || !snapshots[pid]) continue;
+    decidePromises.push(
+      runner.decide(snapshots[pid])
+        .then(action => { actions[pid] = action; })
+        .catch(err => {
+          logEvent(`Error in bot ${pid}: ${err}`);
+          actions[pid] = { type: 'skip' };
+        })
+    );
+  }
+  await Promise.all(decidePromises);
+
+  // Resolve all actions simultaneously
+  const reports = state.resolveSimultaneousTick(actions, logEvent);
+
+  for (const pid of [1, 2]) {
+    const action = actions[pid];
+    if (!action) continue;
+    const stats = matchStats[pid];
+    const actionType = String(action.type || 'unknown');
+    if (actionType === 'skip') stats.skips += 1;
+    if (actionType === 'move') stats.moves += 1;
+    if (actionType === 'dash') stats.dashes += 1;
+    if (actionType === 'splat') stats.splats += 1;
+    if (actionType === 'shoot_paintball') stats.paintballs += 1;
+    const report = reports[pid];
+    if (report) {
+      stats.tilesMoved += Number(report.movedTiles || 0);
+      stats.tilesPainted += Number(report.paintedTiles || 0);
+      if (report.blocked) stats.blockedActions += 1;
     }
   }
 

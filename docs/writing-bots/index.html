@@ -52,7 +52,7 @@
 <h2 id="imports" tabindex="-1">Imports</h2>
 <p>Three custom imports are provided to players wanting to create their own splatbot: <code>utils.actions</code>, <code>utils.hex_grid</code>, and <code>utils.splatbot_data_types</code>. <code>utils.actions</code> contains the <code>Actions</code> class, which provides a template for the <a href="../actions/index.html">actions</a> a bot may take. <code>utils.hex_grid</code> provides assorted grid utilities (<code>Hex</code>, <code>HexDirection</code>, <code>HexVector</code>, and <code>HexUtils</code>). <code>utils.splatbot_data_types</code> provides optional typing templates (<code>BotInfo</code> and <code>GameState</code>) for editor hints and static checking. Details are in the <a href="../api-docs/">API Docs</a>: see <a href="../api-docs/utils/actions/index.html"><em>utils.actions</em></a>, <a href="../api-docs/utils/hex_grid/index.html"><em>utils.hex_grid</em></a>, and <a href="../api-docs/utils/splatbot_data_types/index.html"><em>utils.splatbot_data_types</em></a>.</p>
 <h2 id="deciding-on-an-action" tabindex="-1">Deciding on an Action</h2>
-<p>On every tick, the game will call the <code>decide</code> method of each bot in the game. Each call to <code>decide</code> must return <strong>one</strong> of:</p>
+<p>Each call to <code>decide</code> must return <strong>one</strong> of:</p>
 <table>
 <thead>
 <tr>
@@ -213,6 +213,10 @@
 </tbody>
 </table>
 <p><em>Note: There are also <code>Hex</code> classes, explained <a href="../hex-grid/index.html">here</a></em></p>
+<h2 id="tiebreaking-advanced-game-ordering" tabindex="-1">Tiebreaking/ Advanced Game Ordering</h2>
+<p>On every tick, the game calls <code>decide</code> on <strong>all</strong> bots simultaneously — each bot sees the exact same game state from the end of the previous tick. After every bot has chosen, all actions are resolved together: positions, paint, and cooldowns update at the same time.</p>
+<p>When two actions paint the same tile, the claims cancel out and the tile becomes neutral. Paintball line-of-sight checks use the opponent’s <strong>destination</strong> hex (where they will end up after their action this tick).</p>
+<p>Whenever a bot’s position does not change in a tick (it did not <a href="../actions/index.html#move">move</a> or <a href="../actions/index.html#dash">dash</a> to a different hex), it will also claim the tile under itself if there are no conflicts with claims.</p>
 <h2 id="putting-it-all-together" tabindex="-1">Putting It All Together</h2>
 <p>This bot moves forward until the next step would leave the grid, then turns 180° and repeats—bouncing between opposite edges like a “ping-pong” along whatever axis it started on. That uses <strong>relative</strong> heading (<code>facing</code> + <code>turn_180</code>) instead of forcing a fixed compass direction, so it behaves the same for player 1 and player 2. It utilizes all of the bot-writing strategies discussed on this page.</p>
 <pre><code data-docs-code-lang="python" data-docs-code-title="Ping-Pong Bot" class="language-python"><span class="hljs-keyword">from</span> utils.actions <span class="hljs-keyword">import</span> Actions
