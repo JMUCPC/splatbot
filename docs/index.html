@@ -112,27 +112,27 @@
 </thead>
 <tbody>
 <tr>
-<td><code>game_state.me</code></td>
-<td>Your <code>BotInfo</code> — <code>position</code>, <code>facing</code>, <code>stun</code>, cooldowns.</td>
+<td><a href="./writing-bots/index.html#bot-info">game_state.me</a></td>
+<td>Your <a href="./writing-bots/index.html#bot-info">BotInfo</a> — position, facing, stun, cooldowns.</td>
 </tr>
 <tr>
-<td><code>game_state.opponents</code></td>
-<td>Other players’ <code>BotInfo</code>, keyed by player id.</td>
+<td><a href="./api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.opponents</a></td>
+<td>Other players’ <a href="./writing-bots/index.html#bot-info">BotInfo</a>, keyed by player id.</td>
 </tr>
 <tr>
-<td><code>game_state.opponent</code></td>
-<td>The single opponent in 1v1, or <code>None</code> in other modes.</td>
+<td><a href="./api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.opponent</a></td>
+<td>The single opponent in 1v1, or None in other modes.</td>
 </tr>
 <tr>
-<td><code>game_state.grid</code></td>
-<td>All hexes on the map (<a href="./hex-grid/index.html"><code>Hex</code></a>); each tile has a <code>controller</code> (<code>BotInfo</code> or <code>None</code>).</td>
+<td><a href="./hex-grid/index.html">game_state.grid</a></td>
+<td>All hexes on the map (<a href="./hex-grid/index.html">Hex</a>); each tile has a controller (<a href="./writing-bots/index.html#bot-info">BotInfo</a> or None).</td>
 </tr>
 <tr>
-<td><code>game_state.turn</code></td>
+<td><a href="./api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.turn</a></td>
 <td>Current turn index.</td>
 </tr>
 <tr>
-<td><code>game_state.max_turns</code></td>
+<td><a href="./api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.max_turns</a></td>
 <td>Match length.</td>
 </tr>
 </tbody>

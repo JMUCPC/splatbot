@@ -138,27 +138,27 @@
 </thead>
 <tbody>
 <tr>
-<td><code>game_state.me</code></td>
-<td>Your BotInfo — <code>position</code>, <code>facing</code>, <code>stun</code>, cooldowns.</td>
+<td><a href="./index.html#bot-info">game_state.me</a></td>
+<td>Your <a href="./index.html#bot-info">BotInfo</a> — position, facing, stun, cooldowns.</td>
 </tr>
 <tr>
-<td><code>game_state.opponents</code></td>
-<td>Other players’ BotInfo, keyed by player id. (Irrelevant in 1v1)</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.opponents</a></td>
+<td>Other players’ <a href="./index.html#bot-info">BotInfo</a>, keyed by player id. (Irrelevant in 1v1)</td>
 </tr>
 <tr>
-<td><code>game_state.opponent</code></td>
-<td>The single opponent’s BotInfo in 1v1, or <code>None</code> in other modes.</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.opponent</a></td>
+<td>The single opponent’s <a href="./index.html#bot-info">BotInfo</a> in 1v1, or None in other modes.</td>
 </tr>
 <tr>
-<td><code>game_state.grid</code></td>
-<td>All hexes on the map (<code>Hex</code> values). Each has a <code>controller</code> (<code>BotInfo</code> or <code>None</code>).</td>
+<td><a href="../hex-grid/index.html">game_state.grid</a></td>
+<td>All hexes on the map (<a href="../hex-grid/index.html">Hex</a> values). Each has a controller (<a href="./index.html#bot-info">BotInfo</a> or None).</td>
 </tr>
 <tr>
-<td><code>game_state.turn</code></td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.turn</a></td>
 <td>Current turn index.</td>
 </tr>
 <tr>
-<td><code>game_state.max_turns</code></td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#gamestate">game_state.max_turns</a></td>
 <td>Match length.</td>
 </tr>
 </tbody>
@@ -176,39 +176,39 @@
 </thead>
 <tbody>
 <tr>
-<td><code>pid</code></td>
-<td><code>int</code></td>
-<td>Player id (usually <code>1</code> or <code>2</code>).</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#botinfo">pid</a></td>
+<td>int</td>
+<td>Player id (usually 1 or 2).</td>
 </tr>
 <tr>
-<td><code>position</code></td>
-<td><code>Hex</code></td>
-<td>The bot’s current hex (<code>q</code>, <code>r</code>).</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#botinfo">position</a></td>
+<td><a href="../hex-grid/index.html">Hex</a></td>
+<td>The bot’s current hex (q, r — see <a href="../hex-grid/index.html#axial">axial coordinates</a>).</td>
 </tr>
 <tr>
-<td><code>facing</code></td>
-<td><code>HexDirection</code></td>
-<td>Which way the bot is facing (<code>E/NE/NW/W/SW/SE</code>).</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#botinfo">facing</a></td>
+<td><a href="../hex-grid/index.html#hex-directions">HexDirection</a></td>
+<td>Which way the bot is facing (E/NE/NW/W/SW/SE).</td>
 </tr>
 <tr>
-<td><code>stun</code></td>
-<td><code>int</code></td>
-<td>Turns remaining where non-skip actions are blocked.</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#botinfo">stun</a></td>
+<td>int</td>
+<td>Turns remaining where non-skip actions are blocked (<a href="../actions/index.html#skip">skip</a>).</td>
 </tr>
 <tr>
-<td><code>splat_cooldown</code></td>
-<td><code>int</code></td>
-<td>Turns until the bot can splat again (<code>0</code> means available).</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#botinfo">splat_cooldown</a></td>
+<td>int</td>
+<td>Turns until the bot can <a href="../actions/index.html#splat">splat</a> again (0 means available).</td>
 </tr>
 <tr>
-<td><code>dash_cooldown</code></td>
-<td><code>int</code></td>
-<td>Turns until the bot can dash again (<code>0</code> means available).</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#botinfo">dash_cooldown</a></td>
+<td>int</td>
+<td>Turns until the bot can <a href="../actions/index.html#dash">dash</a> again (0 means available).</td>
 </tr>
 <tr>
-<td><code>paintball_cooldown</code></td>
-<td><code>int</code></td>
-<td>Turns until the bot can shoot a paintball again (<code>0</code> means available).</td>
+<td><a href="../api-docs/utils/splatbot_data_types/index.html#botinfo">paintball_cooldown</a></td>
+<td>int</td>
+<td>Turns until the bot can <a href="../actions/index.html#shoot-paintball">shoot a paintball</a> again (0 means available).</td>
 </tr>
 </tbody>
 </table>

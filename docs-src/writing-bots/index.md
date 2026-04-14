@@ -85,12 +85,12 @@ In order to make more informed decisions, a bot needs to be able to see the curr
 
 | Field                  | Meaning                                                                             |
 | ---------------------- | ----------------------------------------------------------------------------------- |
-| `game_state.me`        | Your BotInfo — `position`, `facing`, `stun`, cooldowns.                             |
-| `game_state.opponents` | Other players' BotInfo, keyed by player id. (Irrelevant in 1v1)                     |
-| `game_state.opponent`  | The single opponent's BotInfo in 1v1, or `None` in other modes.                     |
-| `game_state.grid`      | All hexes on the map (`Hex` values). Each has a `controller` (`BotInfo` or `None`). |
-| `game_state.turn`      | Current turn index.                                                                 |
-| `game_state.max_turns` | Match length.                                                                       |
+| [game_state.me](./index.md#bot-info)        | Your [BotInfo](./index.md#bot-info) — position, facing, stun, cooldowns.                             |
+| [game_state.opponents](../api-docs/utils/splatbot_data_types.md#gamestate) | Other players' [BotInfo](./index.md#bot-info), keyed by player id. (Irrelevant in 1v1)                     |
+| [game_state.opponent](../api-docs/utils/splatbot_data_types.md#gamestate)  | The single opponent's [BotInfo](./index.md#bot-info) in 1v1, or None in other modes.                     |
+| [game_state.grid](../hex-grid/index.md)      | All hexes on the map ([Hex](../hex-grid/index.md) values). Each has a controller ([BotInfo](./index.md#bot-info) or None). |
+| [game_state.turn](../api-docs/utils/splatbot_data_types.md#gamestate)      | Current turn index.                                                                 |
+| [game_state.max_turns](../api-docs/utils/splatbot_data_types.md#gamestate) | Match length.                                                                       |
 
 ### Bot Info
 
@@ -100,13 +100,13 @@ The fields of BotInfo are:
 
 | Field                | Type           | Meaning                                                                |
 | -------------------- | -------------- | ---------------------------------------------------------------------- |
-| `pid`                | `int`          | Player id (usually `1` or `2`).                                        |
-| `position`           | `Hex`          | The bot's current hex (`q`, `r`).                                      |
-| `facing`             | `HexDirection` | Which way the bot is facing (`E/NE/NW/W/SW/SE`).                       |
-| `stun`               | `int`          | Turns remaining where non-skip actions are blocked.                    |
-| `splat_cooldown`     | `int`          | Turns until the bot can splat again (`0` means available).             |
-| `dash_cooldown`      | `int`          | Turns until the bot can dash again (`0` means available).              |
-| `paintball_cooldown` | `int`          | Turns until the bot can shoot a paintball again (`0` means available). |
+| [pid](../api-docs/utils/splatbot_data_types.md#botinfo)                | int          | Player id (usually 1 or 2).                                        |
+| [position](../api-docs/utils/splatbot_data_types.md#botinfo)           | [Hex](../hex-grid/index.md)          | The bot's current hex (q, r — see [axial coordinates](../hex-grid/index.md#axial)).                                      |
+| [facing](../api-docs/utils/splatbot_data_types.md#botinfo)             | [HexDirection](../hex-grid/index.md#hex-directions) | Which way the bot is facing (E/NE/NW/W/SW/SE).                       |
+| [stun](../api-docs/utils/splatbot_data_types.md#botinfo)               | int          | Turns remaining where non-skip actions are blocked ([skip](../actions/index.md#skip)).                    |
+| [splat_cooldown](../api-docs/utils/splatbot_data_types.md#botinfo)     | int          | Turns until the bot can [splat](../actions/index.md#splat) again (0 means available).             |
+| [dash_cooldown](../api-docs/utils/splatbot_data_types.md#botinfo)      | int          | Turns until the bot can [dash](../actions/index.md#dash) again (0 means available).              |
+| [paintball_cooldown](../api-docs/utils/splatbot_data_types.md#botinfo) | int          | Turns until the bot can [shoot a paintball](../actions/index.md#shoot-paintball) again (0 means available). |
 
 _Note: There are also `Hex` classes, explained [here](../hex-grid/index.md)_
 

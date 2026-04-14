@@ -46,12 +46,12 @@ The `game_state` passed into `decide` is **read-only**; you change the match onl
 
 | Field | Meaning |
 | ----- | ------- |
-| `game_state.me` | Your `BotInfo` — `position`, `facing`, `stun`, cooldowns. |
-| `game_state.opponents` | Other players' `BotInfo`, keyed by player id. |
-| `game_state.opponent` | The single opponent in 1v1, or `None` in other modes. |
-| `game_state.grid` | All hexes on the map ([`Hex`](hex-grid/index.md)); each tile has a `controller` (`BotInfo` or `None`). |
-| `game_state.turn` | Current turn index. |
-| `game_state.max_turns` | Match length. |
+| [game_state.me](writing-bots/index.md#bot-info) | Your [BotInfo](writing-bots/index.md#bot-info) — position, facing, stun, cooldowns. |
+| [game_state.opponents](api-docs/utils/splatbot_data_types.md#gamestate) | Other players' [BotInfo](writing-bots/index.md#bot-info), keyed by player id. |
+| [game_state.opponent](api-docs/utils/splatbot_data_types.md#gamestate) | The single opponent in 1v1, or None in other modes. |
+| [game_state.grid](hex-grid/index.md) | All hexes on the map ([Hex](hex-grid/index.md)); each tile has a controller ([BotInfo](writing-bots/index.md#bot-info) or None). |
+| [game_state.turn](api-docs/utils/splatbot_data_types.md#gamestate) | Current turn index. |
+| [game_state.max_turns](api-docs/utils/splatbot_data_types.md#gamestate) | Match length. |
 
 For static typing against these shapes, use **[utils.splatbot_data_types](api-docs/utils/splatbot_data_types.md)**. Larger sample bots are in **[Examples](examples/index.md)**.
 
