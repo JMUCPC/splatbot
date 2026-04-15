@@ -219,8 +219,9 @@ a.sb-btn:visited {
 }
 .header-row-status {
   min-width: 0;
-  text-align: right;
+  text-align: center;
   width: 100%;
+  flex-shrink: 0;
 }
 /* Docs entry point: reads as a link (not a button). */
 .header-docs-link {
@@ -295,11 +296,17 @@ a.sb-btn:visited {
   border-radius: 2px;
 }
 
-.game-layout .main-row-gutter--actions .status {
+.game-layout .hex-column:not(.hex-column--controls-only) .status {
   color: #6d8299;
   font-family: 'Share Tech Mono', monospace;
   font-size: 1.12rem;
   letter-spacing: 0.16em;
+}
+
+@media (min-width: 841px) {
+  .game-layout .hex-column:not(.hex-column--controls-only) .header-row-status:not(:empty) {
+    padding-top: 10px;
+  }
 }
 .button-group {
   display: flex;
@@ -474,11 +481,6 @@ a.sb-btn:visited {
   justify-content: center;
   gap: 6px;
   min-height: 0;
-}
-
-.main-row-gutter--actions .header-row-status {
-  align-self: flex-end;
-  width: auto;
 }
 
 .hex-column--controls-only {
@@ -2240,20 +2242,12 @@ a.sb-btn:visited {
     align-self: center;
   }
 
-  /* Control bar → map → win line (when over) → both player cards. */
-  .game-layout .main-row-gutter--actions .header-row-status {
-    order: 5;
-    align-self: stretch;
-    text-align: center;
-    width: 100%;
-  }
-
-  .game-layout .main-row-gutter--actions .header-row-status:empty {
+  .game-layout > .hex-column:not(.hex-column--controls-only) .header-row-status:empty {
     display: none;
   }
 
   .game-layout > #player-card-1 {
-    order: 6;
+    order: 5;
   }
 
   .game-layout > .hex-column:not(.hex-column--controls-only) {
@@ -2261,7 +2255,7 @@ a.sb-btn:visited {
   }
 
   .game-layout > #player-card-2 {
-    order: 7;
+    order: 6;
   }
 
   /* Map column only: .hex-column--controls-only also has .hex-column — do not give it flex-grow or map min-height. */
