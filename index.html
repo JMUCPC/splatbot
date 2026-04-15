@@ -153,14 +153,16 @@
     <div class="app-dock">
     <div class="turn-row">
       <button type="button" id="btn-download-starter-code" class="sb-btn sb-btn--compact sb-btn--starter-download" aria-label="Download starter bot code zip" disabled>DOWNLOAD STARTER CODE</button>
-      <div class="sb-label-xs" style="flex-shrink:0">TURN</div>
-      <div id="turn-num" class="turn-num">0</div>
-      <div id="max-turns" class="max-turns">/ 500</div>
-      <div class="sb-progress">
-        <div id="progress-fill" class="sb-progress-fill"></div>
+      <div class="turn-row-mid">
+        <div class="sb-label-xs" style="flex-shrink:0">TURN</div>
+        <div id="turn-num" class="turn-num">0</div>
+        <div id="max-turns" class="max-turns">/ 500</div>
+        <div class="sb-progress">
+          <div id="progress-fill" class="sb-progress-fill"></div>
+        </div>
+        <div class="sb-label-xs" style="flex-shrink:0">SPEED</div>
+        <input type="range" id="speed-slider" class="sb-slider" min="1" max="20" step="1" value="15" aria-label="Match speed, slower to faster">
       </div>
-      <div class="sb-label-xs" style="flex-shrink:0">SPEED</div>
-      <input type="range" id="speed-slider" class="sb-slider" min="1" max="20" step="1" value="15" aria-label="Match speed, slower to faster">
       <button type="button" id="btn-event-log-expand" class="sb-btn sb-btn--compact turn-row-event-log-btn" aria-expanded="false" aria-controls="event-log-panel">EVENT LOG</button>
     </div>
 
@@ -209,7 +211,10 @@
 
   <div id="settings-modal" class="modal-overlay">
     <div class="sb-card settings-card">
-      <div class="sb-cond" style="font-size:1.75rem; font-weight:700; letter-spacing:0.14em; color:#dde8f0">SETTINGS</div>
+      <div class="settings-card-header">
+        <div class="sb-cond settings-card-title">SETTINGS</div>
+        <button type="button" id="btn-settings-close" class="settings-close-x" aria-label="Close settings">&times;</button>
+      </div>
       <div style="font-family:'Share Tech Mono',monospace; font-size:1.02rem; color:#8a9db4; margin-bottom:8px">
         Apply keeps settings for this session only. Use Download / Load profile to save or restore JSON on disk.
       </div>
@@ -298,7 +303,7 @@
         Splatbot is a browser-based coding game that pits two Python-controlled bots against each other in the ultimate battle of area control.
       </p>
       <div class="welcome-open-startup">
-        <input type="checkbox" id="welcome-open-on-startup" />
+        <input type="checkbox" id="welcome-open-on-startup" checked />
         <label for="welcome-open-on-startup">Open on startup</label>
       </div>
       <div class="welcome-actions">

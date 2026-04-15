@@ -100,6 +100,8 @@ const playerBotId = { 1: null, 2: null };
 let botPickerOpenPid = null;
 let botPickerDelegationBound = false;
 let botPickerOutsideBound = false;
+let botPickerLayoutListenersBound = false;
+let botPickerLayoutRaf = 0;
 /** @type {((value: boolean) => void) | null} */
 let deleteCustomBotConfirmResolve = null;
 let botControlsReady = false;
@@ -153,9 +155,9 @@ function welcomeOnboardingSeen() {
 
 function welcomeOpenOnStartup() {
   try {
-    return localStorage.getItem(WELCOME_OPEN_STARTUP_LS_KEY) === '1';
+    return localStorage.getItem(WELCOME_OPEN_STARTUP_LS_KEY) !== '0';
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -244,6 +246,26 @@ function getLayoutMetricsRoot() {
   return document.getElementById('app-main') || document.getElementById('app');
 }
 
+/** Viewport height minus dock, footer, and #app padding/gaps — analogous to old scrollable .app-main height. */
+function getMainColumnViewportBudgetPx() {
+  const app = document.getElementById('app');
+  const dock = document.querySelector('.app-dock');
+  const foot = document.querySelector('.app-footer');
+  const vh = window.visualViewport?.height ?? window.innerHeight ?? 0;
+  if (!vh) return 0;
+  const dockH = dock?.getBoundingClientRect().height ?? 0;
+  const footH = foot?.getBoundingClientRect().height ?? 0;
+  let padY = 0;
+  let gapY = 0;
+  if (app) {
+    const cs = getComputedStyle(app);
+    padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    const g = parseFloat(cs.gap);
+    if (Number.isFinite(g)) gapY = g * 2;
+  }
+  return Math.max(0, vh - dockH - footH - padY - gapY);
+}
+
 function syncPlayerCardToggleButtons() {
   const app = document.getElementById('app');
   const compact = app?.classList.contains('app--player-cards-compact');
@@ -269,19 +291,22 @@ function updatePlayerCardsCompactLayout() {
   const metricsRoot = getLayoutMetricsRoot();
   if (!app || !metricsRoot) return;
   const compact = app.classList.contains('app--player-cards-compact');
+  const budget = getMainColumnViewportBudgetPx();
+  const contentH = metricsRoot.scrollHeight;
 
   if (!compact) {
     void metricsRoot.offsetHeight;
-    if (metricsRoot.scrollHeight > metricsRoot.clientHeight + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
+    if (contentH > budget + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
       app.classList.add('app--player-cards-compact');
       document.querySelectorAll('.player-card').forEach((c) => c.classList.remove('player-card--expanded'));
     }
   } else {
     void metricsRoot.offsetHeight;
-    if (metricsRoot.scrollHeight <= metricsRoot.clientHeight + PLAYER_CARD_COMPACT_EXIT_SLACK_PX) {
+    if (contentH <= budget + PLAYER_CARD_COMPACT_EXIT_SLACK_PX) {
       app.classList.remove('app--player-cards-compact');
       void metricsRoot.offsetHeight;
-      if (metricsRoot.scrollHeight > metricsRoot.clientHeight + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
+      const h2 = metricsRoot.scrollHeight;
+      if (h2 > budget + PLAYER_CARD_COMPACT_ENTER_OVERFLOW_PX) {
         app.classList.add('app--player-cards-compact');
       } else {
         document.querySelectorAll('.player-card').forEach((c) => c.classList.remove('player-card--expanded'));
@@ -310,6 +335,8 @@ function initPlayerCardsCompactLayout() {
   if (gameLayout) ro.observe(gameLayout);
   const hexWrap = document.getElementById('hex-grid');
   if (hexWrap) ro.observe(hexWrap);
+  const appDock = document.querySelector('.app-dock');
+  if (appDock) ro.observe(appDock);
 
   window.addEventListener('resize', onViewportChange);
   const vv = window.visualViewport;
@@ -930,8 +957,69 @@ function displayLabelForBotId(botId) {
   return catalogById.get(id)?.label ?? id;
 }
 
+function clearBotPickerPanelFixedLayout(pid) {
+  const panel = els[`botPickerPanel${pid}`];
+  if (!panel) return;
+  panel.style.removeProperty('position');
+  panel.style.removeProperty('left');
+  panel.style.removeProperty('width');
+  panel.style.removeProperty('right');
+  panel.style.removeProperty('top');
+  panel.style.removeProperty('bottom');
+  panel.style.removeProperty('max-height');
+  panel.style.removeProperty('z-index');
+}
+
+/** Narrow layout: anchor listbox to the viewport so ancestor overflow cannot clip it. */
+function positionBotPickerPanelForMobile(pid) {
+  const panel = els[`botPickerPanel${pid}`];
+  const trigger = els[`botPickerTrigger${pid}`];
+  if (!panel || !trigger || panel.hidden) return;
+  const mq = window.matchMedia?.('(max-width: 840px)');
+  if (!mq || !mq.matches) {
+    clearBotPickerPanelFixedLayout(pid);
+    return;
+  }
+  const r = trigger.getBoundingClientRect();
+  const pad = 12;
+  const vw = window.visualViewport?.width ?? window.innerWidth;
+  const vh = window.visualViewport?.height ?? window.innerHeight;
+  const left = Math.max(pad, Math.min(r.left, vw - pad - 160));
+  const width = Math.max(160, Math.min(r.width, vw - left - pad));
+  const gap = 4;
+  const preferBelow = vh - r.bottom - pad;
+  const preferAbove = r.top - pad;
+  const wantBelow = preferBelow >= 180 || preferBelow >= preferAbove;
+  const maxH = Math.min(360, Math.max(140, wantBelow ? preferBelow - gap : preferAbove - gap));
+  panel.style.position = 'fixed';
+  panel.style.left = `${left}px`;
+  panel.style.width = `${width}px`;
+  panel.style.right = 'auto';
+  if (wantBelow) {
+    panel.style.removeProperty('bottom');
+    panel.style.top = `${r.bottom + gap}px`;
+  } else {
+    panel.style.removeProperty('top');
+    panel.style.bottom = `${vh - r.top + gap}px`;
+  }
+  panel.style.maxHeight = `${maxH}px`;
+  panel.style.zIndex = '300';
+}
+
+function scheduleBotPickerFixedLayoutSync() {
+  if (botPickerLayoutRaf) return;
+  botPickerLayoutRaf = window.requestAnimationFrame(() => {
+    botPickerLayoutRaf = 0;
+    if (botPickerOpenPid != null) positionBotPickerPanelForMobile(botPickerOpenPid);
+  });
+}
+
 function closeBotPickerPanels() {
-  if (botPickerOpenPid == null) return;
+  if (botPickerOpenPid == null) {
+    clearBotPickerPanelFixedLayout(1);
+    clearBotPickerPanelFixedLayout(2);
+    return;
+  }
   const pid = botPickerOpenPid;
   botPickerOpenPid = null;
   const panel = els[`botPickerPanel${pid}`];
@@ -940,6 +1028,8 @@ function closeBotPickerPanels() {
   if (panel) panel.hidden = true;
   if (trigger) trigger.setAttribute('aria-expanded', 'false');
   if (root) root.classList.remove('sb-bot-picker--open');
+  clearBotPickerPanelFixedLayout(1);
+  clearBotPickerPanelFixedLayout(2);
 }
 
 function syncBotPickerTriggersDisabledFromState() {
@@ -1072,6 +1162,7 @@ function onBotPickerTriggerClick(pid) {
   panel.hidden = false;
   t.setAttribute('aria-expanded', 'true');
   if (root) root.classList.add('sb-bot-picker--open');
+  scheduleBotPickerFixedLayoutSync();
 }
 
 function initBotPickerUi() {
@@ -1087,6 +1178,16 @@ function initBotPickerUi() {
   if (!botPickerOutsideBound) {
     botPickerOutsideBound = true;
     document.addEventListener('pointerdown', onDocumentPointerDownCloseBotPicker, true);
+  }
+  if (!botPickerLayoutListenersBound) {
+    botPickerLayoutListenersBound = true;
+    window.addEventListener('resize', scheduleBotPickerFixedLayoutSync);
+    window.addEventListener('scroll', scheduleBotPickerFixedLayoutSync, true);
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', scheduleBotPickerFixedLayoutSync);
+      vv.addEventListener('scroll', scheduleBotPickerFixedLayoutSync);
+    }
   }
 }
 
@@ -1132,6 +1233,7 @@ function renderBotPickers() {
       }
     }
   }
+  if (botPickerOpenPid != null) scheduleBotPickerFixedLayoutSync();
 }
 
 async function deleteCustomBotById(botId) {
@@ -1877,6 +1979,8 @@ export function initApp() {
   document.getElementById('btn-settings').addEventListener('click', openSettings);
   document.getElementById('btn-settings-reset').addEventListener('click', resetSettingsForm);
   document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings);
+  const btnSettingsClose = document.getElementById('btn-settings-close');
+  if (btnSettingsClose) btnSettingsClose.addEventListener('click', closeSettings);
   document.getElementById('btn-settings-apply').addEventListener('click', applySettings);
   const btnDownloadProfile = document.getElementById('btn-settings-download-profile');
   const btnUploadProfile = document.getElementById('btn-settings-upload-profile');

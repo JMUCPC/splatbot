@@ -2,9 +2,9 @@
 
 html {
   width: 100%;
-  height: 100%;
   min-height: 100dvh;
   font-size: 20px;
+  scrollbar-gutter: stable;
 }
 
 :root {
@@ -25,10 +25,9 @@ body {
   font-family: 'Share Tech Mono', monospace;
   font-size: 1.05rem;
   width: 100%;
-  min-height: 100%;
   min-height: 100dvh;
-  height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .sb-mono { font-family: 'Share Tech Mono', monospace !important; }
@@ -160,29 +159,23 @@ a.sb-btn:visited {
   align-items: stretch;
   width: 100%;
   min-width: 0;
-  min-height: 0;
-  height: 100vh;
-  height: 100dvh;
-  max-height: 100vh;
-  max-height: 100dvh;
+  min-height: 100dvh;
+  min-height: 100vh;
   padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
     max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: hidden;
+  /* Avoid overflow-x:hidden + overflow-y:visible — that pair forces overflow-y:auto and clips popovers. */
+  overflow: visible;
   gap: 10px;
 }
 
-/* Scroll the board + player column here so the turn row stays under the game area (not mid-scroll). */
+/* Main column grows with content; the page scrolls on `body` so the dock is not pinned to the viewport. */
 .app-main {
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 0 0 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
+  overflow: visible;
 }
 
 /* Turn row + event log share one column so width tracks together. */
@@ -436,14 +429,27 @@ a.sb-btn:visited {
 /* Header row + map row share one grid so the center column lines up with the hex area. */
 .game-layout {
   width: 100%;
-  flex: 1 1 0;
-  min-height: 0;
+  flex: 0 1 auto;
+  min-height: clamp(300px, 48dvh, 960px);
   min-width: 0;
   display: grid;
   grid-template-columns: var(--sb-side-panel-width) minmax(0, 1fr) var(--sb-side-panel-width);
   grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
   align-items: stretch;
+}
+
+/* Must follow the base `.game-layout` rule above — otherwise `flex: 0 1 auto` wins and the map row stays content-height (dead band above the dock). */
+@media (min-width: 841px) {
+  .app-main {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+
+  .game-layout {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
 }
 
 .main-row-gutter {
@@ -803,11 +809,6 @@ a.sb-btn:visited {
   display: none;
 }
 
-/* Tall event log + footer on short screens: allow outer scroll so nothing is clipped. */
-.app-container.event-log-expanded {
-  overflow-y: auto;
-}
-
 .hex-column {
   flex: 1 1 0;
   min-width: 0;
@@ -829,12 +830,46 @@ a.sb-btn:visited {
   background: #080c14;
   box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.35);
 }
+
+/* Desktop: TURN…slider participate directly in .turn-row (same visual as a flat list). */
+.turn-row-mid {
+  display: contents;
+}
+
 .turn-row-event-log-btn {
   margin-left: auto;
 }
 
-/* Narrow width: keep EVENT LOG on its own full row so it sits above the panel edge-to-edge. */
+/* Narrow width: starter download + EVENT LOG each on their own full row. */
 @media (max-width: 720px) {
+  .turn-row #btn-download-starter-code {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .turn-row-mid {
+    display: flex;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px 10px;
+  }
+
+  .turn-row-mid .sb-progress {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .turn-row-mid .sb-slider {
+    flex: 0 1 200px;
+    width: auto;
+    min-width: 72px;
+    max-width: min(200px, 42vw);
+  }
+
   .turn-row-event-log-btn {
     margin-left: 0;
     flex: 1 1 100%;
@@ -1457,6 +1492,56 @@ a.sb-btn:visited {
   max-width: 94vw;
   padding: 24px 22px;
   font-size: 1.12rem;
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.settings-card-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #dde8f0;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-close-x {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #334a6e;
+  border-radius: 6px;
+  background: #121b2c;
+  color: #a8b8cc;
+  font-family: system-ui, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 0;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.settings-close-x:hover {
+  background: #1a2638;
+  border-color: #4a6490;
+  color: #e8f0f8;
+}
+
+.settings-close-x:focus-visible {
+  outline: 2px solid #4a6490;
+  outline-offset: 2px;
 }
 
 .bot-source-card {
@@ -2127,34 +2212,21 @@ a.sb-btn:visited {
     order: 1;
   }
 
-  /* Lift status + docs link so we can reorder: link sits under the hex map. */
+  /* Lift status + docs link so we can reorder flex children of .game-layout. */
   .game-layout > .main-row-gutter--actions {
     display: contents;
   }
 
-  /* Status after P1 so the control bar sits directly above player 1 (tighter grouping). */
-  .game-layout .main-row-gutter--actions .header-row-status {
-    order: 4;
-    align-self: flex-end;
-    text-align: right;
-    width: 100%;
-  }
-
-  .game-layout > #player-card-1 {
-    order: 3;
-  }
-
-  .game-layout > .hex-column:not(.hex-column--controls-only) {
-    order: 5;
-  }
-
+  /* Welcome + docs in one row directly under the title. */
   .game-layout .main-row-gutter--actions .header-links-actions {
-    order: 6;
+    order: 2;
     width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    align-self: stretch;
-    gap: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+    gap: 10px 20px;
   }
 
   .game-layout .main-row-gutter--actions .header-welcome-btn {
@@ -2162,9 +2234,30 @@ a.sb-btn:visited {
   }
 
   .game-layout .main-row-gutter--actions .header-docs-link {
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
     text-align: center;
+    align-self: center;
+  }
+
+  /* Control bar → map → win line (when over) → both player cards. */
+  .game-layout .main-row-gutter--actions .header-row-status {
+    order: 5;
     align-self: stretch;
+    text-align: center;
+    width: 100%;
+  }
+
+  .game-layout .main-row-gutter--actions .header-row-status:empty {
+    display: none;
+  }
+
+  .game-layout > #player-card-1 {
+    order: 6;
+  }
+
+  .game-layout > .hex-column:not(.hex-column--controls-only) {
+    order: 4;
   }
 
   .game-layout > #player-card-2 {
@@ -2178,7 +2271,7 @@ a.sb-btn:visited {
   }
 
   .hex-column--controls-only {
-    order: 2;
+    order: 3;
     width: 100%;
     flex: 0 0 auto;
     min-height: 0;
@@ -2191,6 +2284,27 @@ a.sb-btn:visited {
 
   .player-card {
     width: 100%;
+    /* Default overflow:hidden clips the bot-picker panel (position:absolute) and expanded details. */
+    overflow: visible;
+  }
+
+  /* Column layout: .player-card height is content-based. Nested flex: 1 1 0 + min-height: 0
+     otherwise resolves to ~0px, so compact expand only rotates the chevron. */
+  .player-card-details {
+    flex: 0 1 auto;
+    overflow-x: hidden;
+    overflow-y: visible;
+    overscroll-behavior: auto;
+  }
+
+  .player-card-log-block,
+  .player-card-feed {
+    flex: 0 1 auto;
+  }
+
+  /* Open bot list stacks above the next card; picker already has position:relative. */
+  .player-card .sb-bot-picker.sb-bot-picker--open {
+    z-index: 80;
   }
 
   .header-brand-title {
@@ -2200,6 +2314,131 @@ a.sb-btn:visited {
   .hex-control-bar .button-group {
     flex-wrap: wrap;
     justify-content: center;
+  }
+
+  /* Event log panel: FILTER + CLEAR LOG + POP OUT on one row (label duplicates dock control). */
+  .event-log-toolbar {
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .event-log-toolbar > .sb-label-xs {
+    display: none;
+  }
+
+  .event-log-filter-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .event-log-filter-toggle {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .event-log-toolbar-actions {
+    flex: 2 1 0;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .event-log-toolbar-actions > .sb-btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Filter menu: FILTER sits in a ~⅓-width column; right:0 + min-width:190px draws mostly off-screen left.
+     Dock is at bottom — open upward so the panel stays in the visual viewport. */
+  .event-log-filter-menu {
+    top: auto;
+    bottom: calc(100% + 6px);
+    left: 0;
+    right: auto;
+    min-width: 0;
+    width: min(190px, calc(100vw - max(20px, env(safe-area-inset-left) + env(safe-area-inset-right) + 12px)));
+    box-sizing: border-box;
+  }
+
+  /* Settings modal: full-width stacked actions so labels do not clip the card border. */
+  .modal-overlay {
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    box-sizing: border-box;
+  }
+
+  /* Settings: one scrollable column — tall forms + stacked buttons must fit small viewports. */
+  #settings-modal.modal-overlay {
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .settings-card {
+    width: 100%;
+    max-width: min(880px, calc(100vw - 20px));
+    max-height: calc(100vh - max(28px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 24px));
+    padding: 18px max(14px, env(safe-area-inset-left)) max(22px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-right));
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @supports (height: 1dvh) {
+    .settings-card {
+      max-height: calc(100dvh - max(28px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 24px));
+    }
+  }
+
+  /* Let the whole card scroll as one pane (avoid nested 55vh scroll + clipped footer buttons). */
+  #settings-fields.settings-fields {
+    max-height: none;
+    overflow: visible;
+  }
+
+  #settings-fields .settings-panels-wrap {
+    flex: 0 1 auto;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .settings-profile-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .settings-profile-actions > .sb-btn {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .settings-actions > .sb-btn {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
 }
 
@@ -2213,6 +2452,13 @@ a.sb-btn:visited {
     font-size: 1.02rem;
     padding: 0 14px;
     min-height: 44px;
+  }
+
+  /* Keep expanded event log toolbar on one row (global .sb-btn sizing above would wrap it). */
+  .event-log-toolbar .sb-btn.sb-btn--compact {
+    min-height: 40px;
+    padding: 0 6px;
+    font-size: clamp(0.62rem, 2.6vw, 0.82rem);
   }
 }
 
