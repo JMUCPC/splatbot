@@ -187,7 +187,7 @@ function renderDocsSidebar(navTree, currentRel, outFile, navOrder, navTitles) {
 
   const sectionItems = [renderNode(navTree, true, true)];
 
-  return `<aside class="docs-sidebar" aria-label="Docs navigation">
+  return `<aside class="docs-sidebar" id="docs-sidebar" aria-label="Docs navigation">
     <div class="docs-sidebar-inner">
       <a class="docs-sidebar-brand" href="${relHref(outFile, path.join(ROOT, 'index.html'))}">Splatbot</a>
       <div class="docs-search" role="search">
@@ -199,6 +199,15 @@ function renderDocsSidebar(navTree, currentRel, outFile, navOrder, navTitles) {
       </ul>
     </div>
   </aside>`;
+}
+
+function renderMobileNavChrome(outFile) {
+  const homeHref = relHref(outFile, path.join(ROOT, 'index.html'));
+  return `<header class="docs-mobile-nav-bar" role="banner">
+  <a class="docs-mobile-nav-brand" href="${homeHref}">Splatbot</a>
+  <button type="button" class="docs-nav-menu-btn" id="docs-nav-menu-btn" aria-controls="docs-sidebar" aria-expanded="false" aria-label="Open navigation menu"><span class="docs-nav-menu-icon" aria-hidden="true"><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span></span></button>
+</header>
+<div class="docs-nav-backdrop" id="docs-nav-backdrop" hidden></div>`;
 }
 
 function renderPager(currentPage, outFile, neighborsByRel) {
@@ -226,7 +235,9 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml, pagerHtml }) {
   const minisearchHref = path.join(toRoot, 'js', 'vendor', 'minisearch.js').split(path.sep).join('/');
   const docsSearchHref = path.join(toRoot, 'js', 'docs-search.js').split(path.sep).join('/');
   const docsTocHref = path.join(toRoot, 'js', 'docs-toc.js').split(path.sep).join('/');
+  const docsNavDrawerHref = path.join(toRoot, 'js', 'docs-nav-drawer.js').split(path.sep).join('/');
   const iconHref = path.join(toRoot, 'images', 'splat.ico').split(path.sep).join('/');
+  const mobileNavChrome = renderMobileNavChrome(outFile);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -241,20 +252,22 @@ function pageShell({ title, bodyHtml, outFile, sidebarHtml, pagerHtml }) {
   <link rel="stylesheet" href="${hljsHref}">
 </head>
 <body class="docs-body">
+${mobileNavChrome}
   <div class="docs-layout">
-${sidebarHtml}
     <div class="docs-main-wrap">
     <main class="docs-main markdown-body">
 ${bodyHtml}
 ${pagerHtml}
     </main>
     </div>
+${sidebarHtml}
   </div>
   <script src="${botRunnableHref}" defer></script>
   <script src="${copyJsHref}" defer></script>
   <script src="${minisearchHref}" defer></script>
   <script src="${docsSearchHref}" defer></script>
   <script src="${docsTocHref}" defer></script>
+  <script src="${docsNavDrawerHref}" defer></script>
   <script type="module" src="${actionDemosHref}"></script>
   <script type="module" src="${hexHoverDemosHref}"></script>
   <script type="module" src="${hexDistanceDemosHref}"></script>
@@ -403,10 +416,44 @@ const md = new MarkdownIt({
   .use(mdLinkRewritePlugin)
   .use(codeFenceMetaPlugin);
 
+/**
+ * Wrap each top-level `<table>...</table>` so narrow viewports can scroll horizontally.
+ */
+function wrapMarkdownTables(html) {
+  const out = [];
+  let i = 0;
+  const openRe = /<table\b/i;
+  while (i < html.length) {
+    const slice = html.slice(i);
+    const m = openRe.exec(slice);
+    if (!m) {
+      out.push(html.slice(i));
+      break;
+    }
+    const start = i + m.index;
+    out.push(html.slice(i, start));
+    const afterOpen = start + m[0].length;
+    const rest = html.slice(afterOpen);
+    const closeRe = /<\/table>/i;
+    const closeMatch = closeRe.exec(rest);
+    if (!closeMatch) {
+      out.push(html.slice(start));
+      break;
+    }
+    const end = afterOpen + closeMatch.index + closeMatch[0].length;
+    const tableHtml = html.slice(start, end);
+    out.push('<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table">');
+    out.push(tableHtml);
+    out.push('</div>');
+    i = end;
+  }
+  return out.join('');
+}
+
 function renderMarkdown(raw, absMd) {
   renderAbsMd = absMd;
   slugger = new GithubSlugger();
-  return md.render(raw);
+  return wrapMarkdownTables(md.render(raw));
 }
 
 /**

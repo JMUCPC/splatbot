@@ -11,8 +11,44 @@
   <link rel="stylesheet" href="../../css/docs-hljs.css">
 </head>
 <body class="docs-body">
+<header class="docs-mobile-nav-bar" role="banner">
+  <a class="docs-mobile-nav-brand" href="../../index.html">Splatbot</a>
+  <button type="button" class="docs-nav-menu-btn" id="docs-nav-menu-btn" aria-controls="docs-sidebar" aria-expanded="false" aria-label="Open navigation menu"><span class="docs-nav-menu-icon" aria-hidden="true"><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span></span></button>
+</header>
+<div class="docs-nav-backdrop" id="docs-nav-backdrop" hidden></div>
   <div class="docs-layout">
-<aside class="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-main-wrap">
+    <main class="docs-main markdown-body">
+<h1 id="python-api-reference" tabindex="-1">Python API reference</h1>
+<p>Custom types and helpers available in the Splatbot sandbox (Bot.decide(self, game_state)). All of this code is provided in the <a href="../../index.html#download-starter-code">downloadable starter code</a>.</p>
+<h2 id="modules-utils" tabindex="-1">Modules (utils)</h2>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="./utils/actions/index.html">utils.actions</a></td>
+<td>Action datatypes and the <a href="./utils/actions/index.html#actions">Actions</a> factory.</td>
+</tr>
+<tr>
+<td><a href="./utils/hex_grid/index.html">utils.hex_grid</a></td>
+<td>Axial <a href="./utils/hex_grid/index.html#hex">Hex</a>, <a href="./utils/hex_grid/index.html#hexdirection">HexDirection</a>, <a href="./utils/hex_grid/index.html#hexvector">HexVector</a>, <a href="./utils/hex_grid/index.html#hexutils">HexUtils</a>.</td>
+</tr>
+<tr>
+<td><a href="./utils/splatbot_data_types/index.html">utils.splatbot_data_types</a></td>
+<td>Optional typing templates for <a href="./utils/splatbot_data_types/index.html#botinfo">BotInfo</a> and <a href="./utils/splatbot_data_types/index.html#gamestate">GameState</a>.</td>
+</tr>
+</tbody>
+</table></div>
+
+<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../debugging/index.html">&larr; Back: Advanced Debugging</a><a class="docs-pager-link docs-pager-link--next" href="./utils/index.html">Next: utils &rarr;</a></nav>
+    </main>
+    </div>
+<aside class="docs-sidebar" id="docs-sidebar" aria-label="Docs navigation">
     <div class="docs-sidebar-inner">
       <a class="docs-sidebar-brand" href="../../index.html">Splatbot</a>
       <div class="docs-search" role="search">
@@ -34,43 +70,13 @@
       </ul>
     </div>
   </aside>
-    <div class="docs-main-wrap">
-    <main class="docs-main markdown-body">
-<h1 id="python-api-reference" tabindex="-1">Python API reference</h1>
-<p>Custom types and helpers available in the Splatbot sandbox (Bot.decide(self, game_state)). All of this code is provided in the <a href="../../index.html#download-starter-code">downloadable starter code</a>.</p>
-<h2 id="modules-utils" tabindex="-1">Modules (utils)</h2>
-<table>
-<thead>
-<tr>
-<th>Module</th>
-<th>Summary</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="./utils/actions/index.html">utils.actions</a></td>
-<td>Action datatypes and the <a href="./utils/actions/index.html#actions">Actions</a> factory.</td>
-</tr>
-<tr>
-<td><a href="./utils/hex_grid/index.html">utils.hex_grid</a></td>
-<td>Axial <a href="./utils/hex_grid/index.html#hex">Hex</a>, <a href="./utils/hex_grid/index.html#hexdirection">HexDirection</a>, <a href="./utils/hex_grid/index.html#hexvector">HexVector</a>, <a href="./utils/hex_grid/index.html#hexutils">HexUtils</a>.</td>
-</tr>
-<tr>
-<td><a href="./utils/splatbot_data_types/index.html">utils.splatbot_data_types</a></td>
-<td>Optional typing templates for <a href="./utils/splatbot_data_types/index.html#botinfo">BotInfo</a> and <a href="./utils/splatbot_data_types/index.html#gamestate">GameState</a>.</td>
-</tr>
-</tbody>
-</table>
-
-<nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../debugging/index.html">&larr; Back: Advanced Debugging</a><a class="docs-pager-link docs-pager-link--next" href="./utils/index.html">Next: utils &rarr;</a></nav>
-    </main>
-    </div>
   </div>
   <script src="../../js/bot-runnable.js" defer></script>
   <script src="../../js/docs-copy-code.js" defer></script>
   <script src="../../js/vendor/minisearch.js" defer></script>
   <script src="../../js/docs-search.js" defer></script>
   <script src="../../js/docs-toc.js" defer></script>
+  <script src="../../js/docs-nav-drawer.js" defer></script>
   <script type="module" src="../../js/docs/action-demos.js"></script>
   <script type="module" src="../../js/docs/hex-hover-demos.js"></script>
   <script type="module" src="../../js/docs/hex-distance-demos.js"></script>

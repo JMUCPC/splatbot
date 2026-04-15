@@ -19,13 +19,92 @@
   margin: 0;
   padding: 0 1.25rem 0 0;
   display: grid;
+  grid-template-areas: "side main";
   grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
 
+/* Narrow screens: mobile chrome + drawer (see @media max-width 900px). Hidden on wide viewports. */
+.docs-mobile-nav-bar,
+.docs-nav-backdrop {
+  display: none;
+}
+
+.docs-mobile-nav-bar {
+  box-sizing: border-box;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 1rem;
+  padding-top: calc(0.55rem + env(safe-area-inset-top, 0px));
+  border-bottom: 1px solid #1a2a40;
+  background: #080c14;
+  z-index: 45;
+}
+
+.docs-nav-menu-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  color: #dde8f0;
+  background: #111c2e;
+  border: 1px solid #1e2d47;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.docs-nav-menu-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.docs-nav-menu-bar {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.docs-nav-menu-btn:hover {
+  border-color: #3a5070;
+  color: #00d4ff;
+}
+
+.docs-nav-menu-btn:focus-visible {
+  outline: 2px solid #00d4ff;
+  outline-offset: 2px;
+}
+
+.docs-mobile-nav-brand {
+  min-width: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #dde8f0;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.docs-mobile-nav-brand:hover {
+  color: #00d4ff;
+}
+
 /* Main column + right “On this page” subnav (second column added when JS sets --with-toc) */
 .docs-main-wrap {
+  grid-area: main;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem 1.75rem;
@@ -134,6 +213,7 @@
 }
 
 .docs-sidebar {
+  grid-area: side;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -815,6 +895,43 @@ span.docs-sidebar-section-link {
   overflow: hidden;
 }
 
+/* Horizontal scroll for wide tables (especially mobile). Built by `wrapMarkdownTables` in build-docs.mjs. */
+.markdown-body .docs-table-scroll {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 1em 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #1a2a40;
+  border-radius: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #3f5875 #0e1525;
+}
+
+.markdown-body .docs-table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.markdown-body .docs-table-scroll::-webkit-scrollbar-track {
+  background: #0e1525;
+  border-radius: 0 0 6px 6px;
+}
+
+.markdown-body .docs-table-scroll::-webkit-scrollbar-thumb {
+  background: #334a6e;
+  border-radius: 4px;
+}
+
+.markdown-body .docs-table-scroll table {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
 .markdown-body table th, .markdown-body table td {
   padding: 0.5rem 1rem;
 }
@@ -822,6 +939,40 @@ span.docs-sidebar-section-link {
 .markdown-body table th {
   background: #111c2e;
   text-align: left;
+}
+
+@media (max-width: 900px) {
+  .markdown-body .docs-table-scroll table th,
+  .markdown-body .docs-table-scroll table td {
+    padding: 0.45rem 0.75rem;
+  }
+}
+
+@media (min-width: 901px) {
+  .markdown-body .docs-table-scroll {
+    overflow-x: hidden;
+  }
+
+  .markdown-body .docs-table-scroll table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
+  }
+
+  .markdown-body .docs-table-scroll th,
+  .markdown-body .docs-table-scroll td {
+    overflow-wrap: break-word;
+    word-break: normal;
+    vertical-align: top;
+  }
+
+  .markdown-body .docs-table-scroll td code,
+  .markdown-body .docs-table-scroll th code {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+  }
 }
 
 .markdown-body abbr[title] {
@@ -1154,26 +1305,76 @@ span.docs-sidebar-section-link {
 }
 
 @media (max-width: 900px) {
+  .docs-mobile-nav-bar {
+    display: flex;
+    position: sticky;
+    top: 0;
+  }
+
+  .docs-nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgba(4, 8, 14, 0.72);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .docs-nav-backdrop[hidden] {
+    display: none !important;
+  }
+
   .docs-layout {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 1rem 1rem 2rem;
+    display: block;
+    padding: 0 1rem 2rem;
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .docs-main-wrap {
+    grid-area: unset;
   }
 
   .docs-sidebar {
-    position: static;
+    grid-area: unset;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(20rem, 88vw);
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    z-index: 50;
+    margin: 0;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 6px 0 28px rgba(0, 0, 0, 0.55);
+  }
+
+  .docs-body.docs-nav-drawer-open .docs-sidebar {
+    transform: translateX(0);
   }
 
   .docs-sidebar-inner {
-    height: auto;
-    max-height: none;
+    height: 100%;
+    max-height: 100%;
     border-radius: 0;
-    display: block;
-    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .docs-sidebar-list {
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     max-height: none;
   }
 

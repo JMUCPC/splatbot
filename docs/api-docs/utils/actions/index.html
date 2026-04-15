@@ -11,29 +11,12 @@
   <link rel="stylesheet" href="../../../../css/docs-hljs.css">
 </head>
 <body class="docs-body">
+<header class="docs-mobile-nav-bar" role="banner">
+  <a class="docs-mobile-nav-brand" href="../../../../index.html">Splatbot</a>
+  <button type="button" class="docs-nav-menu-btn" id="docs-nav-menu-btn" aria-controls="docs-sidebar" aria-expanded="false" aria-label="Open navigation menu"><span class="docs-nav-menu-icon" aria-hidden="true"><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span></span></button>
+</header>
+<div class="docs-nav-backdrop" id="docs-nav-backdrop" hidden></div>
   <div class="docs-layout">
-<aside class="docs-sidebar" aria-label="Docs navigation">
-    <div class="docs-sidebar-inner">
-      <a class="docs-sidebar-brand" href="../../../../index.html">Splatbot</a>
-      <div class="docs-search" role="search">
-        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
-        <ul class="docs-search-results" role="listbox" hidden></ul>
-      </div>
-      <ul class="docs-sidebar-list">
-        <li class="docs-sidebar-title">Articles</li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../../index.html">Quick Start</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../actions/index.html">Actions</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../writing-bots/index.html">Writing Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../examples/index.html">Example Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../hex-grid/index.html">Hexagonal Grids</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Advanced Debugging</a></div></li>
-<li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../index.html">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">actions</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../hex_grid/index.html">hex_grid</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
-      </ul>
-    </div>
-  </aside>
     <div class="docs-main-wrap">
     <main class="docs-main markdown-body">
 <h1 id="actions" tabindex="-1">actions</h1>
@@ -42,7 +25,7 @@
 <h2 id="actions-1" tabindex="-1">Actions</h2>
 <p>Static factories (immutable results).</p>
 <h3 id="methods" tabindex="-1">Methods</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Method</th>
@@ -97,7 +80,7 @@
 <td>Face opposite direction.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="action" tabindex="-1">Action</h2>
 <p>Type alias (union) for any legal return value from decide: <a href="#moveaction">MoveAction</a>, <a href="#skipaction">SkipAction</a>, <a href="#splataction">SplatAction</a>, <a href="#dashaction">DashAction</a>, <a href="#shootpaintballaction">ShootPaintballAction</a>, <a href="#turnleftaction">TurnLeftAction</a>, <a href="#turnrightaction">TurnRightAction</a>, <a href="#facedirectionaction">FaceDirectionAction</a>, <a href="#turn180action">Turn180Action</a>.</p>
 <h2 id="moveaction" tabindex="-1">MoveAction</h2>
@@ -108,7 +91,7 @@
 <p><em>No instance attributes.</em></p>
 <h2 id="dashaction" tabindex="-1">DashAction</h2>
 <h3 id="attributes" tabindex="-1">Attributes</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Attribute</th>
@@ -123,12 +106,12 @@
 <td>Steps straight ahead (facing); engine expects range 2–6.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="shootpaintballaction" tabindex="-1">ShootPaintballAction</h2>
 <p><em>No instance attributes.</em></p>
 <h2 id="turnleftaction" tabindex="-1">TurnLeftAction</h2>
 <h3 id="attributes-1" tabindex="-1">Attributes</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Attribute</th>
@@ -143,10 +126,10 @@
 <td>Add to direction index mod 6 (default 1).</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="turnrightaction" tabindex="-1">TurnRightAction</h2>
 <h3 id="attributes-2" tabindex="-1">Attributes</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Attribute</th>
@@ -161,10 +144,10 @@
 <td>Subtract from direction index mod 6 (default 1).</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="facedirectionaction" tabindex="-1">FaceDirectionAction</h2>
 <h3 id="attributes-3" tabindex="-1">Attributes</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Attribute</th>
@@ -179,19 +162,42 @@
 <td>Absolute facing.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="turn180action" tabindex="-1">Turn180Action</h2>
 <p><em>No instance attributes.</em></p>
 
 <nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../index.html">&larr; Back: utils</a><a class="docs-pager-link docs-pager-link--next" href="../hex_grid/index.html">Next: hex_grid &rarr;</a></nav>
     </main>
     </div>
+<aside class="docs-sidebar" id="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <a class="docs-sidebar-brand" href="../../../../index.html">Splatbot</a>
+      <div class="docs-search" role="search">
+        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
+        <ul class="docs-search-results" role="listbox" hidden></ul>
+      </div>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-title">Articles</li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../../index.html">Quick Start</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../writing-bots/index.html">Writing Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../hex-grid/index.html">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Advanced Debugging</a></div></li>
+<li class="docs-sidebar-title">API Docs</li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../index.html">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../hex_grid/index.html">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
+      </ul>
+    </div>
+  </aside>
   </div>
   <script src="../../../../js/bot-runnable.js" defer></script>
   <script src="../../../../js/docs-copy-code.js" defer></script>
   <script src="../../../../js/vendor/minisearch.js" defer></script>
   <script src="../../../../js/docs-search.js" defer></script>
   <script src="../../../../js/docs-toc.js" defer></script>
+  <script src="../../../../js/docs-nav-drawer.js" defer></script>
   <script type="module" src="../../../../js/docs/action-demos.js"></script>
   <script type="module" src="../../../../js/docs/hex-hover-demos.js"></script>
   <script type="module" src="../../../../js/docs/hex-distance-demos.js"></script>

@@ -11,29 +11,12 @@
   <link rel="stylesheet" href="../css/docs-hljs.css">
 </head>
 <body class="docs-body">
+<header class="docs-mobile-nav-bar" role="banner">
+  <a class="docs-mobile-nav-brand" href="../index.html">Splatbot</a>
+  <button type="button" class="docs-nav-menu-btn" id="docs-nav-menu-btn" aria-controls="docs-sidebar" aria-expanded="false" aria-label="Open navigation menu"><span class="docs-nav-menu-icon" aria-hidden="true"><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span></span></button>
+</header>
+<div class="docs-nav-backdrop" id="docs-nav-backdrop" hidden></div>
   <div class="docs-layout">
-<aside class="docs-sidebar" aria-label="Docs navigation">
-    <div class="docs-sidebar-inner">
-      <a class="docs-sidebar-brand" href="../index.html">Splatbot</a>
-      <div class="docs-search" role="search">
-        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
-        <ul class="docs-search-results" role="listbox" hidden></ul>
-      </div>
-      <ul class="docs-sidebar-list">
-        <li class="docs-sidebar-title">Articles</li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Quick Start</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./actions/index.html">Actions</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./writing-bots/index.html">Writing Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./examples/index.html">Example Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./hex-grid/index.html">Hexagonal Grids</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./debugging/index.html">Advanced Debugging</a></div></li>
-<li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/utils/index.html">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/actions/index.html">actions</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/hex_grid/index.html">hex_grid</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
-      </ul>
-    </div>
-  </aside>
     <div class="docs-main-wrap">
     <main class="docs-main markdown-body">
 <h1 id="quick-start" tabindex="-1">Quick Start</h1>
@@ -53,7 +36,7 @@
 <p><a href="../index.html#download-starter-code" class="docs-try-btn docs-try-btn--starter-download">Download starter code</a></p>
 <h3 id="actions" tabindex="-1">Actions</h3>
 <p>On each tick, <code>decide</code> must return a single action. Interactive demos for each one are on the <strong><a href="./actions/index.html">Actions</a></strong> page.</p>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Action</th>
@@ -98,12 +81,12 @@
 <td>Move 2–6 hexes forward; paint only the destination.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h3 id="utils" tabindex="-1">Utils</h3>
 <p>There are helper functions available to make writing a Bot even easier. They are desccribed in the <strong><a href="./api-docs/index.html">Python API reference</a></strong>.</p>
 <h3 id="reading-game-state" tabindex="-1">Reading Game State</h3>
 <p>The <code>game_state</code> passed into <code>decide</code> is <strong>read-only</strong>; you change the match only by <strong>returning</strong> an action. Field meanings (and <code>BotInfo</code> details) are documented under <strong><a href="./writing-bots/index.html#game-state">Game State in Writing bots</a></strong>. Hex layout and coordinates are covered on the <strong><a href="./hex-grid/index.html">Hex Grid</a></strong> page.</p>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Field</th>
@@ -136,7 +119,7 @@
 <td>Match length.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>For static typing against these shapes, use <strong><a href="./api-docs/utils/splatbot_data_types/index.html">utils.splatbot_data_types</a></strong>. Larger sample bots are in <strong><a href="./examples/index.html">Examples</a></strong>.</p>
 <h2 id="pages" tabindex="-1">Pages</h2>
 <ol>
@@ -151,12 +134,35 @@
 <nav class="docs-pager" aria-label="Page navigation"><span class="docs-pager-spacer" aria-hidden="true"></span><a class="docs-pager-link docs-pager-link--next" href="./actions/index.html">Next: Actions &rarr;</a></nav>
     </main>
     </div>
+<aside class="docs-sidebar" id="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <a class="docs-sidebar-brand" href="../index.html">Splatbot</a>
+      <div class="docs-search" role="search">
+        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
+        <ul class="docs-search-results" role="listbox" hidden></ul>
+      </div>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-title">Articles</li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">Quick Start</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./writing-bots/index.html">Writing Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./hex-grid/index.html">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./debugging/index.html">Advanced Debugging</a></div></li>
+<li class="docs-sidebar-title">API Docs</li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="./api-docs/utils/index.html">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/actions/index.html">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/hex_grid/index.html">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="./api-docs/utils/splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
+      </ul>
+    </div>
+  </aside>
   </div>
   <script src="../js/bot-runnable.js" defer></script>
   <script src="../js/docs-copy-code.js" defer></script>
   <script src="../js/vendor/minisearch.js" defer></script>
   <script src="../js/docs-search.js" defer></script>
   <script src="../js/docs-toc.js" defer></script>
+  <script src="../js/docs-nav-drawer.js" defer></script>
   <script type="module" src="../js/docs/action-demos.js"></script>
   <script type="module" src="../js/docs/hex-hover-demos.js"></script>
   <script type="module" src="../js/docs/hex-distance-demos.js"></script>

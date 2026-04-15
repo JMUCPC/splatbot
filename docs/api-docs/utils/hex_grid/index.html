@@ -11,29 +11,12 @@
   <link rel="stylesheet" href="../../../../css/docs-hljs.css">
 </head>
 <body class="docs-body">
+<header class="docs-mobile-nav-bar" role="banner">
+  <a class="docs-mobile-nav-brand" href="../../../../index.html">Splatbot</a>
+  <button type="button" class="docs-nav-menu-btn" id="docs-nav-menu-btn" aria-controls="docs-sidebar" aria-expanded="false" aria-label="Open navigation menu"><span class="docs-nav-menu-icon" aria-hidden="true"><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span><span class="docs-nav-menu-bar"></span></span></button>
+</header>
+<div class="docs-nav-backdrop" id="docs-nav-backdrop" hidden></div>
   <div class="docs-layout">
-<aside class="docs-sidebar" aria-label="Docs navigation">
-    <div class="docs-sidebar-inner">
-      <a class="docs-sidebar-brand" href="../../../../index.html">Splatbot</a>
-      <div class="docs-search" role="search">
-        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
-        <ul class="docs-search-results" role="listbox" hidden></ul>
-      </div>
-      <ul class="docs-sidebar-list">
-        <li class="docs-sidebar-title">Articles</li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../../index.html">Quick Start</a></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../actions/index.html">Actions</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../writing-bots/index.html">Writing Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../examples/index.html">Example Bots</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../hex-grid/index.html">Hexagonal Grids</a></div></li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Advanced Debugging</a></div></li>
-<li class="docs-sidebar-title">API Docs</li>
-<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../index.html">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../actions/index.html">actions</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">hex_grid</a></li>
-<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
-      </ul>
-    </div>
-  </aside>
     <div class="docs-main-wrap">
     <main class="docs-main markdown-body">
 <h1 id="hex_grid" tabindex="-1">hex_grid</h1>
@@ -42,7 +25,7 @@
 <h2 id="hex" tabindex="-1">Hex</h2>
 <p>Immutable cell coordinate. Equality and hash use only (q, r); controller is ignored.</p>
 <h3 id="attributes" tabindex="-1">Attributes</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Attribute</th>
@@ -67,9 +50,9 @@
 <td>Tile owner from the snapshot; None for arithmetic-built hexes or unpainted tiles.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h3 id="methods" tabindex="-1">Methods</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Method</th>
@@ -109,11 +92,11 @@
 <td>True if controller matches <a href="../splatbot_data_types/index.html#botinfo">BotInfo</a> (by ==) or int pid.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="hexvector" tabindex="-1">HexVector</h2>
 <p>Immutable axial offset (dq, dr). Hashable by (q, r).</p>
 <h3 id="attributes-1" tabindex="-1">Attributes</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Attribute</th>
@@ -133,9 +116,9 @@
 <td>Delta r.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h3 id="methods-1" tabindex="-1">Methods</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Method</th>
@@ -175,11 +158,11 @@
 <td>Step along direction (int or <a href="#hexdirection">HexDirection</a>), length distance; direction normalized mod 6.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="hexdirection" tabindex="-1">HexDirection</h2>
 <p>Integer enum of neighbor directions (0 = +q, east on screen).</p>
 <h3 id="enum-members" tabindex="-1">Enum members</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Member</th>
@@ -212,10 +195,10 @@
 <td>5</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>Integer values match indices in <a href="#hex_directions">HEX_DIRECTIONS</a>. APIs that take int or HexDirection typically normalize with mod 6.</p>
 <h2 id="hex_directions" tabindex="-1">HEX_DIRECTIONS</h2>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Name</th>
@@ -230,11 +213,11 @@
 <td>Axial step for each <a href="#hexdirection">HexDirection</a>, same order as the enum.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h2 id="hexutils" tabindex="-1">HexUtils</h2>
 <p>Grid helpers bound to one <a href="../splatbot_data_types/index.html#gamestate">GameState</a> snapshot (game_state is stored for methods that need the board).</p>
 <h3 id="attributes-2" tabindex="-1">Attributes</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Attribute</th>
@@ -249,9 +232,9 @@
 <td>The snapshot passed to decide.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <h3 id="methods-2" tabindex="-1">Methods</h3>
-<table>
+<div class="docs-table-scroll" role="region" aria-label="Scroll horizontally for full table"><table>
 <thead>
 <tr>
 <th>Method</th>
@@ -296,19 +279,42 @@
 <td>Axial cube distance between two hexes.</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <hr>
 <p>Commented helpers in source (generate_hex_grid, axial_to_pixel, hex_corners) are not part of the sandbox API.</p>
 
 <nav class="docs-pager" aria-label="Page navigation"><a class="docs-pager-link docs-pager-link--prev" href="../actions/index.html">&larr; Back: actions</a><a class="docs-pager-link docs-pager-link--next" href="../splatbot_data_types/index.html">Next: splatbot_data_types &rarr;</a></nav>
     </main>
     </div>
+<aside class="docs-sidebar" id="docs-sidebar" aria-label="Docs navigation">
+    <div class="docs-sidebar-inner">
+      <a class="docs-sidebar-brand" href="../../../../index.html">Splatbot</a>
+      <div class="docs-search" role="search">
+        <input class="docs-search-input" type="search" placeholder="Search docs…" aria-label="Search documentation">
+        <ul class="docs-search-results" role="listbox" hidden></ul>
+      </div>
+      <ul class="docs-sidebar-list">
+        <li class="docs-sidebar-title">Articles</li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../../../index.html">Quick Start</a></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../actions/index.html">Actions</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../writing-bots/index.html">Writing Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../examples/index.html">Example Bots</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../hex-grid/index.html">Hexagonal Grids</a></div></li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../../debugging/index.html">Advanced Debugging</a></div></li>
+<li class="docs-sidebar-title">API Docs</li>
+<li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../../index.html">Python API reference</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-section"><div class="docs-sidebar-section-head"><a class="docs-sidebar-section-link" href="../index.html">utils</a></div><ul class="docs-sidebar-list docs-sidebar-list--nested"><li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../actions/index.html">actions</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link docs-sidebar-link--active" href="./index.html" aria-current="page">hex_grid</a></li>
+<li class="docs-sidebar-item"><a class="docs-sidebar-link" href="../splatbot_data_types/index.html">splatbot_data_types</a></li></ul></li></ul></li>
+      </ul>
+    </div>
+  </aside>
   </div>
   <script src="../../../../js/bot-runnable.js" defer></script>
   <script src="../../../../js/docs-copy-code.js" defer></script>
   <script src="../../../../js/vendor/minisearch.js" defer></script>
   <script src="../../../../js/docs-search.js" defer></script>
   <script src="../../../../js/docs-toc.js" defer></script>
+  <script src="../../../../js/docs-nav-drawer.js" defer></script>
   <script type="module" src="../../../../js/docs/action-demos.js"></script>
   <script type="module" src="../../../../js/docs/hex-hover-demos.js"></script>
   <script type="module" src="../../../../js/docs/hex-distance-demos.js"></script>
